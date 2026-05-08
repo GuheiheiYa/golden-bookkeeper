@@ -297,6 +297,32 @@
 - 支付宝解析器添加 xlsx 格式解析功能
 - 使用 excel 包解析 xlsx 文件
 
+### 7. 修复交易明细按钮被导航栏遮挡
+**时间**: 2026-05-08 12:00:00
+**原因**: 交易明细页面的编辑和删除按钮被底部导航栏遮挡
+**文件**:
+- `lib/features/transaction/presentation/transaction_list_screen.dart`
+**变更**:
+- 为 _showQuickActions 底部弹窗添加额外的底部边距 (padding: EdgeInsets.only(bottom: 20))
+
+### 8. 修复深色主题字体不明显
+**时间**: 2026-05-08 12:15:00
+**原因**: 深色主题下，交易明细页面的分类、时间、账户字体不明显
+**文件**:
+- `lib/features/transaction/presentation/transaction_list_screen.dart`
+**变更**:
+- 为 subtitle 文本添加 color: Theme.of(context).colorScheme.onSurfaceVariant
+
+### 9. 修复每分钟周期记账不执行
+**时间**: 2026-05-08 12:30:00
+**原因**: 设置每分钟的周期记账规则后，并没有每分钟进行记账
+**文件**:
+- `lib/features/home/presentation/home_screen.dart`
+**变更**:
+- 添加 Timer.periodic 定时器，每分钟检查一次周期记账规则
+- 在 initState 中启动定时器，在 dispose 中取消定时器
+- 添加 dart:async 导入
+
 ---
 
 ## 变更模板

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -24,7 +25,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndExecuteRecurringRules();
     });
+    // 启动定时器，每分钟检查一次周期记账规则
+    _startRecurringTimer();
   }
+
+  @override
+  void dispose() {
+    _recurringTimer?.cancel();
+    super.dispose();
+  }
+
+  /// 定时器，用于定期检查周期记账规则
+  void _startRecurringTimer() {
+    // 每分钟检查一次
+    _recurringTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _checkAndExecuteRecurringRules();
+    });
+  }
+
+  Timer? _recurringTimer;
 
   /// 检查并自动执行到期的周期记账规则
   Future<void> _checkAndExecuteRecurringRules() async {

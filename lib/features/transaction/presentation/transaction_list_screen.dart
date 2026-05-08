@@ -213,7 +213,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                     title: Text(note.isNotEmpty ? note : categoryName),
                                     subtitle: Text(
                                       '$categoryName · $timeStr · $accountName',
-                                      style: Theme.of(context).textTheme.bodySmall,
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      ),
                                     ),
                                     trailing: Text(
                                       '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
@@ -577,7 +579,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.only(bottom: 20, top: 12),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
