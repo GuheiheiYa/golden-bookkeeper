@@ -130,19 +130,16 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                 onTap: () => _showEditCategoryDialog(context, category),
                 child: Row(
                   children: [
-                    ReorderableDragStartListener(
-                      index: index,
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Color(colorValue).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          IconUtils.fromName(iconName),
-                          color: Color(colorValue),
-                          size: 24,
-                        ),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Color(colorValue).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        IconUtils.fromName(iconName),
+                        color: Color(colorValue),
+                        size: 24,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -164,9 +161,15 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                         ],
                       ),
                     ),
-                    Icon(
-                      Icons.drag_handle,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ReorderableDragStartListener(
+                      index: index,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Icon(
+                          Icons.drag_handle,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -388,7 +391,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
                       decoration: BoxDecoration(
                         color: Theme.of(context).scaffoldBackgroundColor,
                         boxShadow: [
@@ -524,7 +527,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
                       decoration: BoxDecoration(
                         color: Theme.of(context).scaffoldBackgroundColor,
                         boxShadow: [

@@ -349,33 +349,36 @@ class AccountListScreen extends ConsumerWidget {
                         }).toList(),
                       ),
                       const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final name = nameController.text.trim();
-                            if (name.isEmpty) {
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final name = nameController.text.trim();
+                              if (name.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('请输入账户名称')),
+                                );
+                                return;
+                              }
+                              final balance = double.tryParse(balanceController.text) ?? 0.0;
+                              final db = AppDatabase();
+                              await db.insertAccount({
+                                'name': name,
+                                'type': selectedType,
+                                'balance': balance,
+                                'icon': selectedIcon,
+                                'color': selectedColor,
+                              });
+                              Navigator.pop(context);
+                              _refreshData(ref);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请输入账户名称')),
+                                const SnackBar(content: Text('账户添加成功')),
                               );
-                              return;
-                            }
-                            final balance = double.tryParse(balanceController.text) ?? 0.0;
-                            final db = AppDatabase();
-                            await db.insertAccount({
-                              'name': name,
-                              'type': selectedType,
-                              'balance': balance,
-                              'icon': selectedIcon,
-                              'color': selectedColor,
-                            });
-                            Navigator.pop(context);
-                            _refreshData(ref);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('账户添加成功')),
-                            );
-                          },
-                          child: const Text('保存'),
+                            },
+                            child: const Text('保存'),
+                          ),
                         ),
                       ),
                     ],
@@ -476,31 +479,34 @@ class AccountListScreen extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final name = nameController.text.trim();
-                          if (name.isEmpty) {
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final name = nameController.text.trim();
+                            if (name.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('请输入账户名称')),
+                              );
+                              return;
+                            }
+                            final balance = double.tryParse(balanceController.text) ?? 0.0;
+                            final db = AppDatabase();
+                            await db.updateAccount(account['id'] as int, {
+                              'name': name,
+                              'type': selectedType,
+                              'balance': balance,
+                            });
+                            Navigator.pop(context);
+                            _refreshData(ref);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('请输入账户名称')),
+                              const SnackBar(content: Text('账户更新成功')),
                             );
-                            return;
-                          }
-                          final balance = double.tryParse(balanceController.text) ?? 0.0;
-                          final db = AppDatabase();
-                          await db.updateAccount(account['id'] as int, {
-                            'name': name,
-                            'type': selectedType,
-                            'balance': balance,
-                          });
-                          Navigator.pop(context);
-                          _refreshData(ref);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('账户更新成功')),
-                          );
-                        },
-                        child: const Text('保存'),
+                          },
+                          child: const Text('保存'),
+                        ),
                       ),
                     ),
                   ],

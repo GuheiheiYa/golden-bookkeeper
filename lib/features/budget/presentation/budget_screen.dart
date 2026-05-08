@@ -505,32 +505,35 @@ class BudgetScreen extends ConsumerWidget {
                       },
                     ),
                     const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final amount = double.tryParse(amountController.text);
-                          if (amount == null || amount <= 0) {
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final amount = double.tryParse(amountController.text);
+                            if (amount == null || amount <= 0) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('请输入有效的预算金额')),
+                              );
+                              return;
+                            }
+                            final db = AppDatabase();
+                            await db.insertBudget({
+                              'category_id': selectedCategoryId,
+                              'amount': amount,
+                              'period_type': selectedPeriod,
+                              'year': year,
+                              'month': selectedPeriod == 'monthly' ? month : null,
+                            });
+                            Navigator.pop(context);
+                            _refreshData(ref);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('请输入有效的预算金额')),
+                              const SnackBar(content: Text('预算添加成功')),
                             );
-                            return;
-                          }
-                          final db = AppDatabase();
-                          await db.insertBudget({
-                            'category_id': selectedCategoryId,
-                            'amount': amount,
-                            'period_type': selectedPeriod,
-                            'year': year,
-                            'month': selectedPeriod == 'monthly' ? month : null,
-                          });
-                          Navigator.pop(context);
-                          _refreshData(ref);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('预算添加成功')),
-                          );
-                        },
-                        child: const Text('保存'),
+                          },
+                          child: const Text('保存'),
+                        ),
                       ),
                     ),
                   ],
@@ -611,28 +614,31 @@ class BudgetScreen extends ConsumerWidget {
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final amount = double.tryParse(amountController.text);
-                      if (amount == null || amount <= 0) {
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final amount = double.tryParse(amountController.text);
+                        if (amount == null || amount <= 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('请输入有效的预算金额')),
+                          );
+                          return;
+                        }
+                        final db = AppDatabase();
+                        await db.updateBudget(budget['id'] as int, {
+                          'amount': amount,
+                        });
+                        Navigator.pop(context);
+                        _refreshData(ref);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('请输入有效的预算金额')),
+                          const SnackBar(content: Text('预算更新成功')),
                         );
-                        return;
-                      }
-                      final db = AppDatabase();
-                      await db.updateBudget(budget['id'] as int, {
-                        'amount': amount,
-                      });
-                      Navigator.pop(context);
-                      _refreshData(ref);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('预算更新成功')),
-                      );
-                    },
-                    child: const Text('保存'),
+                      },
+                      child: const Text('保存'),
+                    ),
                   ),
                 ),
               ],

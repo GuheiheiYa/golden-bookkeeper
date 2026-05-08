@@ -234,35 +234,38 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
                       }).toList(),
                     ),
                     const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final name = nameController.text.trim();
-                          if (name.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('请输入标签名称')),
-                            );
-                            return;
-                          }
-                          final db = AppDatabase();
-                          try {
-                            await db.insertTag({
-                              'name': name,
-                              'color': selectedColor,
-                            });
-                            Navigator.pop(context);
-                            _refreshData();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('标签添加成功')),
-                            );
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('标签名称已存在')),
-                            );
-                          }
-                        },
-                        child: const Text('保存'),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final name = nameController.text.trim();
+                            if (name.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('请输入标签名称')),
+                              );
+                              return;
+                            }
+                            final db = AppDatabase();
+                            try {
+                              await db.insertTag({
+                                'name': name,
+                                'color': selectedColor,
+                              });
+                              Navigator.pop(context);
+                              _refreshData();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('标签添加成功')),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('标签名称已存在')),
+                              );
+                            }
+                          },
+                          child: const Text('保存'),
+                        ),
                       ),
                     ),
                   ],
@@ -365,35 +368,38 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
                       }).toList(),
                     ),
                     const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final name = nameController.text.trim();
-                          if (name.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('请输入标签名称')),
-                            );
-                            return;
-                          }
-                          final db = AppDatabase();
-                          try {
-                            await db.updateTag(tag['id'] as int, {
-                              'name': name,
-                              'color': selectedColor,
-                            });
-                            Navigator.pop(context);
-                            _refreshData();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('标签更新成功')),
-                            );
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('标签名称已存在')),
-                            );
-                          }
-                        },
-                        child: const Text('保存'),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final name = nameController.text.trim();
+                            if (name.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('请输入标签名称')),
+                              );
+                              return;
+                            }
+                            final db = AppDatabase();
+                            try {
+                              await db.updateTag(tag['id'] as int, {
+                                'name': name,
+                                'color': selectedColor,
+                              });
+                              Navigator.pop(context);
+                              _refreshData();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('标签更新成功')),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('标签名称已存在')),
+                              );
+                            }
+                          },
+                          child: const Text('保存'),
+                        ),
                       ),
                     ),
                   ],

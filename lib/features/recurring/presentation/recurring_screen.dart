@@ -451,7 +451,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                               }
 
                               final db = AppDatabase();
-                              await db.insertRecurringRule({
+                              final ruleId = await db.insertRecurringRule({
                                 'title': title,
                                 'amount': amount,
                                 'is_expense': isExpense ? 1 : 0,
@@ -464,6 +464,13 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                                 'start_date': startDate.toIso8601String(),
                                 'is_active': 1,
                               });
+
+                              // 对于高频规则（每分钟、每小时），立即执行一次
+                              if (selectedFrequency == 'minutely' ||
+                                  selectedFrequency == 'hourly') {
+                                await db.executeDueRecurringRules();
+                              }
+
                               Navigator.pop(context);
                               _refreshData();
                               ScaffoldMessenger.of(context).showSnackBar(

@@ -323,6 +323,71 @@
 - 在 initState 中启动定时器，在 dispose 中取消定时器
 - 添加 dart:async 导入
 
+### 10. 优化滑动操作样式
+**时间**: 2026-05-08 14:00:00
+**原因**: 交易明细左右滑动编辑/删除时，背景色占据了整行，视觉效果不佳
+**文件**:
+- `lib/features/transaction/presentation/transaction_list_screen.dart`
+**变更**:
+- Dismissible 背景添加 margin (horizontal: 16, vertical: 4)
+- 背景添加圆角 (borderRadius: BorderRadius.circular(12))
+- 编辑背景显示在左侧，删除背景显示在右侧
+
+### 11. 创建消息通知服务
+**时间**: 2026-05-08 14:15:00
+**原因**: 需要一个可复用的消息通知系统，用于首页显示各种通知（周期记账执行、预算提醒等）
+**文件**:
+- `lib/core/services/notification_service.dart` (新建)
+**变更**:
+- 创建 NotificationService 单例服务
+- 支持 info、success、warning、error 四种消息类型
+- 支持消息监听器模式
+- 最多保留 50 条消息
+- 提供 unreadCount 属性
+
+### 12. 首页集成消息通知
+**时间**: 2026-05-08 14:30:00
+**原因**: 首页需要显示通知消息，特别是周期记账执行通知
+**文件**:
+- `lib/features/home/presentation/home_screen.dart`
+**变更**:
+- 导入 NotificationService
+- 周期记账执行后通过 NotificationService 发送通知
+- AppBar 添加通知铃铛图标，显示未读数量角标
+- 点击铃铛显示通知列表底部弹窗
+- 通知列表支持点击跳转和滑动删除
+
+### 13. 修复所有页面弹窗按钮被遮挡
+**时间**: 2026-05-08 14:45:00
+**原因**: 多个页面的底部弹窗保存按钮被中间凸起的记账按钮遮挡
+**文件**:
+- `lib/features/budget/presentation/budget_screen.dart`
+- `lib/features/account/presentation/account_list_screen.dart`
+- `lib/features/tag/presentation/tag_list_screen.dart`
+**变更**:
+- 预算页面添加/编辑对话框保存按钮添加底部边距 (padding: EdgeInsets.only(bottom: 20))
+- 账户页面添加/编辑对话框保存按钮添加底部边距
+- 标签页面添加/编辑对话框保存按钮添加底部边距
+
+### 14. 优化分类拖拽排序交互
+**时间**: 2026-05-08 15:00:00
+**原因**: 分类排序需要长按才能拖动，不够直观
+**文件**:
+- `lib/features/category/presentation/category_list_screen.dart`
+**变更**:
+- 在分类列表项右侧添加拖拽手柄图标 (Icons.drag_handle)
+- 使用 ReorderableDragStartListener 包装拖拽手柄
+- 触摸右侧手柄即可拖动，长按整行拖动也保留
+
+### 15. 修复高频周期记账立即执行
+**时间**: 2026-05-08 15:15:00
+**原因**: 创建每分钟/每小时的周期记账规则后，需要等到下一个检查周期才会执行
+**文件**:
+- `lib/features/recurring/presentation/recurring_screen.dart`
+**变更**:
+- 创建高频规则（每分钟/每小时）后立即调用 executeDueRecurringRules
+- 确保用户创建规则后马上能看到效果
+
 ---
 
 ## 变更模板

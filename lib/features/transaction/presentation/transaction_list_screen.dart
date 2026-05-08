@@ -179,13 +179,21 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                 background: Container(
                                   alignment: Alignment.centerLeft,
                                   padding: const EdgeInsets.only(left: 20),
-                                  color: AppColors.primary,
+                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   child: const Icon(Icons.edit, color: Colors.white),
                                 ),
                                 secondaryBackground: Container(
                                   alignment: Alignment.centerRight,
                                   padding: const EdgeInsets.only(right: 20),
-                                  color: AppColors.error,
+                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.error,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   child: const Icon(Icons.delete, color: Colors.white),
                                 ),
                                 confirmDismiss: (direction) async {

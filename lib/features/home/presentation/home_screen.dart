@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../app/di/providers.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../budget/presentation/budget_screen.dart';
@@ -18,6 +19,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final NotificationService _notificationService = NotificationService();
+
   @override
   void initState() {
     super.initState();
@@ -52,23 +55,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (executedIds.isNotEmpty && mounted) {
       // 刷新交易数据
       ref.read(transactionRefreshProvider.notifier).state++;
-      // 显示提示
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('已自动执行 ${executedIds.length} 条周期记账'),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          action: SnackBarAction(
-            label: '查看',
-            textColor: Colors.white,
-            onPressed: () {
-              GoRouter.of(context).go('/transactions');
-            },
-          ),
-        ),
+      // 发送通知消息
+      _notificationService.success(
+        title: '周期记账执行',
+        message: '已自动执行 ${executedIds.length} 条周期记账',
+        onTap: () {
+          GoRouter.of(context).go('/transactions');
+        },
       );
     }
   }
@@ -110,9 +103,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () {},
+              Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    onPressed: () => _showNotificationList(context),
+                  ),
+                  if (_notificationService.unreadCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '${_notificationService.unreadCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ],
           ),
@@ -641,5 +662,122 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
     );
+  }
+
+  /// 显示消息通知列表
+  void _showNotificationList(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.75,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '消息通知',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        if (_notificationService.notifications.isNotEmpty)
+                          TextButton(
+                            onPressed: () {
+                              _notificationService.clearAll();
+                              setModalState(() {});
+                            },
+                            child: const Text('清空'),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Flexible(
+                    child: _notificationService.notifications.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.notifications_off_outlined,
+                                  size: 64,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant
+                                      .withOpacity(0.5),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  '暂无消息',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _notificationService.notifications.length,
+                            itemBuilder: (context, index) {
+                              final notification =
+                                  _notificationService.notifications[index];
+                              return ListTile(
+                                leading: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: notification.color.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    notification.icon,
+                                    color: notification.color,
+                                    size: 20,
+                                  ),
+                                ),
+                                title: Text(notification.title),
+                                subtitle: Text(notification.message),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.close, size: 16),
+                                  onPressed: () {
+                                    _notificationService.removeNotification(
+                                        notification.id);
+                                    setModalState(() {});
+                                  },
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  notification.onTap?.call();
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    ).whenComplete(() {
+      setState(() {});
+    });
   }
 }
