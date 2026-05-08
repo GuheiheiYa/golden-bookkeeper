@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(flutter *)",
+      "Bash(where.exe flutter *)",
+      "Read(//c/flutter/bin/**)",
+      "Read(//c/src/flutter/bin/**)",
+      "Read(//c//**)",
+      "Bash(cmd.exe /c \"echo %PATH%\")",
+      "Read(//d/flutter/bin/**)",
+      "Read(//e/flutter/bin/**)",
+      "Read(//c/Users/Administrator/**)",
+      "Bash(powershell.exe -Command \"Get-Command flutter -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")",
+      "Bash(powershell.exe -Command \"Get-ChildItem -Path 'C:\\\\','D:\\\\' -Filter 'flutter.bat' -Recurse -Depth 3 -ErrorAction SilentlyContinue | Select-Object -First 3 -ExpandProperty FullName\")",
+      "Bash(\"D:\\\\office\\\\flutter\\\\bin\\\\flutter.bat\" pub *)",
+      "Bash(\"D:/office/flutter/bin/flutter.bat\" pub *)",
+      "Bash(\"D:/office/flutter/bin/flutter.bat\" build *)",
+      "Bash(\"D:/office/flutter/bin/dart.bat\" analyze *)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Bash(\"D:/office/flutter/bin/flutter.bat\" devices *)",
+      "Bash(\"D:/office/flutter/bin/flutter.bat\" create *)",
+      "Bash(python3 -c ' *)",
+      "Bash(powershell.exe -Command ' *)",
+      "Bash(\"D:/office/flutter/bin/dart.bat\" compile *)",
+      "Bash(\"D:/office/flutter/bin/flutter.bat\" config *)",
+      "Bash(\"D:/office/flutter/bin/flutter.bat\" run *)",
+      "Bash(powershell.exe *)",
+      "Bash(\"D:/office/flutter/bin/flutter.bat\" doctor *)",
+      "Bash(D:/office/Android/SDK/platform-tools/adb.exe devices *)",
+      "Bash(\"D:/office/Android/SDK/platform-tools/adb.exe\" kill-server *)",
+      "Bash(\"D:/office/Android/SDK/platform-tools/adb.exe\" start-server *)",
+      "Bash(\"D:/office/Android/SDK/platform-tools/adb.exe\" devices *)"
+    ]
+  }
+}

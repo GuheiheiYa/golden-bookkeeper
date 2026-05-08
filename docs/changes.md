@@ -1,0 +1,240 @@
+# 变更记录
+
+本文档记录每次修改的详细内容，包括修改原因、修改文件和具体变更。
+
+---
+
+## 2026-05-06
+
+### 1. 项目初始化
+- 创建 Flutter 项目
+- 配置 pubspec.yaml 依赖
+- 配置 Android 构建环境（Gradle 镜像、SDK 路径）
+
+### 2. 核心功能实现
+- 实现数据库层（8 张表，完整 CRUD）
+- 实现主题系统（Claude 风格配色）
+- 实现路由系统（4 Tab 导航）
+- 实现首页、记账、统计、设置页面
+
+### 3. 高级功能实现
+- 标签系统
+- 多币种支持
+- 统计报表（饼图、折线图、柱状图）
+- 预算管理
+- 周期记账
+- 数据导出（CSV/Excel）
+- 账单导入接口
+
+### 4. UI/UX 优化
+- 深色/浅色模式切换
+- 滑动删除/编辑
+- 空状态提示
+- 加载动画
+
+### 5. Bug 修复
+- 修复 add_transaction_screen.dart 括号不匹配
+- 修复 file_picker v1 embedding 错误
+- 修复非 ASCII 路径问题
+- 修复主题模式样式错位
+
+---
+
+## 2026-05-07 (中午)
+
+### 1. 修复分类管理 bug
+**原因**: 分类管理页面报错 "Every item of ReorderableListView must have a key"
+**文件**: `lib/features/category/presentation/category_list_screen.dart`
+**变更**:
+- 将 `key: ValueKey(category['id'])` 从 `AppCard` 移到外层 `Container`
+- 因为 `.animate()` 包装后会丢失 key，ReorderableListView 要求最外层组件必须有 key
+
+### 2. 修复分类排序无法保存
+**原因**: 分类拖拽排序后刷新列表会恢复原样
+**文件**:
+- `lib/app/di/providers.dart`
+- `lib/features/category/presentation/category_list_screen.dart`
+**变更**:
+- 添加 `categoryRefreshProvider` 刷新触发器
+- `expenseCategoriesProvider` 和 `incomeCategoriesProvider` 监听该触发器
+- `_refreshData()` 改为递增触发器状态而非直接 invalidate
+
+### 3. 升级图标库
+**原因**: 原有图标数量少，没有分类，不够美观
+**文件**: `lib/shared/utils/icon_utils.dart`
+**变更**:
+- 新增 `IconCategory` 枚举（餐饮、交通、购物、娱乐、居住、医疗、教育、工作、金融、旅行、宠物、其他）
+- 新增 `IconInfo` 类（包含 name、icon、label、category）
+- 图标数量从 20+ 扩展到 90+，按分类分组
+- 新增 `iconsByCategory` getter 返回按分类分组的图标
+- 新增 `getCategoryName()` 方法返回分类中文名
+
+### 4. 优化分类图标选择器
+**原因**: 原有图标选择器是平铺显示，不好找
+**文件**: `lib/features/category/presentation/category_list_screen.dart`
+**变更**:
+- 提取 `_buildIconPicker()` 组件方法，图标按分类分组显示
+- 提取 `_buildColorPicker()` 组件方法
+- 添加和编辑分类对话框复用这两个组件
+- 图标添加 Tooltip 显示中文名称
+
+### 5. 修复备注弹窗键盘溢出
+**原因**: 编辑备注时键盘弹出会导致弹窗溢出屏幕
+**文件**: `lib/features/transaction/presentation/add_transaction_screen.dart`
+**变更**:
+- 将 `showDialog` 改为 `showModalBottomSheet`
+- 使用 `isScrollControlled: true` + `MediaQuery.of(context).viewInsets.bottom`
+
+### 6. 日期选择器中文化
+**原因**: 日期选择器显示英文
+**文件**:
+- `lib/app/app.dart`
+- `lib/pubspec.yaml`
+- `lib/features/transaction/presentation/add_transaction_screen.dart`
+**变更**:
+- 添加 `flutter_localizations` 依赖
+- 配置 `localizationsDelegates`、`supportedLocales`、`locale`
+- 日期选择器添加中文参数（helpText、cancelText、confirmText 等）
+
+### 7. 修复提示框不自动消失
+**原因**: 使用 showDialog 显示的提示框无法自动关闭
+**文件**:
+- `lib/features/transaction/presentation/add_transaction_screen.dart`
+- `lib/features/transaction/presentation/transaction_list_screen.dart`
+**变更**:
+- 改用 `OverlayEntry` 实现提示框
+- 新增 `_ToastWidget` 和 `_ListToastWidget` 组件
+- 使用 `AnimationController` 实现缩放和淡入动画
+- 1.5 秒后自动移除 OverlayEntry
+
+### 8. 优化数字键盘布局
+**原因**: `00` 按钮不常用，日期选择需要更快捷
+**文件**: `lib/features/transaction/presentation/add_transaction_screen.dart`
+**变更**:
+- 去掉 `00` 按钮
+- 添加日期选择按钮（显示 📅 和当前日期）
+- 点击直接打开日期选择器
+
+### 9. 实现计算器功能
+**原因**: +/- 按钮点击后不显示计算过程
+**文件**: `lib/features/transaction/presentation/add_transaction_screen.dart`
+**变更**:
+- 添加 `_firstOperand`、`_pendingOperator`、`_waitingForSecondOperand` 状态
+- 按 +/- 后在金额上方显示表达式（如 `10 +`）
+- 输入第二个数字时更新显示
+- 按完成时自动计算结果
+- 支持连续计算
+
+### 10. 修复首页 FAB 遮挡问题
+**原因**: "记一笔"浮动按钮挡住最后一条交易的金额
+**文件**: `lib/features/home/presentation/home_screen.dart`
+**变更**:
+- 在最近交易列表底部添加 80px 留白
+
+### 11. 修复分类对话框保存按钮位置
+**原因**: 保存按钮在最底部，需要滚动才能看到
+**文件**: `lib/features/category/presentation/category_list_screen.dart`
+**变更**:
+- 添加/编辑分类对话框改为上下布局
+- 内容区域可滚动，最大高度限制为屏幕 75%
+- 保存按钮固定在底部，始终可见
+
+### 12. 创建 update-docs skill
+**原因**: 需要规范文档更新流程
+**文件**: `.claude/skills/update-docs/SKILL.md`
+**变更**:
+- 创建文档更新技能，支持 `/update-docs` 命令
+- 支持 features、changelog、requirements、all 四种类型
+
+---
+
+## 2026-05-07 (下午)
+
+### 1. 实现首页预算功能
+**时间**: 2026-05-07 15:30:00
+**原因**: 首页预算进度卡片只有展示作用，没有实际功能
+**文件**:
+- `lib/features/home/presentation/home_screen.dart`
+**变更**:
+- 导入 budget_screen.dart 中的 budgetUsageProvider
+- 替换硬编码的预算数据为真实数据库数据
+- 显示总预算、已用金额、剩余金额和进度百分比
+- 超支时显示红色警告，正常使用时显示绿色/紫色
+- 暂无预算时显示空状态提示和"去设置"按钮
+- "查看详情"按钮跳转到预算管理页面
+- 快捷操作中"预算"和"周期"按钮也能正确跳转
+
+### 2. 修复日期筛选 bug
+**时间**: 2026-05-07 15:45:00
+**原因**: 选择日期范围时，选当天日期无法筛选出当天的交易记录
+**文件**:
+- `lib/app/di/providers.dart`
+**变更**:
+- 在 groupedTransactionsProvider 中修正结束日期为当天 23:59:59
+- 确保当天交易能被正确筛选到
+
+### 3. 优化筛选面板布局
+**时间**: 2026-05-07 15:50:00
+**原因**: "应用筛选"按钮需要滚动到底部才能看到
+**文件**:
+- `lib/features/transaction/presentation/transaction_list_screen.dart`
+**变更**:
+- 筛选面板改为 Column 布局，内容区域可滚动
+- "应用筛选"按钮固定在底部，始终可见
+- 添加最大高度限制（屏幕 75%）
+
+### 4. 优化筛选标签样式
+**时间**: 2026-05-07 15:55:00
+**原因**: 清空和筛选条件的边框太突兀，不够美观
+**文件**:
+- `lib/features/transaction/presentation/transaction_list_screen.dart`
+**变更**:
+- 移除 Chip 和 ActionChip 组件
+- 使用自定义 Container 实现筛选标签
+- 圆角胶囊样式，淡紫色背景
+- 图标和文字使用主题色，更加协调
+
+### 5. 新增长按快捷操作
+**时间**: 2026-05-07 16:10:00
+**原因**: 需要更便捷的方式编辑和删除交易记录
+**文件**:
+- `lib/features/transaction/presentation/transaction_list_screen.dart`
+**变更**:
+- 为交易列表项添加 GestureDetector 包装
+- 长按 1-2 秒弹出快捷操作底部弹窗
+- 显示交易信息摘要（收支类型、备注、金额）
+- 提供编辑和删除两个操作按钮
+- 使用 ListTile 样式，带图标和说明文字
+
+### 6. 更新 update-docs skill
+**时间**: 2026-05-07 16:15:00
+**原因**: 原有 skill 描述不够清晰，不易自动触发
+**文件**:
+- `.claude/skills/update-docs/SKILL.md`
+**变更**:
+- 重写 skill 描述，明确自动触发规则
+- 简化文档结构，突出核心规则
+- 添加触发时机说明
+- 添加版本号规则
+
+### 7. 交易明细页添加记账按钮
+**时间**: 2026-05-07 16:30:00
+**原因**: 交易明细页面没有快速添加入口
+**文件**:
+- `lib/features/transaction/presentation/transaction_list_screen.dart`
+**变更**:
+- 在 AppBar 添加添加按钮
+- 点击跳转到记账页面
+- 返回后自动刷新列表
+
+---
+
+## 变更模板
+
+### YYYY-MM-DD
+
+#### 变更标题
+**原因**: 为什么要修改
+**文件**: 修改了哪些文件
+**变更**:
+- 具体修改内容

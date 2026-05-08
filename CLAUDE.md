@@ -1,0 +1,193 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+**项目名称**: 记账本 (Bookkeeper)
+**版本**: 1.0.0
+**平台**: Android (Flutter 跨平台)
+**描述**: 一个功能完整、界面美观的记账 APP，采用 Claude 风格设计（紫色/靛蓝主色调）
+
+## 技术栈
+
+| 组件 | 选择 | 理由 |
+|------|------|------|
+| 框架 | Flutter | 跨平台，一套代码 |
+| 状态管理 | Riverpod | 编译时安全，与 drift Stream 无缝配合 |
+| 数据库 | drift (SQLite ORM) | 类型安全查询，Stream 响应式 |
+| 路由 | go_router | 声明式路由，支持嵌套导航 |
+| 图表 | fl_chart | 饼图/折线图/柱状图全支持 |
+| 动画 | flutter_animate | 声明式链式动画 |
+
+## 开发命令
+
+### 环境准备
+```bash
+# 检查 Flutter 环境
+flutter doctor
+
+# 获取依赖
+flutter pub get
+
+# 生成代码 (drift 和 riverpod)
+dart run build_runner build --delete-conflicting-outputs
+
+# 监听代码变化并自动生成
+dart run build_runner watch
+```
+
+### 运行和调试
+```bash
+# 运行应用
+flutter run
+
+# 运行测试
+flutter test
+
+# 运行单个测试
+flutter test test/path/to/test.dart
+
+# 构建 APK
+flutter build apk --release
+```
+
+### 代码质量
+```bash
+# 代码分析
+flutter analyze
+
+# 格式化代码
+dart format lib/
+```
+
+## 项目结构
+
+```
+lib/
+├── main.dart                          # 应用入口
+├── app/
+│   ├── app.dart                       # MaterialApp 配置
+│   ├── router/app_router.dart         # go_router 路由定义
+│   └── di/providers.dart              # Riverpod Provider 注册
+├── core/
+│   ├── database/                      # drift 数据库
+│   │   ├── app_database.dart          # 数据库定义
+│   │   ├── tables/                    # 表定义
+│   │   └── daos/                      # 数据访问对象
+│   ├── theme/                         # 主题系统
+│   ├── constants/                     # 常量定义
+│   ├── utils/                         # 工具类
+│   └── services/                      # 服务层
+├── features/                          # 功能模块
+│   ├── home/                          # 首页
+│   ├── transaction/                   # 记账核心
+│   ├── category/                      # 分类管理
+│   ├── statistics/                    # 统计报表
+│   ├── budget/                        # 预算管理
+│   ├── recurring/                     # 周期记账
+│   ├── account/                       # 账户管理
+│   ├── tag/                           # 标签管理
+│   ├── import/                        # 账单导入
+│   └── settings/                      # 设置
+└── shared/                            # 共享组件
+    ├── widgets/                       # 通用组件
+    └── mixins/                        # 混入
+```
+
+## 数据库表结构
+
+| 表名 | 描述 |
+|------|------|
+| accounts | 账户表（现金、银行卡、支付宝、微信） |
+| categories | 分类表（支持二级分类） |
+| transactions | 交易记录表（核心表） |
+| tags | 标签表 |
+| transaction_tags | 交易-标签关联表 |
+| budgets | 预算表 |
+| recurring_rules | 周期记账规则表 |
+| exchange_rates | 汇率缓存表 |
+| import_records | 导入记录表 |
+| import_duplicates | 重复记录检测表 |
+
+## Claude 风格 UI 设计
+
+- **主色调**: `#7C3AED` (紫色) + `#6366F1` (靛蓝)
+- **卡片**: `BorderRadius.circular(16)`，微弱阴影
+- **暗色模式背景**: `#0F0F23` 或 `#1A1A2E`
+- **字体**: Inter (英文) + Noto Sans SC (中文)
+- **动画**: flutter_animate 链式调用
+
+## 文档管理
+
+### 文档位置
+- 需求文档: `docs/requirements.md`
+- 功能文档: `docs/features.md`
+- 版本日志: `docs/changelog.md`
+
+### 更新文档
+使用 `/update-docs` skill 自动更新文档：
+```
+/update-docs features 新增了标签筛选功能
+/update-docs changelog v1.1.0 新增标签筛选
+/update-docs all 完成了预算管理模块
+```
+
+## 开发规范
+
+### 代码规范
+- 使用 Dart 官方代码风格
+- 使用 Riverpod 进行状态管理
+- 使用 drift 进行数据库操作
+- 使用 go_router 进行路由管理
+
+### 命名规范
+- 文件名: snake_case.dart
+- 类名: PascalCase
+- 变量/函数: camelCase
+- 常量: camelCase (Dart 推荐)
+
+### 提交规范
+- feat: 新功能
+- fix: 修复问题
+- docs: 文档更新
+- style: 代码格式调整
+- refactor: 代码重构
+- test: 测试相关
+- chore: 构建/工具相关
+
+## 重要说明
+
+### 代码生成
+- drift 和 riverpod 需要代码生成
+- 修改表定义后必须运行 `dart run build_runner build`
+- `.g.dart` 文件是自动生成的，不要手动修改
+
+### 数据库迁移
+- 修改表结构需要更新 schemaVersion
+- 在 migration 中添加迁移逻辑
+- 测试迁移脚本的正确性
+
+### 主题切换
+- 使用 Riverpod 管理主题状态
+- 支持深色/浅色/跟随系统三种模式
+- 主题持久化到 SharedPreferences
+
+## 常见问题
+
+### Q: 如何添加新的数据库表？
+A: 在 `core/database/tables/` 中创建表定义，然后在 `app_database.dart` 中注册，最后运行代码生成。
+
+### Q: 如何添加新的功能模块？
+A: 在 `features/` 中创建新的模块目录，包含 `presentation/`、`domain/`、`providers/` 子目录。
+
+### Q: 如何更新文档？
+A: 使用 `/update-docs` skill，指定文档类型和更新内容。
+
+## 相关资源
+
+- [Flutter 官方文档](https://flutter.dev)
+- [drift 文档](https://drift.simonbinder.eu)
+- [Riverpod 文档](https://riverpod.dev)
+- [go_router 文档](https://pub.dev/packages/go_router)
+- [fl_chart 文档](https://pub.dev/packages/fl_chart)
