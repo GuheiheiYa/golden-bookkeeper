@@ -552,23 +552,30 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
           continue;
         }
 
-        // 自动匹配分类
-        int categoryId = tx.isExpense
-            ? (expenseCategories.isNotEmpty
-                ? expenseCategories.last['id'] as int
-                : 8) // 默认"其他"分类
-            : (incomeCategories.isNotEmpty
-                ? incomeCategories.last['id'] as int
-                : 12); // 默认"其他"分类
+        // 自动匹配分类 - 固定使用"其他"作为默认分类
+        final defaultCategories = tx.isExpense ? expenseCategories : incomeCategories;
+        int categoryId = _findOtherCategoryId(defaultCategories, tx.isExpense);
 
-        // 尝试根据描述关键词匹配分类
-        if (tx.category != null) {
+        // 1. 先根据来源分类字段匹配
+        if (tx.category != null && tx.category!.isNotEmpty) {
           final matchedCategory = _matchCategory(
             tx.category!,
-            tx.isExpense ? expenseCategories : incomeCategories,
+            defaultCategories,
           );
           if (matchedCategory != null) {
             categoryId = matchedCategory;
+          }
+        }
+
+        // 2. 如果分类字段没匹配到，再根据描述匹配
+        if (categoryId == _findOtherCategoryId(defaultCategories, tx.isExpense) &&
+            tx.description.isNotEmpty) {
+          final matchedByDesc = _matchCategoryByDescription(
+            tx.description,
+            defaultCategories,
+          );
+          if (matchedByDesc != null) {
+            categoryId = matchedByDesc;
           }
         }
 
@@ -620,24 +627,63 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
 
   /// 根据关键词匹配分类
   int? _matchCategory(String sourceCategory, List<Map<String, dynamic>> categories) {
-    // 关键词到分类名的映射
+    // 关键词到分类名的映射（覆盖微信/支付宝真实分类和商户关键词）
     final keywordMap = <String, List<String>>{
-      '餐饮': ['餐饮', '美食', '食品', '外卖', '餐饮美食', '美团', '饿了么'],
-      '交通': ['交通', '出行', '打车', '地铁', '公交', '滴滴', '加油'],
-      '购物': ['购物', '商城', '淘宝', '京东', '拼多多', '天猫'],
-      '娱乐': ['娱乐', '游戏', '电影', 'KTV', '旅游'],
-      '居住': ['居住', '房租', '水电', '物业', '家居'],
-      '医疗': ['医疗', '医院', '药房', '药店'],
-      '教育': ['教育', '培训', '课程', '书店'],
-      '工资': ['工资', '薪资', '薪酬'],
-      '奖金': ['奖金', '奖金'],
-      '投资': ['投资', '理财', '基金', '股票'],
+      '餐饮': [
+        '餐饮', '美食', '食品', '外卖', '餐饮美食', '美团', '饿了么',
+        '商户消费', '餐饮', '小吃', '快餐', '火锅', '烧烤', '面馆',
+        '奶茶', '咖啡', '饮品', '甜品', '蛋糕', '面包', '超市',
+        '便利店', '水果', '生鲜', '菜市场', '食堂', '麦当劳', '肯德基',
+        '星巴克', '瑞幸', '海底捞', '必胜客', '汉堡', '披萨',
+        '早餐', '午餐', '晚餐', '夜宵', '零食', '饮料',
+      ],
+      '交通': [
+        '交通', '出行', '打车', '地铁', '公交', '滴滴', '加油',
+        '出租', '网约车', '高铁', '火车', '飞机', '机票', '火车票',
+        'ETC', '停车', '过路费', '汽车', '保养', '维修', '洗车',
+        '共享单车', '哈啰', '青桔', '美团单车', 'T3出行', '曹操出行',
+        '航空', '铁路', '客运', '船票', '摆渡',
+      ],
+      '购物': [
+        '购物', '商城', '淘宝', '京东', '拼多多', '天猫', '苏宁',
+        '唯品会', '闲鱼', '转转', '得物', '1688', '抖音商城',
+        '服装', '鞋', '包', '配饰', '化妆品', '护肤品', '日用',
+        '百货', '家居', '数码', '电器', '手机', '电脑',
+      ],
+      '娱乐': [
+        '娱乐', '游戏', '电影', 'KTV', '旅游', '景区', '门票',
+        '酒店', '民宿', '旅行', '签证', '演出', '演唱会', '话剧',
+        '酒吧', '网咖', '电竞', '剧本杀', '密室', '桌游',
+        '视频会员', '音乐会员', '爱奇艺', '优酷', '腾讯视频', '网易云',
+        'Spotify', 'Apple', 'Steam', 'PlayStation', 'Nintendo',
+      ],
+      '居住': [
+        '居住', '房租', '水电', '物业', '家居', '装修', '家具',
+        '家电', '燃气', '电费', '水费', '暖气', '宽带', '网费',
+        '房贷', '房租', '中介', '保洁', '搬家', '维修',
+      ],
+      '医疗': [
+        '医疗', '医院', '药房', '药店', '诊所', '体检', '挂号',
+        '牙科', '眼科', '皮肤', '中医', '保健', '维生素', '口罩',
+        '保险', '社保', '医保',
+      ],
+      '教育': [
+        '教育', '培训', '课程', '书店', '图书', '文具', '考试',
+        '学费', '网课', '辅导', '考研', '留学', '英语', '驾校',
+      ],
+      '通讯': [
+        '话费', '流量', '充值', '中国移动', '中国联通', '中国电信',
+        '移动', '联通', '电信', '手机充值',
+      ],
+      '工资': ['工资', '薪资', '薪酬', '薪水', '收入'],
+      '奖金': ['奖金', '年终奖', '绩效', '提成', '补贴'],
+      '投资': ['投资', '理财', '基金', '股票', '债券', '利息', '分红', '收益'],
+      '红包': ['红包', '转账'],
     };
 
     for (final entry in keywordMap.entries) {
       for (final keyword in entry.value) {
         if (sourceCategory.contains(keyword)) {
-          // 查找对应分类
           for (final cat in categories) {
             if (cat['name'] == entry.key) {
               return cat['id'] as int;
@@ -648,5 +694,52 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     }
 
     return null;
+  }
+
+  /// 根据描述匹配分类（用于微信等没有分类字段的来源）
+  int? _matchCategoryByDescription(String description, List<Map<String, dynamic>> categories) {
+    final descLower = description.toLowerCase();
+
+    final descKeywordMap = <String, List<String>>{
+      '餐饮': ['餐', '饭', '食', '吃', '喝', '茶', '咖啡', '奶茶', '火锅', '烧烤',
+              '面', '粉', '饺', '包', '饼', '鸡', '鱼', '肉', '菜', '果',
+              '美团', '饿了么', '麦当劳', '肯德基', '星巴克', '瑞幸', '海底捞'],
+      '交通': ['打车', '滴滴', '地铁', '公交', '出租', '加油', '停车', '高速',
+              '火车', '高铁', '飞机', '机票', '车', '行', '旅'],
+      '购物': ['淘宝', '京东', '拼多多', '天猫', '苏宁', '超市', '商场',
+              '服装', '鞋', '包', '化妆品', '日用', '百货'],
+      '娱乐': ['电影', '游戏', 'KTV', '旅游', '景区', '酒店', '民宿',
+              '演出', '酒吧', '会员', '充值'],
+      '居住': ['房租', '水电', '物业', '燃气', '宽带', '家具', '装修', '保洁'],
+      '医疗': ['医院', '药', '诊所', '体检', '牙', '眼', '保健'],
+      '教育': ['书', '课', '培训', '学', '考试', '文具'],
+      '通讯': ['话费', '流量', '充值', '移动', '联通', '电信'],
+    };
+
+    for (final entry in descKeywordMap.entries) {
+      for (final keyword in entry.value) {
+        if (descLower.contains(keyword)) {
+          for (final cat in categories) {
+            if (cat['name'] == entry.key) {
+              return cat['id'] as int;
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /// 查找"其他"分类的 ID，固定使用该分类作为兜底
+  int _findOtherCategoryId(List<Map<String, dynamic>> categories, bool isExpense) {
+    // 优先找名为"其他"的分类
+    for (final cat in categories) {
+      if (cat['name'] == '其他') {
+        return cat['id'] as int;
+      }
+    }
+    // 兜底：硬编码 ID
+    return isExpense ? 8 : 12;
   }
 }

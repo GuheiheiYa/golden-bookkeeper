@@ -18,11 +18,30 @@ class TransactionListScreen extends ConsumerStatefulWidget {
 
 class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   bool _isSearching = false;
+  bool _isMultiSelectMode = false;
+  final Set<int> _selectedIds = {};
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  bool _showScrollToTop = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    final show = _scrollController.offset > 300;
+    if (show != _showScrollToTop) {
+      setState(() => _showScrollToTop = show);
+    }
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -55,46 +74,95 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                 },
               )
             : const Text('交易明细'),
-        actions: [
-          // 搜索按钮
-          IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: () {
-              setState(() {
-                _isSearching = !_isSearching;
-                if (!_isSearching) {
-                  _searchController.clear();
-                  // 清除搜索关键字
-                  ref.read(transactionFilterProvider.notifier).state =
-                      ref.read(transactionFilterProvider).copyWith(clearKeyword: true);
-                }
-              });
-            },
-          ),
-          // 筛选按钮
-          IconButton(
-            icon: Badge(
-              isLabelVisible: filter.filterCount > 0,
-              label: Text('${filter.filterCount}'),
-              child: const Icon(Icons.filter_list),
-            ),
-            onPressed: () => _showFilterPanel(context),
-          ),
-          // 添加按钮
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () async {
-              await context.push('/add-transaction');
-              // 返回后刷新列表
-              ref.read(transactionRefreshProvider.notifier).state++;
-            },
-          ),
-        ],
+        actions: _isMultiSelectMode
+            ? [
+                // 全选/取消全选
+                IconButton(
+                  icon: const Icon(Icons.select_all),
+                  onPressed: _toggleSelectAll,
+                ),
+                // 删除选中
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  onPressed: _selectedIds.isNotEmpty ? _batchDelete : null,
+                ),
+                // 退出多选模式
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    setState(() {
+                      _isMultiSelectMode = false;
+                      _selectedIds.clear();
+                    });
+                  },
+                ),
+              ]
+            : [
+                // 多选模式按钮
+                IconButton(
+                  icon: const Icon(Icons.checklist),
+                  onPressed: () {
+                    setState(() => _isMultiSelectMode = true);
+                  },
+                ),
+                // 搜索按钮
+                IconButton(
+                  icon: Icon(_isSearching ? Icons.close : Icons.search),
+                  onPressed: () {
+                    setState(() {
+                      _isSearching = !_isSearching;
+                      if (!_isSearching) {
+                        _searchController.clear();
+                        ref.read(transactionFilterProvider.notifier).state =
+                            ref.read(transactionFilterProvider).copyWith(clearKeyword: true);
+                      }
+                    });
+                  },
+                ),
+                // 筛选按钮
+                IconButton(
+                  icon: Badge(
+                    isLabelVisible: filter.filterCount > 0,
+                    label: Text('${filter.filterCount}'),
+                    child: const Icon(Icons.filter_list),
+                  ),
+                  onPressed: () => _showFilterPanel(context),
+                ),
+                // 添加按钮
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () async {
+                    await context.push('/add-transaction');
+                    ref.read(transactionRefreshProvider.notifier).state++;
+                  },
+                ),
+              ],
       ),
       body: Column(
         children: [
           // 筛选条件 Chips
           if (filter.hasFilters) _buildFilterChips(filter),
+          // 多选模式顶部栏
+          if (_isMultiSelectMode)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle_outline,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    '已选择 ${_selectedIds.length} 项',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           // 交易列表
           Expanded(
             child: groupedAsync.when(
@@ -111,9 +179,12 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                   );
                 }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: entries.length,
+                return Stack(
+                  children: [
+                    ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: entries.length,
                   itemBuilder: (context, index) {
                     final dateKey = entries[index].key;
                     final transactions = entries[index].value;
@@ -173,6 +244,65 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                               final txDate = DateTime.parse(tx['date'] as String);
                               final timeStr = '${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}';
                               final txId = tx['id'] as int;
+
+                              final txWidget = GestureDetector(
+                                  onLongPress: _isMultiSelectMode ? null : () => _showQuickActions(tx),
+                                  onTap: _isMultiSelectMode
+                                      ? () {
+                                          setState(() {
+                                            if (_selectedIds.contains(txId)) {
+                                              _selectedIds.remove(txId);
+                                            } else {
+                                              _selectedIds.add(txId);
+                                            }
+                                          });
+                                        }
+                                      : null,
+                                  child: ListTile(
+                                    leading: _isMultiSelectMode
+                                        ? Checkbox(
+                                            value: _selectedIds.contains(txId),
+                                            onChanged: (checked) {
+                                              setState(() {
+                                                if (checked == true) {
+                                                  _selectedIds.add(txId);
+                                                } else {
+                                                  _selectedIds.remove(txId);
+                                                }
+                                              });
+                                            },
+                                            activeColor: AppColors.primary,
+                                          )
+                                        : CircleAvatar(
+                                            backgroundColor: Color(categoryColor).withOpacity(0.1),
+                                            child: Icon(
+                                              mapIconName(categoryIcon),
+                                              color: Color(categoryColor),
+                                              size: 20,
+                                            ),
+                                          ),
+                                    title: Text(note.isNotEmpty ? note : categoryName),
+                                    subtitle: Text(
+                                      '$categoryName · $timeStr · $accountName',
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    trailing: Text(
+                                      '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: isExpense ? AppColors.expense : AppColors.income,
+                                      ),
+                                    ),
+                                    onTap: _isMultiSelectMode ? null : () => _showTransactionDetail(tx),
+                                  ),
+                                );
+
+                              if (_isMultiSelectMode) {
+                                return txWidget;
+                              }
 
                               return Dismissible(
                                 key: ValueKey(txId),
@@ -246,6 +376,25 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                       ],
                     );
                   },
+                ),
+                    // 回到顶部按钮
+                    if (_showScrollToTop)
+                      Positioned(
+                        right: 16,
+                        bottom: 16,
+                        child: FloatingActionButton.small(
+                          heroTag: 'scrollToTop',
+                          onPressed: () {
+                            _scrollController.animateTo(
+                              0,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                            );
+                          },
+                          child: const Icon(Icons.keyboard_arrow_up),
+                        ),
+                      ),
+                  ],
                 );
               },
             ),
@@ -1035,6 +1184,69 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         );
       },
     );
+  }
+
+  /// 全选/取消全选
+  void _toggleSelectAll() {
+    final groupedAsync = ref.read(groupedTransactionsProvider);
+    groupedAsync.whenData((grouped) {
+      setState(() {
+        final allIds = grouped.values
+            .expand((txs) => txs)
+            .map((tx) => tx['id'] as int)
+            .toSet();
+        if (_selectedIds.containsAll(allIds) && _selectedIds.length == allIds.length) {
+          _selectedIds.clear();
+        } else {
+          _selectedIds.clear();
+          _selectedIds.addAll(allIds);
+        }
+      });
+    });
+  }
+
+  /// 批量删除选中的交易记录
+  Future<void> _batchDelete() async {
+    final count = _selectedIds.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('批量删除'),
+        content: Text('确定要删除选中的 $count 条交易记录吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('删除'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final db = ref.read(appDatabaseProvider);
+    int deletedCount = 0;
+    for (final id in _selectedIds) {
+      try {
+        await db.deleteTransaction(id);
+        deletedCount++;
+      } catch (_) {}
+    }
+
+    ref.read(transactionRefreshProvider.notifier).state++;
+    setState(() {
+      _selectedIds.clear();
+      _isMultiSelectMode = false;
+    });
+
+    if (mounted) {
+      _showCenterToast('已删除 $deletedCount 条记录');
+    }
   }
 
   /// 显示居中提示（替代 SnackBar，不遮挡底部按钮）

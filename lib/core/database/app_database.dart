@@ -168,6 +168,7 @@ class AppDatabase {
       {'name': '居住', 'icon': 'home', 'color': 0xFF10B981},
       {'name': '医疗', 'icon': 'local_hospital', 'color': 0xFFEF4444},
       {'name': '教育', 'icon': 'school', 'color': 0xFF06B6D4},
+      {'name': '通讯', 'icon': 'phone_android', 'color': 0xFF6366F1},
       {'name': '其他', 'icon': 'more_horiz', 'color': 0xFF6B7280},
     ];
 

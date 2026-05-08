@@ -390,6 +390,54 @@
 
 ---
 
+## 2026-05-08 (续)
+
+### 16. 修复分类排序功能
+**时间**: 2026-05-08 16:00:00
+**原因**: 分类拖拽排序后不生效，_updateSortOrder 直接修改了 Riverpod provider 的列表数据
+**文件**:
+- `lib/features/category/presentation/category_list_screen.dart`
+**变更**:
+- 拷贝列表后再操作，避免修改 provider 的缓存数据
+- 使用数据库事务批量更新 sort_order，保证原子性
+
+### 17. 新增批量删除交易记录
+**时间**: 2026-05-08 16:15:00
+**原因**: 用户需要批量删除多条交易记录
+**文件**:
+- `lib/features/transaction/presentation/transaction_list_screen.dart`
+**变更**:
+- AppBar 新增多选模式按钮（checklist 图标）
+- 多选模式下显示全选、删除、退出按钮
+- 多选模式下点击交易项切换选中状态，禁用滑动操作
+- 顶部显示已选中数量
+- 支持批量删除选中记录
+
+### 18. 交易明细页添加回到顶部按钮
+**时间**: 2026-05-08 16:20:00
+**原因**: 交易记录多时需要快速回到顶部
+**文件**:
+- `lib/features/transaction/presentation/transaction_list_screen.dart`
+**变更**:
+- 添加 ScrollController 监听滚动位置
+- 滚动超过 300px 后右下角显示回到顶部浮动按钮
+- 点击按钮平滑滚动回顶部
+
+### 19. 优化账单导入分类匹配
+**时间**: 2026-05-08 16:30:00
+**原因**: 导入的交易记录大部分被分到"咖啡"分类，分类匹配不准确
+**文件**:
+- `lib/features/import/presentation/import_screen.dart`
+- `lib/core/database/app_database.dart`
+**变更**:
+- 大幅扩展关键词映射，覆盖微信/支付宝真实分类值和常见商户名
+- 新增"通讯"分类（话费、流量、充值等）
+- 新增 _matchCategoryByDescription 方法，根据交易描述二次匹配
+- 修复 fallback 逻辑：固定使用"其他"分类而非列表最后一个
+- 导入匹配优先级：分类字段 → 描述字段 → "其他"兜底
+
+---
+
 ## 变更模板
 
 ### YYYY-MM-DD

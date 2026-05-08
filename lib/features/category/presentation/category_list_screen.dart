@@ -191,13 +191,20 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
   Future<void> _updateSortOrder(
       List<Map<String, dynamic>> categories, int oldIndex, int newIndex) async {
     final db = AppDatabase();
-    final item = categories.removeAt(oldIndex);
-    categories.insert(newIndex, item);
+    // 拷贝列表，避免直接修改 provider 的数据
+    final reordered = List<Map<String, dynamic>>.from(categories);
+    final item = reordered.removeAt(oldIndex);
+    reordered.insert(newIndex, item);
 
-    // 批量更新排序顺序
-    for (int i = 0; i < categories.length; i++) {
-      await db.updateCategory(categories[i]['id'] as int, {'sort_order': i});
-    }
+    // 使用事务批量更新排序顺序
+    await db.database.then((db) async {
+      await db.transaction((txn) async {
+        for (int i = 0; i < reordered.length; i++) {
+          await txn.update('categories', {'sort_order': i},
+              where: 'id = ?', whereArgs: [reordered[i]['id'] as int]);
+        }
+      });
+    });
     _refreshData();
   }
 
