@@ -126,7 +126,8 @@ class WechatParser implements BillParser {
       if (amount == null || amount <= 0) return null;
 
       final isExpense = direction == '支出';
-      final description = target.isNotEmpty ? target : goods;
+      // 优先使用商品字段（分类更精准），其次用交易对方
+      final description = goods.isNotEmpty && goods != '/' ? goods : target;
 
       return ParsedTransaction(
         amount: amount,
@@ -207,7 +208,8 @@ class WechatParser implements BillParser {
       if (amount == null || amount <= 0) return null;
 
       final isExpense = direction == '支出';
-      final description = target.isNotEmpty ? target : goods;
+      // 优先使用商品字段（分类更精准），其次用交易对方
+      final description = goods.isNotEmpty && goods != '/' ? goods : target;
 
       return ParsedTransaction(
         amount: amount,

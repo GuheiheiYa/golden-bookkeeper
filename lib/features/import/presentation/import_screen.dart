@@ -556,26 +556,28 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
         final defaultCategories = tx.isExpense ? expenseCategories : incomeCategories;
         int categoryId = _findOtherCategoryId(defaultCategories, tx.isExpense);
 
-        // 1. 先根据来源分类字段匹配
-        if (tx.category != null && tx.category!.isNotEmpty) {
-          final matchedCategory = _matchCategory(
-            tx.category!,
-            defaultCategories,
-          );
-          if (matchedCategory != null) {
-            categoryId = matchedCategory;
-          }
-        }
-
-        // 2. 如果分类字段没匹配到，再根据描述匹配
-        if (categoryId == _findOtherCategoryId(defaultCategories, tx.isExpense) &&
-            tx.description.isNotEmpty) {
+        // 1. 优先根据描述匹配（商品名/商户名，分类更精准）
+        if (tx.description.isNotEmpty) {
           final matchedByDesc = _matchCategoryByDescription(
             tx.description,
             defaultCategories,
           );
           if (matchedByDesc != null) {
             categoryId = matchedByDesc;
+          }
+        }
+
+        // 2. 如果描述没匹配到，再根据来源分类字段匹配
+        if (categoryId == _findOtherCategoryId(defaultCategories, tx.isExpense) &&
+            tx.category != null &&
+            tx.category!.isNotEmpty &&
+            tx.category != '商户消费') { // 跳过过于通用的分类
+          final matchedCategory = _matchCategory(
+            tx.category!,
+            defaultCategories,
+          );
+          if (matchedCategory != null) {
+            categoryId = matchedCategory;
           }
         }
 
@@ -591,6 +593,9 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
 
         importedCount++;
       }
+
+      // 触发交易数据刷新
+      ref.read(transactionRefreshProvider.notifier).state++;
 
       if (mounted) {
         // 关闭页面并返回
@@ -631,11 +636,17 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     final keywordMap = <String, List<String>>{
       '餐饮': [
         '餐饮', '美食', '食品', '外卖', '餐饮美食', '美团', '饿了么',
-        '商户消费', '餐饮', '小吃', '快餐', '火锅', '烧烤', '面馆',
+        '小吃', '快餐', '火锅', '烧烤', '面馆',
         '奶茶', '咖啡', '饮品', '甜品', '蛋糕', '面包', '超市',
         '便利店', '水果', '生鲜', '菜市场', '食堂', '麦当劳', '肯德基',
-        '星巴克', '瑞幸', '海底捞', '必胜客', '汉堡', '披萨',
+        '星巴克', '瑞幸', '库迪', 'Cotti', 'Manner', 'Tims',
+        '海底捞', '必胜客', '汉堡', '披萨', '蜜雪冰城', '喜茶',
+        '奈雪', '茶百道', '古茗', '霸王茶姬', '沪上阿姨',
+        'CoCo', '一点点', '书亦', '益禾堂', '茶颜悦色',
         '早餐', '午餐', '晚餐', '夜宵', '零食', '饮料',
+        'KFC', 'McDonald', '汉堡王', '德克士',
+        '西贝', '呷哺', '凑凑', '太二',
+        '烘焙', '糕点',
       ],
       '交通': [
         '交通', '出行', '打车', '地铁', '公交', '滴滴', '加油',
@@ -703,7 +714,10 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     final descKeywordMap = <String, List<String>>{
       '餐饮': ['餐', '饭', '食', '吃', '喝', '茶', '咖啡', '奶茶', '火锅', '烧烤',
               '面', '粉', '饺', '包', '饼', '鸡', '鱼', '肉', '菜', '果',
-              '美团', '饿了么', '麦当劳', '肯德基', '星巴克', '瑞幸', '海底捞'],
+              '美团', '饿了么', '麦当劳', '肯德基', '星巴克', '瑞幸', '库迪',
+              'Cotti', 'Manner', '海底捞', '蜜雪冰城', '喜茶', '奈雪',
+              '茶百道', '古茗', '霸王茶姬', 'KFC', '汉堡王', '德克士',
+              '面包', '糕点', '甜品', '饮品', '果汁', '奶', '豆'],
       '交通': ['打车', '滴滴', '地铁', '公交', '出租', '加油', '停车', '高速',
               '火车', '高铁', '飞机', '机票', '车', '行', '旅'],
       '购物': ['淘宝', '京东', '拼多多', '天猫', '苏宁', '超市', '商场',

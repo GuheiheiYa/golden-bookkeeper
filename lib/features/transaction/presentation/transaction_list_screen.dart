@@ -181,7 +181,13 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
                 return Stack(
                   children: [
-                    ListView.builder(
+                    RefreshIndicator(
+                      onRefresh: () async {
+                        ref.read(transactionRefreshProvider.notifier).state++;
+                        // 等待 provider 刷新完成
+                        await Future.delayed(const Duration(milliseconds: 500));
+                      },
+                      child: ListView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.all(16),
                       itemCount: entries.length,
@@ -377,6 +383,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     );
                   },
                 ),
+                    ),
                     // 回到顶部按钮
                     if (_showScrollToTop)
                       Positioned(
