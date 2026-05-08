@@ -503,6 +503,10 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
     bool isExpense = (rule['is_expense'] as int?) == 1;
     String selectedFrequency = rule['frequency'] as String? ?? 'monthly';
     int? selectedDayOfMonth = rule['day_of_month'] as int?;
+    int? selectedCategoryId = rule['category_id'] as int?;
+    String? selectedCategoryName = rule['category_name'] as String?;
+    int? selectedAccountId = rule['account_id'] as int?;
+    String? selectedAccountName = rule['account_name'] as String?;
 
     showModalBottomSheet(
       context: context,
@@ -575,25 +579,34 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      // 分类和账户信息
+                      // 选择分类
                       ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Color(rule['category_color'] as int? ?? 0xFF7C3AED)
-                                .withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            rule['category_icon'] != null
-                                ? IconUtils.fromName(rule['category_icon'] as String)
-                                : Icons.category,
-                            color: Color(rule['category_color'] as int? ?? 0xFF7C3AED),
-                            size: 20,
-                          ),
-                        ),
-                        title: Text(rule['category_name'] as String),
-                        subtitle: Text(rule['account_name'] as String),
+                        leading: Icon(Icons.category, color: AppColors.primary),
+                        title: Text(selectedCategoryName ?? '选择分类'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          _showCategoryPicker(context, isExpense, (catId, catName) {
+                            setModalState(() {
+                              selectedCategoryId = catId;
+                              selectedCategoryName = catName;
+                            });
+                          });
+                        },
+                      ),
+                      // 选择账户
+                      ListTile(
+                        leading: Icon(Icons.account_balance_wallet,
+                            color: AppColors.primary),
+                        title: Text(selectedAccountName ?? '选择账户'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          _showAccountPicker(context, (accId, accName) {
+                            setModalState(() {
+                              selectedAccountId = accId;
+                              selectedAccountName = accName;
+                            });
+                          });
+                        },
                       ),
                       // 频率
                       ListTile(
@@ -641,12 +654,26 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                                 );
                                 return;
                               }
+                              if (selectedCategoryId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('请选择分类')),
+                                );
+                                return;
+                              }
+                              if (selectedAccountId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('请选择账户')),
+                                );
+                                return;
+                              }
 
                               final db = AppDatabase();
                               await db.updateRecurringRule(rule['id'] as int, {
                                 'title': title,
                                 'amount': amount,
                                 'is_expense': isExpense ? 1 : 0,
+                                'category_id': selectedCategoryId,
+                                'account_id': selectedAccountId,
                                 'frequency': selectedFrequency,
                                 'day_of_month': selectedFrequency == 'monthly'
                                     ? selectedDayOfMonth
