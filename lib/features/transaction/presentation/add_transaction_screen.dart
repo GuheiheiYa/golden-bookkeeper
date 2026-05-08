@@ -24,6 +24,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   late TabController _tabController;
   String _amount = '0';
   String _note = '';
+  String _goods = '';
   DateTime _selectedDate = DateTime.now();
   int? _selectedCategoryId;
   int? _selectedAccountId;
@@ -75,6 +76,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
           ? amount.toStringAsFixed(0)
           : amount.toString();
       _note = tx['note'] as String? ?? '';
+      _goods = tx['goods'] as String? ?? '';
       _selectedDate = DateTime.parse(tx['date'] as String);
       _selectedCategoryId = tx['category_id'] as int;
       _selectedAccountId = tx['account_id'] as int;
@@ -512,6 +514,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
             label: '日期',
             value: '${_selectedDate.month}月${_selectedDate.day}日',
             onTap: _selectDate,
+          ),
+          _buildOptionTile(
+            icon: Icons.shopping_bag_outlined,
+            label: '商品',
+            value: _goods.isEmpty ? '点击添加' : _goods,
+            onTap: _showGoodsDialog,
           ),
           _buildOptionTile(
             icon: Icons.note,
@@ -1032,6 +1040,81 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     }
   }
 
+  void _showGoodsDialog() {
+    final controller = TextEditingController(text: _goods);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '商品名称',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  hintText: '输入商品名称',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                autofocus: true,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('取消'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _goods = controller.text;
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: const Text('确定'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showNoteDialog() {
     final controller = TextEditingController(text: _note);
     showModalBottomSheet(
@@ -1145,6 +1228,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       'amount': amount,
       'is_expense': isExpense ? 1 : 0,
       'note': _note.isNotEmpty ? _note : null,
+      'goods': _goods.isNotEmpty ? _goods : null,
       'date': _selectedDate.toIso8601String(),
       'category_id': _selectedCategoryId!,
       'account_id': _selectedAccountId!,

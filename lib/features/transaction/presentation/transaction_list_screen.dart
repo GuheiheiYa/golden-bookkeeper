@@ -247,9 +247,14 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                               final categoryIcon = tx['category_icon'] as String?;
                               final accountName = tx['account_name'] as String? ?? '';
                               final note = tx['note'] as String? ?? '';
+                              final goods = tx['goods'] as String? ?? '';
                               final txDate = DateTime.parse(tx['date'] as String);
                               final timeStr = '${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}';
                               final txId = tx['id'] as int;
+                              // 显示优先级：商品 > 备注 > 分类
+                              final displayName = goods.isNotEmpty
+                                  ? goods
+                                  : (note.isNotEmpty ? note : categoryName);
 
                               final txWidget = GestureDetector(
                                   onLongPress: _isMultiSelectMode ? null : () => _showQuickActions(tx),
@@ -287,7 +292,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                               size: 20,
                                             ),
                                           ),
-                                    title: Text(note.isNotEmpty ? note : categoryName),
+                                    title: Text(displayName),
                                     subtitle: Text(
                                       '$categoryName · $timeStr · $accountName',
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -339,7 +344,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                     return false;
                                   } else if (direction == DismissDirection.endToStart) {
                                     // 右滑删除
-                                    return await _showDeleteConfirmation(txId, note.isNotEmpty ? note : categoryName);
+                                    return await _showDeleteConfirmation(txId, displayName);
                                   }
                                   return false;
                                 },
@@ -354,7 +359,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                         size: 20,
                                       ),
                                     ),
-                                    title: Text(note.isNotEmpty ? note : categoryName),
+                                    title: Text(displayName),
                                     subtitle: Text(
                                       '$categoryName · $timeStr · $accountName',
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -613,7 +618,11 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     final accountName = tx['account_name'] as String? ?? '未知账户';
     final txDate = DateTime.parse(tx['date'] as String);
     final note = tx['note'] as String? ?? '';
+    final goods = tx['goods'] as String? ?? '';
     final txId = tx['id'] as int;
+    final displayName = goods.isNotEmpty
+        ? goods
+        : (note.isNotEmpty ? note : categoryName);
 
     showModalBottomSheet(
       context: context,
@@ -659,6 +668,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                 _buildDetailRow('账户', accountName),
                 _buildDetailRow('日期',
                     '${txDate.year}-${txDate.month.toString().padLeft(2, '0')}-${txDate.day.toString().padLeft(2, '0')} ${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}'),
+                if (goods.isNotEmpty) _buildDetailRow('商品', goods),
                 _buildDetailRow('备注', note.isNotEmpty ? note : '无'),
                 const SizedBox(height: 24),
                 // 操作按钮
@@ -683,7 +693,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                           Navigator.pop(context);
                           await _showDeleteConfirmation(
                             txId,
-                            note.isNotEmpty ? note : categoryName,
+                            displayName,
                           );
                         },
                         icon: const Icon(Icons.delete),
@@ -733,7 +743,11 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     final amount = (tx['amount'] as num).toDouble();
     final categoryName = tx['category_name'] as String? ?? '未分类';
     final note = tx['note'] as String? ?? '';
+    final goods = tx['goods'] as String? ?? '';
     final txId = tx['id'] as int;
+    final displayName = goods.isNotEmpty
+        ? goods
+        : (note.isNotEmpty ? note : categoryName);
 
     showModalBottomSheet(
       context: context,
@@ -780,7 +794,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          note.isNotEmpty ? note : categoryName,
+                          displayName,
                           style: Theme.of(context).textTheme.bodyMedium,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -834,7 +848,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     Navigator.pop(context);
                     await _showDeleteConfirmation(
                       txId,
-                      note.isNotEmpty ? note : categoryName,
+                      displayName,
                     );
                   },
                 ),
