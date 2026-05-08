@@ -55,6 +55,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           indicatorColor: AppColors.primary,
           labelColor: AppColors.primary,
           unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+          dividerColor: Colors.transparent,
+          dividerHeight: 0,
           tabs: const [
             Tab(text: '支出'),
             Tab(text: '收入'),

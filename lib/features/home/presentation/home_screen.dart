@@ -58,6 +58,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final monthlySummary = ref.watch(monthlySummaryProvider);
     final recentTransactions = ref.watch(recentTransactionsProvider);
+    // 监听预算数据，确保交易更新后预算也会刷新
+    ref.watch(budgetUsageProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -113,24 +115,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(height: 24),
                   // 最近交易（从数据库读取）
                   _buildRecentTransactions(context, recentTransactions),
-                  // 底部留白，避免 FAB 遮挡
-                  const SizedBox(height: 80),
+                  // 底部留白
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          await context.push('/add-transaction');
-          // 返回后刷新数据
-          ref.invalidate(recentTransactionsProvider);
-          ref.invalidate(monthlySummaryProvider);
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('记一笔'),
-      ).animate().scale(delay: 300.ms, duration: 200.ms),
     );
   }
 

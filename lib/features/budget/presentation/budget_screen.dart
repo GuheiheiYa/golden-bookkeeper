@@ -5,6 +5,7 @@ import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/utils/icon_utils.dart';
+import '../../../app/di/providers.dart';
 
 // ========== 预算数据 Provider ==========
 
@@ -14,6 +15,8 @@ final currentMonthProvider = StateProvider<int>((ref) => DateTime.now().month);
 
 /// 预算列表 Provider
 final budgetsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  // 监听交易刷新，确保交易更新后预算也会刷新
+  ref.watch(transactionRefreshProvider);
   final year = ref.watch(currentYearProvider);
   final month = ref.watch(currentMonthProvider);
   final db = AppDatabase();
@@ -22,6 +25,8 @@ final budgetsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
 
 /// 预算使用情况 Provider（带分类信息和已用金额）
 final budgetUsageProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  // 监听交易刷新，确保交易更新后预算也会刷新
+  ref.watch(transactionRefreshProvider);
   final budgets = await ref.watch(budgetsProvider.future);
   final db = AppDatabase();
   final now = DateTime.now();

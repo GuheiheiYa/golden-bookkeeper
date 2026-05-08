@@ -229,6 +229,44 @@
 
 ---
 
+## 2026-05-08
+
+### 1. 底部导航栏改版
+**时间**: 2026-05-08 10:00:00
+**原因**: 用户希望将记一笔功能放到底部导航栏，采用中间凸起的圆形图标设计
+**文件**:
+- `lib/app/router/app_router.dart`
+- `lib/features/home/presentation/home_screen.dart`
+**变更**:
+- 底部导航栏改为 5 个菜单：首页、明细、记一笔（中间凸起）、统计、设置
+- 使用 BottomAppBar + CircularNotchedRectangle 实现凹陷效果
+- 中间记一笔按钮使用渐变色圆形 FAB
+- 移除首页的 FAB 按钮
+
+### 2. 修复 TabBar 底部白线
+**时间**: 2026-05-08 10:15:00
+**原因**: 记账页面、统计页面、分类管理页面的 TabBar 底部有白线，影响美观
+**文件**:
+- `lib/features/transaction/presentation/add_transaction_screen.dart`
+- `lib/features/statistics/presentation/statistics_screen.dart`
+- `lib/features/category/presentation/category_list_screen.dart`
+**变更**:
+- 为所有 TabBar 添加 dividerColor: Colors.transparent 和 dividerHeight: 0
+- 移除 TabBar 底部的白线
+
+### 3. 修复预算不自动更新
+**时间**: 2026-05-08 10:30:00
+**原因**: 记一笔后首页预算进度不会自动更新，需要手动去预算页面保存才会更新
+**文件**:
+- `lib/features/budget/presentation/budget_screen.dart`
+- `lib/features/home/presentation/home_screen.dart`
+**变更**:
+- budgetUsageProvider 和 budgetsProvider 添加对 transactionRefreshProvider 的监听
+- 首页添加对 budgetUsageProvider 的监听
+- 交易数据更新后预算数据会自动刷新
+
+---
+
 ## 变更模板
 
 ### YYYY-MM-DD
