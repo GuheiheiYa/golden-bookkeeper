@@ -395,12 +395,38 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      subtitle: Text(
-        '${DateFormat('MM/dd').format(transaction.date)}'
-        '${transaction.category != null ? '  ${transaction.category}' : ''}'
-        '${transaction.note != null && transaction.note != transaction.description ? '  ${transaction.note}' : ''}',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${DateFormat('MM/dd').format(transaction.date)}'
+            '${transaction.category != null ? '  ${transaction.category}' : ''}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (transaction.goods != null &&
+              transaction.goods!.isNotEmpty &&
+              transaction.goods != transaction.description)
+            Text(
+              '商品: ${transaction.goods!}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          if (transaction.note != null && transaction.note!.isNotEmpty)
+            Text(
+              '备注: ${transaction.note!}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+        ],
       ),
       trailing: Text(
         '${transaction.isExpense ? '-' : '+'}¥${transaction.amount.toStringAsFixed(2)}',
@@ -597,12 +623,12 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
           }
         }
 
-        // 插入交易记录（备注优先用商品，其次用交易对方）
-        final note = tx.note ?? tx.description;
+        // 插入交易记录（商品和备注分别存储）
         await db.insertTransaction({
           'amount': tx.amount,
           'is_expense': tx.isExpense ? 1 : 0,
-          'note': note,
+          'note': tx.note,
+          'goods': tx.goods,
           'date': tx.date.toIso8601String(),
           'category_id': categoryId,
           'account_id': defaultAccountId,

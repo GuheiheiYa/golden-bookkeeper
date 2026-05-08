@@ -92,6 +92,7 @@ class WechatParser implements BillParser {
       String payMethod = '';
       String status = '';
       String orderId = '';
+      String remark = '';
 
       if (headers.isNotEmpty) {
         for (int i = 0; i < cells.length && i < headers.length; i++) {
@@ -105,9 +106,10 @@ class WechatParser implements BillParser {
           else if (header.contains('支付方式') || header.contains('付款方式')) payMethod = cells[i];
           else if (header.contains('当前状态')) status = cells[i];
           else if (header.contains('交易单号')) orderId = cells[i];
+          else if (header.contains('备注')) remark = cells[i];
         }
       } else {
-        // 默认顺序
+        // 默认顺序：交易时间,交易类型,交易对方,商品,收/支,金额,支付方式,当前状态,交易单号,商户单号,备注
         timeStr = cells[0];
         type = cells[1];
         target = cells[2];
@@ -117,6 +119,7 @@ class WechatParser implements BillParser {
         if (cells.length > 6) payMethod = cells[6];
         if (cells.length > 7) status = cells[7];
         if (cells.length > 8) orderId = cells[8];
+        if (cells.length > 10) remark = cells[10];
       }
 
       final date = _parseDateTime(timeStr);
@@ -126,15 +129,16 @@ class WechatParser implements BillParser {
       if (amount == null || amount <= 0) return null;
 
       final isExpense = direction == '支出';
-      // 交易对方作为描述（用于分类匹配），商品作为备注
-      final note = (goods.isNotEmpty && goods != '/') ? goods : null;
+      final goodsValue = (goods.isNotEmpty && goods != '/') ? goods : null;
+      final noteValue = (remark.isNotEmpty && remark != '/') ? remark : null;
 
       return ParsedTransaction(
         amount: amount,
         isExpense: isExpense,
         date: date,
         description: target,
-        note: note,
+        goods: goodsValue,
+        note: noteValue,
         category: type,
         orderId: orderId,
         paymentMethod: payMethod,
@@ -201,6 +205,7 @@ class WechatParser implements BillParser {
       final payMethod = parts[6].trim();
       final status = parts[7].trim();
       final orderId = parts[8].trim();
+      final remark = parts.length > 10 ? parts[10].trim() : '';
 
       final date = _parseDateTime(timeStr);
       if (date == null) return null;
@@ -209,15 +214,16 @@ class WechatParser implements BillParser {
       if (amount == null || amount <= 0) return null;
 
       final isExpense = direction == '支出';
-      // 交易对方作为描述（用于分类匹配），商品作为备注
-      final note = (goods.isNotEmpty && goods != '/') ? goods : null;
+      final goodsValue = (goods.isNotEmpty && goods != '/') ? goods : null;
+      final noteValue = (remark.isNotEmpty && remark != '/') ? remark : null;
 
       return ParsedTransaction(
         amount: amount,
         isExpense: isExpense,
         date: date,
         description: target,
-        note: note,
+        goods: goodsValue,
+        note: noteValue,
         category: type,
         orderId: orderId,
         paymentMethod: payMethod,

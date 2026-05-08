@@ -21,16 +21,18 @@ class AppDatabase {
       // Web 平台：使用内存数据库
       return await openDatabase(
         inMemoryDatabasePath,
-        version: 1,
+        version: 2,
         onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
       );
     }
     final dbFolder = await getApplicationDocumentsDirectory();
     final path = p.join(dbFolder.path, 'bookkeeper.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -74,6 +76,7 @@ class AppDatabase {
         exchange_rate REAL DEFAULT 1.0,
         is_expense INTEGER NOT NULL,
         note TEXT,
+        goods TEXT,
         date TEXT NOT NULL,
         category_id INTEGER NOT NULL,
         account_id INTEGER NOT NULL,
@@ -156,6 +159,13 @@ class AppDatabase {
 
     // 插入默认数据
     await _insertDefaultData(db);
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // v2: transactions 表新增 goods 字段
+      await db.execute('ALTER TABLE transactions ADD COLUMN goods TEXT');
+    }
   }
 
   Future<void> _insertDefaultData(Database db) async {

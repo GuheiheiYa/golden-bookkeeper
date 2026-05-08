@@ -18,7 +18,8 @@ class ParsedTransaction {
   final bool isExpense;
   final DateTime date;
   final String description; // 交易对方/商户名（用于分类匹配）
-  final String? note; // 商品/备注（具体消费内容）
+  final String? goods; // 商品名称
+  final String? note; // 备注
   final String? category; // 原始交易类型
   final String? orderId; // 订单号
   final String? paymentMethod; // 支付方式
@@ -29,6 +30,7 @@ class ParsedTransaction {
     required this.isExpense,
     required this.date,
     required this.description,
+    this.goods,
     this.note,
     this.category,
     this.orderId,
