@@ -292,7 +292,11 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                               size: 20,
                                             ),
                                           ),
-                                    title: Text(displayName),
+                                    title: Text(
+                                      displayName,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                     subtitle: Text(
                                       '$categoryName · $timeStr · $accountName',
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -359,7 +363,11 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                         size: 20,
                                       ),
                                     ),
-                                    title: Text(displayName),
+                                    title: Text(
+                                      displayName,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                     subtitle: Text(
                                       '$categoryName · $timeStr · $accountName',
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
