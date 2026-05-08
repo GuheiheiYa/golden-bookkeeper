@@ -425,7 +425,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['csv', 'txt'],
+        allowedExtensions: ['csv', 'txt', 'xlsx'],
         dialogTitle: '选择${_selectedParser!.sourceName}账单文件',
       );
 

@@ -622,6 +622,10 @@ class AppDatabase {
   bool _shouldExecuteToday(
       String frequency, int? dayOfMonth, DateTime startDate, DateTime now) {
     switch (frequency) {
+      case 'minutely':
+        return true;
+      case 'hourly':
+        return true;
       case 'daily':
         return true;
       case 'weekly':
@@ -640,16 +644,21 @@ class AppDatabase {
   /// 判断距上次执行是否已到期
   bool _isDueForExecution(
       String frequency, int? dayOfMonth, DateTime lastExecuted, DateTime now) {
-    final diff = now.difference(lastExecuted).inDays;
+    final diffMinutes = now.difference(lastExecuted).inMinutes;
+    final diffDays = now.difference(lastExecuted).inDays;
     switch (frequency) {
+      case 'minutely':
+        return diffMinutes >= 1;
+      case 'hourly':
+        return diffMinutes >= 60;
       case 'daily':
-        return diff >= 1;
+        return diffDays >= 1;
       case 'weekly':
-        return diff >= 7;
+        return diffDays >= 7;
       case 'monthly':
-        return diff >= 28; // 简化处理
+        return diffDays >= 28; // 简化处理
       case 'yearly':
-        return diff >= 365;
+        return diffDays >= 365;
       default:
         return false;
     }

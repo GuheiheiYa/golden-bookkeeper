@@ -265,6 +265,38 @@
 - 首页添加对 budgetUsageProvider 的监听
 - 交易数据更新后预算数据会自动刷新
 
+### 4. 添加每分钟、每小时的周期记账频率
+**时间**: 2026-05-08 11:00:00
+**原因**: 用户需要更细粒度的周期记账频率
+**文件**:
+- `lib/features/recurring/presentation/recurring_screen.dart`
+- `lib/core/database/app_database.dart`
+**变更**:
+- 在频率选择器中添加"每分钟"和"每小时"选项
+- 更新 _getFrequencyText 方法支持新频率
+- 修改 executeDueRecurringRules 方法支持新频率的执行逻辑
+
+### 5. 修复周期记账保存按钮重叠
+**时间**: 2026-05-08 11:15:00
+**原因**: 编辑周期记账时，保存按钮和底部导航栏的记账按钮重叠
+**文件**:
+- `lib/features/recurring/presentation/recurring_screen.dart`
+**变更**:
+- 为添加和编辑对话框的保存按钮添加底部边距 (padding: EdgeInsets.only(bottom: 20))
+
+### 6. 修复账单导入文件选择
+**时间**: 2026-05-08 11:30:00
+**原因**: 账单导入无法选择 xlsx 文件，只能选择 csv 和 txt 文件
+**文件**:
+- `lib/features/import/presentation/import_screen.dart`
+- `lib/features/import/domain/wechat_parser.dart`
+- `lib/features/import/domain/alipay_parser.dart`
+**变更**:
+- 文件选择器添加 xlsx 扩展名支持
+- 微信解析器添加 xlsx 格式解析功能
+- 支付宝解析器添加 xlsx 格式解析功能
+- 使用 excel 包解析 xlsx 文件
+
 ---
 
 ## 变更模板

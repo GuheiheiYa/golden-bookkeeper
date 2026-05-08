@@ -250,6 +250,10 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
 
   String _getFrequencyText(String frequency) {
     switch (frequency) {
+      case 'minutely':
+        return '每分钟';
+      case 'hourly':
+        return '每小时';
       case 'daily':
         return '每天';
       case 'weekly':
@@ -412,59 +416,62 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                         },
                       ),
                       const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            // 验证输入
-                            final title = titleController.text.trim();
-                            if (title.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请输入名称')),
-                              );
-                              return;
-                            }
-                            final amount = double.tryParse(amountController.text);
-                            if (amount == null || amount <= 0) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请输入有效金额')),
-                              );
-                              return;
-                            }
-                            if (selectedCategoryId == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请选择分类')),
-                              );
-                              return;
-                            }
-                            if (selectedAccountId == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请选择账户')),
-                              );
-                              return;
-                            }
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              // 验证输入
+                              final title = titleController.text.trim();
+                              if (title.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('请输入名称')),
+                                );
+                                return;
+                              }
+                              final amount = double.tryParse(amountController.text);
+                              if (amount == null || amount <= 0) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('请输入有效金额')),
+                                );
+                                return;
+                              }
+                              if (selectedCategoryId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('请选择分类')),
+                                );
+                                return;
+                              }
+                              if (selectedAccountId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('请选择账户')),
+                                );
+                                return;
+                              }
 
-                            final db = AppDatabase();
-                            await db.insertRecurringRule({
-                              'title': title,
-                              'amount': amount,
-                              'is_expense': isExpense ? 1 : 0,
-                              'category_id': selectedCategoryId,
-                              'account_id': selectedAccountId,
-                              'frequency': selectedFrequency,
-                              'day_of_month': selectedFrequency == 'monthly'
-                                  ? selectedDayOfMonth
-                                  : null,
-                              'start_date': startDate.toIso8601String(),
-                              'is_active': 1,
-                            });
-                            Navigator.pop(context);
-                            _refreshData();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('周期记账规则添加成功')),
-                            );
-                          },
-                          child: const Text('保存'),
+                              final db = AppDatabase();
+                              await db.insertRecurringRule({
+                                'title': title,
+                                'amount': amount,
+                                'is_expense': isExpense ? 1 : 0,
+                                'category_id': selectedCategoryId,
+                                'account_id': selectedAccountId,
+                                'frequency': selectedFrequency,
+                                'day_of_month': selectedFrequency == 'monthly'
+                                    ? selectedDayOfMonth
+                                    : null,
+                                'start_date': startDate.toIso8601String(),
+                                'is_active': 1,
+                              });
+                              Navigator.pop(context);
+                              _refreshData();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('周期记账规则添加成功')),
+                              );
+                            },
+                            child: const Text('保存'),
+                          ),
                         ),
                       ),
                     ],
@@ -607,42 +614,45 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                           },
                         ),
                       const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final title = titleController.text.trim();
-                            if (title.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请输入名称')),
-                              );
-                              return;
-                            }
-                            final amount = double.tryParse(amountController.text);
-                            if (amount == null || amount <= 0) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请输入有效金额')),
-                              );
-                              return;
-                            }
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final title = titleController.text.trim();
+                              if (title.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('请输入名称')),
+                                );
+                                return;
+                              }
+                              final amount = double.tryParse(amountController.text);
+                              if (amount == null || amount <= 0) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('请输入有效金额')),
+                                );
+                                return;
+                              }
 
-                            final db = AppDatabase();
-                            await db.updateRecurringRule(rule['id'] as int, {
-                              'title': title,
-                              'amount': amount,
-                              'is_expense': isExpense ? 1 : 0,
-                              'frequency': selectedFrequency,
-                              'day_of_month': selectedFrequency == 'monthly'
-                                  ? selectedDayOfMonth
-                                  : null,
-                            });
-                            Navigator.pop(context);
-                            _refreshData();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('规则更新成功')),
-                            );
-                          },
-                          child: const Text('保存'),
+                              final db = AppDatabase();
+                              await db.updateRecurringRule(rule['id'] as int, {
+                                'title': title,
+                                'amount': amount,
+                                'is_expense': isExpense ? 1 : 0,
+                                'frequency': selectedFrequency,
+                                'day_of_month': selectedFrequency == 'monthly'
+                                    ? selectedDayOfMonth
+                                    : null,
+                              });
+                              Navigator.pop(context);
+                              _refreshData();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('规则更新成功')),
+                              );
+                            },
+                            child: const Text('保存'),
+                          ),
                         ),
                       ),
                     ],
@@ -788,6 +798,8 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
+              _buildFrequencyOption(context, '每分钟', 'minutely', current, onSelected),
+              _buildFrequencyOption(context, '每小时', 'hourly', current, onSelected),
               _buildFrequencyOption(context, '每天', 'daily', current, onSelected),
               _buildFrequencyOption(context, '每周', 'weekly', current, onSelected),
               _buildFrequencyOption(context, '每月', 'monthly', current, onSelected),
