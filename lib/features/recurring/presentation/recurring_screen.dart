@@ -347,13 +347,14 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                         leading: Icon(Icons.category, color: AppColors.primary),
                         title: Text(selectedCategoryName ?? '选择分类'),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          _showCategoryPicker(context, isExpense, (catId, catName) {
+                        onTap: () async {
+                          final result = await _showCategoryPicker(context, isExpense);
+                          if (result != null) {
                             setModalState(() {
-                              selectedCategoryId = catId;
-                              selectedCategoryName = catName;
+                              selectedCategoryId = result['id'] as int;
+                              selectedCategoryName = result['name'] as String;
                             });
-                          });
+                          }
                         },
                       ),
                       // 选择账户
@@ -362,13 +363,14 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                             color: AppColors.primary),
                         title: Text(selectedAccountName ?? '选择账户'),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          _showAccountPicker(context, (accId, accName) {
+                        onTap: () async {
+                          final result = await _showAccountPicker(context);
+                          if (result != null) {
                             setModalState(() {
-                              selectedAccountId = accId;
-                              selectedAccountName = accName;
+                              selectedAccountId = result['id'] as int;
+                              selectedAccountName = result['name'] as String;
                             });
-                          });
+                          }
                         },
                       ),
                       // 频率
@@ -584,13 +586,14 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                         leading: Icon(Icons.category, color: AppColors.primary),
                         title: Text(selectedCategoryName ?? '选择分类'),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          _showCategoryPicker(context, isExpense, (catId, catName) {
+                        onTap: () async {
+                          final result = await _showCategoryPicker(context, isExpense);
+                          if (result != null) {
                             setModalState(() {
-                              selectedCategoryId = catId;
-                              selectedCategoryName = catName;
+                              selectedCategoryId = result['id'] as int;
+                              selectedCategoryName = result['name'] as String;
                             });
-                          });
+                          }
                         },
                       ),
                       // 选择账户
@@ -599,13 +602,14 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                             color: AppColors.primary),
                         title: Text(selectedAccountName ?? '选择账户'),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          _showAccountPicker(context, (accId, accName) {
+                        onTap: () async {
+                          final result = await _showAccountPicker(context);
+                          if (result != null) {
                             setModalState(() {
-                              selectedAccountId = accId;
-                              selectedAccountName = accName;
+                              selectedAccountId = result['id'] as int;
+                              selectedAccountName = result['name'] as String;
                             });
-                          });
+                          }
                         },
                       ),
                       // 频率
@@ -702,31 +706,42 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
 
   // ========== 分类选择器 ==========
 
-  void _showCategoryPicker(BuildContext context, bool isExpense,
-      Function(int, String) onSelected) async {
+  /// 返回选中的分类 id 和名称，未选择返回 null
+  Future<Map<String, dynamic>?> _showCategoryPicker(
+      BuildContext context, bool isExpense) async {
     final db = AppDatabase();
     final categories = await db.getCategories(isExpense: isExpense);
 
-    if (!context.mounted) return;
+    if (!context.mounted) return null;
 
-    showModalBottomSheet(
+    return showModalBottomSheet<Map<String, dynamic>>(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '选择分类',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              ...categories.map((cat) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          maxChildSize: 0.9,
+          minChildSize: 0.3,
+          expand: false,
+          builder: (context, scrollController) {
+            return ListView.builder(
+              controller: scrollController,
+              padding: const EdgeInsets.all(20),
+              itemCount: categories.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      '选择分类',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  );
+                }
+                final cat = categories[index - 1];
                 final iconName = cat['icon'] as String? ?? 'category';
                 final colorValue = cat['color'] as int? ?? 0xFF7C3AED;
                 return ListTile(
@@ -744,13 +759,15 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                   ),
                   title: Text(cat['name'] as String),
                   onTap: () {
-                    onSelected(cat['id'] as int, cat['name'] as String);
-                    Navigator.pop(context);
+                    Navigator.pop(context, {
+                      'id': cat['id'] as int,
+                      'name': cat['name'] as String,
+                    });
                   },
                 );
-              }),
-            ],
-          ),
+              },
+            );
+          },
         );
       },
     );
@@ -758,31 +775,42 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
 
   // ========== 账户选择器 ==========
 
-  void _showAccountPicker(
-      BuildContext context, Function(int, String) onSelected) async {
+  /// 返回选中的账户 id 和名称，未选择返回 null
+  Future<Map<String, dynamic>?> _showAccountPicker(
+      BuildContext context) async {
     final db = AppDatabase();
     final accounts = await db.getAccounts();
 
-    if (!context.mounted) return;
+    if (!context.mounted) return null;
 
-    showModalBottomSheet(
+    return showModalBottomSheet<Map<String, dynamic>>(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '选择账户',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              ...accounts.map((acc) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.5,
+          maxChildSize: 0.9,
+          minChildSize: 0.3,
+          expand: false,
+          builder: (context, scrollController) {
+            return ListView.builder(
+              controller: scrollController,
+              padding: const EdgeInsets.all(20),
+              itemCount: accounts.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      '选择账户',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  );
+                }
+                final acc = accounts[index - 1];
                 final iconName = acc['icon'] as String? ?? 'payments';
                 final colorValue = acc['color'] as int? ?? 0xFF7C3AED;
                 return ListTile(
@@ -800,13 +828,15 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                   ),
                   title: Text(acc['name'] as String),
                   onTap: () {
-                    onSelected(acc['id'] as int, acc['name'] as String);
-                    Navigator.pop(context);
+                    Navigator.pop(context, {
+                      'id': acc['id'] as int,
+                      'name': acc['name'] as String,
+                    });
                   },
                 );
-              }),
-            ],
-          ),
+              },
+            );
+          },
         );
       },
     );

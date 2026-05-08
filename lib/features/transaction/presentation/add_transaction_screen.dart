@@ -265,6 +265,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         child: Center(child: Text('加载分类失败: $e')),
       ),
       data: (categories) {
+        const int maxDisplay = 7; // 最多显示7个，第8格放"更多"
+        final hasMore = categories.length > maxDisplay;
+        final displayCount = hasMore ? maxDisplay : categories.length;
+
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
@@ -286,8 +290,39 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                 ),
-                itemCount: categories.length,
+                itemCount: hasMore ? maxDisplay + 1 : displayCount,
                 itemBuilder: (context, index) {
+                  // 最后一格是"更多"按钮
+                  if (hasMore && index == maxDisplay) {
+                    return GestureDetector(
+                      onTap: () => _showAllCategories(categories),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.more_horiz,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              size: 28,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '更多',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
                   final category = categories[index];
                   final catId = category['id'] as int;
                   final catName = category['name'] as String;
@@ -341,6 +376,111 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
             ],
           ),
         ).animate().fadeIn(delay: 100.ms, duration: 300.ms);
+      },
+    );
+  }
+
+  /// 显示全部分类弹窗
+  void _showAllCategories(List<Map<String, dynamic>> categories) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          maxChildSize: 0.9,
+          minChildSize: 0.3,
+          expand: false,
+          builder: (context, scrollController) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '全部分类',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: GridView.builder(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      childAspectRatio: 1,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      final category = categories[index];
+                      final catId = category['id'] as int;
+                      final catName = category['name'] as String;
+                      final catIcon = category['icon'] as String?;
+                      final catColor = category['color'] as int? ?? 0xFF6B7280;
+                      final isSelected = _selectedCategoryId == catId;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedCategoryId = catId;
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Color(catColor).withOpacity(0.1)
+                                : Theme.of(context).colorScheme.surfaceVariant,
+                            borderRadius: BorderRadius.circular(12),
+                            border: isSelected
+                                ? Border.all(color: Color(catColor), width: 2)
+                                : null,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                mapIconName(catIcon),
+                                color: isSelected
+                                    ? Color(catColor)
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                                size: 28,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                catName,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isSelected
+                                      ? Color(catColor)
+                                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
       },
     );
   }

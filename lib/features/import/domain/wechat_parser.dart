@@ -126,14 +126,15 @@ class WechatParser implements BillParser {
       if (amount == null || amount <= 0) return null;
 
       final isExpense = direction == '支出';
-      // 优先使用商品字段（分类更精准），其次用交易对方
-      final description = goods.isNotEmpty && goods != '/' ? goods : target;
+      // 交易对方作为描述（用于分类匹配），商品作为备注
+      final note = (goods.isNotEmpty && goods != '/') ? goods : null;
 
       return ParsedTransaction(
         amount: amount,
         isExpense: isExpense,
         date: date,
-        description: description,
+        description: target,
+        note: note,
         category: type,
         orderId: orderId,
         paymentMethod: payMethod,
@@ -208,14 +209,15 @@ class WechatParser implements BillParser {
       if (amount == null || amount <= 0) return null;
 
       final isExpense = direction == '支出';
-      // 优先使用商品字段（分类更精准），其次用交易对方
-      final description = goods.isNotEmpty && goods != '/' ? goods : target;
+      // 交易对方作为描述（用于分类匹配），商品作为备注
+      final note = (goods.isNotEmpty && goods != '/') ? goods : null;
 
       return ParsedTransaction(
         amount: amount,
         isExpense: isExpense,
         date: date,
-        description: description,
+        description: target,
+        note: note,
         category: type,
         orderId: orderId,
         paymentMethod: payMethod,

@@ -132,13 +132,14 @@ class AlipayParser implements BillParser {
       if (amount == null || amount <= 0) return null;
 
       final isExpense = direction == '支出';
-      final description = target.isNotEmpty ? target : goods;
+      final note = goods.isNotEmpty ? goods : null;
 
       return ParsedTransaction(
         amount: amount,
         isExpense: isExpense,
         date: date,
-        description: description,
+        description: target,
+        note: note,
         category: category,
         orderId: orderId,
         paymentMethod: payMethod,
@@ -221,13 +222,14 @@ class AlipayParser implements BillParser {
       if (amount == null || amount <= 0) return null;
 
       final isExpense = direction == '支出';
-      final description = target.isNotEmpty ? target : goods;
+      final note = goods.isNotEmpty ? goods : null;
 
       return ParsedTransaction(
         amount: amount,
         isExpense: isExpense,
         date: date,
-        description: description,
+        description: target,
+        note: note,
         category: category,
         orderId: orderId,
         paymentMethod: payMethod,
