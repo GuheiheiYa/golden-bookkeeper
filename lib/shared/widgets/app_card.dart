@@ -24,7 +24,7 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final r = borderRadius ?? (isDark ? 24.0 : 22.0);
+    final r = borderRadius ?? (isDark ? 28.0 : 16.0);
 
     return Container(
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -37,7 +37,7 @@ class AppCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withOpacity(0.45)
+                ? AppColors.primaryDark.withOpacity(0.15)
                 : theme.shadowColor.withOpacity(0.06),
             blurRadius: isDark ? 20 : 10,
             offset: Offset(0, isDark ? 8 : 3),
