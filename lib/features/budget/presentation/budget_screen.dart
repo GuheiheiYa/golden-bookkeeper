@@ -82,6 +82,7 @@ class BudgetScreen extends ConsumerWidget {
     final budgetUsageAsync = ref.watch(budgetUsageProvider);
     final year = ref.watch(currentYearProvider);
     final month = ref.watch(currentMonthProvider);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       appBar: AppBar(
@@ -150,7 +151,7 @@ class BudgetScreen extends ConsumerWidget {
                                       ? AppColors.error
                                       : percentage > 70
                                           ? AppColors.warning
-                                          : AppColors.primary,
+                                          : AppColors.primaryOf(brightness),
                                 ),
                                 strokeCap: StrokeCap.round,
                               ),
@@ -184,7 +185,7 @@ class BudgetScreen extends ConsumerWidget {
                             context,
                             label: '预算',
                             amount: '¥ ${totalBudget.toStringAsFixed(0)}',
-                            color: AppColors.primary,
+                            color: AppColors.primaryOf(brightness),
                           ),
                           _buildBudgetInfo(
                             context,
@@ -451,6 +452,7 @@ class BudgetScreen extends ConsumerWidget {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final brightness = Theme.of(context).brightness;
             return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -468,7 +470,7 @@ class BudgetScreen extends ConsumerWidget {
                     const SizedBox(height: 20),
                     // 选择分类
                     ListTile(
-                      leading: Icon(Icons.category, color: AppColors.primary),
+                      leading: Icon(Icons.category, color: AppColors.primaryOf(brightness)),
                       title: Text(selectedCategoryName ?? '总预算（全部分类）'),
                       subtitle: const Text('点击选择分类'),
                       trailing: const Icon(Icons.chevron_right),
@@ -495,7 +497,7 @@ class BudgetScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
                     // 预算周期
                     ListTile(
-                      leading: Icon(Icons.calendar_today, color: AppColors.primary),
+                      leading: Icon(Icons.calendar_today, color: AppColors.primaryOf(brightness)),
                       title: const Text('预算周期'),
                       trailing: Text(_getPeriodText(selectedPeriod)),
                       onTap: () {
@@ -664,6 +666,7 @@ class BudgetScreen extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
+        final brightness = Theme.of(context).brightness;
         return Container(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -677,7 +680,7 @@ class BudgetScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               // 总预算选项
               ListTile(
-                leading: Icon(Icons.savings, color: AppColors.primary),
+                leading: Icon(Icons.savings, color: AppColors.primaryOf(brightness)),
                 title: const Text('总预算（全部分类）'),
                 onTap: () {
                   onSelected(null, null);
@@ -747,10 +750,11 @@ class BudgetScreen extends ConsumerWidget {
 
   Widget _buildPeriodOption(BuildContext context, String label, String value,
       String current, ValueChanged<String> onSelected) {
+    final brightness = Theme.of(context).brightness;
     return ListTile(
       title: Text(label),
       trailing: value == current
-          ? Icon(Icons.check_circle, color: AppColors.primary)
+          ? Icon(Icons.check_circle, color: AppColors.primaryOf(brightness))
           : null,
       onTap: () {
         onSelected(value);

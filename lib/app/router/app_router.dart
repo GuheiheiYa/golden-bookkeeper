@@ -77,7 +77,8 @@ class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
 
     return Scaffold(
       body: navigationShell,
@@ -101,7 +102,7 @@ class MainScreen extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.35),
+                          color: AppColors.primaryDark.withOpacity(0.15),
                           blurRadius: 24,
                           offset: const Offset(0, -4),
                         ),
@@ -146,18 +147,23 @@ class MainScreen extends StatelessWidget {
         width: 58,
         height: 58,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.primaryLight,
-              AppColors.secondary,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient: isDark
+              ? null
+              : LinearGradient(
+                  colors: [
+                    AppColors.lightPrimary,
+                    AppColors.lightPrimaryLight,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+          color: isDark ? AppColors.primary : null,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(isDark ? 0.55 : 0.35),
+              color: isDark
+                  ? AppColors.primaryDark.withOpacity(0.30)
+                  : AppColors.primaryOf(brightness).withOpacity(0.35),
               blurRadius: isDark ? 16 : 10,
               offset: const Offset(0, 5),
             ),
@@ -169,10 +175,10 @@ class MainScreen extends StatelessWidget {
           },
           backgroundColor: Colors.transparent,
           elevation: 0,
-          child: const Icon(
+          child: Icon(
             Icons.add,
             size: 32,
-            color: Colors.white,
+            color: isDark ? Colors.white : Colors.white,
           ),
         ),
       ),
@@ -236,12 +242,12 @@ class MainScreen extends StatelessWidget {
     late final Color labelColor;
     if (isDark) {
       iconColor =
-          isSelected ? AppColors.primaryLight : AppColors.darkOnSurfaceVariant;
+          isSelected ? AppColors.primary : AppColors.darkOnSurfaceVariant;
       labelColor =
-          isSelected ? AppColors.primaryLight : AppColors.darkOnSurfaceVariant;
+          isSelected ? AppColors.primary : AppColors.darkOnSurfaceVariant;
     } else {
       final color =
-          isSelected ? AppColors.primary : theme.colorScheme.onSurfaceVariant;
+          isSelected ? AppColors.lightPrimary : theme.colorScheme.onSurfaceVariant;
       iconColor = color;
       labelColor = color;
     }

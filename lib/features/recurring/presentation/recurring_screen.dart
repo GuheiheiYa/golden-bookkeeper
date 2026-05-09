@@ -53,6 +53,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
   @override
   Widget build(BuildContext context) {
     final rulesAsync = ref.watch(recurringRulesProvider);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       appBar: AppBar(
@@ -75,19 +76,19 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
               children: [
                 // 说明卡片
                 AppCard(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primaryOf(brightness).withOpacity(0.1),
                   child: Row(
                     children: [
                       Icon(
                         Icons.info_outline,
-                        color: AppColors.primary,
+                        color: AppColors.primaryOf(brightness),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           '设置周期记账规则，系统会自动为你记录固定收支',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.primary,
+                                color: AppColors.primaryOf(brightness),
                               ),
                         ),
                       ),
@@ -197,7 +198,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                                     value: isActive,
                                     onChanged: (value) =>
                                         _toggleActive(rule, value),
-                                    activeColor: AppColors.primary,
+                                    activeColor: AppColors.primaryOf(brightness),
                                   ),
                                 ],
                               ),
@@ -215,7 +216,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                                 Text(
                                   rule['account_name'] as String,
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: AppColors.primary,
+                                        color: AppColors.primaryOf(brightness),
                                       ),
                                 ),
                               ],
@@ -290,6 +291,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final brightness = Theme.of(context).brightness;
             return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -344,7 +346,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       const SizedBox(height: 16),
                       // 选择分类
                       ListTile(
-                        leading: Icon(Icons.category, color: AppColors.primary),
+                        leading: Icon(Icons.category, color: AppColors.primaryOf(brightness)),
                         title: Text(selectedCategoryName ?? '选择分类'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () async {
@@ -360,7 +362,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       // 选择账户
                       ListTile(
                         leading: Icon(Icons.account_balance_wallet,
-                            color: AppColors.primary),
+                            color: AppColors.primaryOf(brightness)),
                         title: Text(selectedAccountName ?? '选择账户'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () async {
@@ -375,7 +377,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       ),
                       // 频率
                       ListTile(
-                        leading: Icon(Icons.repeat, color: AppColors.primary),
+                        leading: Icon(Icons.repeat, color: AppColors.primaryOf(brightness)),
                         title: const Text('频率'),
                         trailing: Text(_getFrequencyText(selectedFrequency)),
                         onTap: () {
@@ -388,7 +390,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       if (selectedFrequency == 'monthly')
                         ListTile(
                           leading: Icon(Icons.calendar_today,
-                              color: AppColors.primary),
+                              color: AppColors.primaryOf(brightness)),
                           title: const Text('每月几号'),
                           trailing: Text('${selectedDayOfMonth ?? 1}日'),
                           onTap: () {
@@ -400,7 +402,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                         ),
                       // 开始日期
                       ListTile(
-                        leading: Icon(Icons.event, color: AppColors.primary),
+                        leading: Icon(Icons.event, color: AppColors.primaryOf(brightness)),
                         title: const Text('开始日期'),
                         trailing: Text(
                           '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}',
@@ -519,6 +521,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final brightness = Theme.of(context).brightness;
             return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -583,7 +586,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       const SizedBox(height: 16),
                       // 选择分类
                       ListTile(
-                        leading: Icon(Icons.category, color: AppColors.primary),
+                        leading: Icon(Icons.category, color: AppColors.primaryOf(brightness)),
                         title: Text(selectedCategoryName ?? '选择分类'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () async {
@@ -599,7 +602,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       // 选择账户
                       ListTile(
                         leading: Icon(Icons.account_balance_wallet,
-                            color: AppColors.primary),
+                            color: AppColors.primaryOf(brightness)),
                         title: Text(selectedAccountName ?? '选择账户'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () async {
@@ -614,7 +617,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       ),
                       // 频率
                       ListTile(
-                        leading: Icon(Icons.repeat, color: AppColors.primary),
+                        leading: Icon(Icons.repeat, color: AppColors.primaryOf(brightness)),
                         title: const Text('频率'),
                         trailing: Text(_getFrequencyText(selectedFrequency)),
                         onTap: () {
@@ -627,7 +630,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       if (selectedFrequency == 'monthly')
                         ListTile(
                           leading: Icon(Icons.calendar_today,
-                              color: AppColors.primary),
+                              color: AppColors.primaryOf(brightness)),
                           title: const Text('每月几号'),
                           trailing: Text('${selectedDayOfMonth ?? 1}日'),
                           onTap: () {
@@ -877,10 +880,11 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
 
   Widget _buildFrequencyOption(BuildContext context, String label, String value,
       String current, ValueChanged<String> onSelected) {
+    final brightness = Theme.of(context).brightness;
     return ListTile(
       title: Text(label),
       trailing: value == current
-          ? Icon(Icons.check_circle, color: AppColors.primary)
+          ? Icon(Icons.check_circle, color: AppColors.primaryOf(brightness))
           : null,
       onTap: () {
         onSelected(value);
@@ -898,6 +902,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
+        final brightness = Theme.of(context).brightness;
         return Container(
           padding: const EdgeInsets.all(20),
           height: 400,
@@ -928,7 +933,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       child: Container(
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.primary
+                              ? AppColors.primaryOf(brightness)
                               : Theme.of(context).colorScheme.surfaceVariant,
                           borderRadius: BorderRadius.circular(8),
                         ),

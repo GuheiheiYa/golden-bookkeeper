@@ -1,54 +1,71 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  /// 交互主色：柔和蓝（链接、选中 Tab、底栏高亮）
-  static const Color primary = Color(0xFF5EB8FF);
-  static const Color primaryLight = Color(0xFF82C9FF);
-  static const Color primaryDark = Color(0xFF3D9EE9);
-  /// 次要渐变 / 点缀
-  static const Color secondary = Color(0xFF26C6DA);
-  static const Color secondaryLight = Color(0xFF4DD0E1);
+  /// 深色模式主色：霓虹柠绿（Neon Fintech）
+  static const Color primary = Color(0xFFC6FF00);
+  static const Color primaryLight = Color(0xFFD4FF00);
+  static const Color primaryDark = Color(0xFF89C400);
+  /// 深色模式次要：森绿渐变暗端
+  static const Color secondary = Color(0xFF2E7D32);
+  static const Color secondaryLight = Color(0xFF4CAF50);
 
-  /// 铜 / 桃色氛围（顶部光晕、大字渐变，对齐金融类深色稿）
-  static const Color accentCopper = Color(0xFFD4A574);
-  static const Color accentPeach = Color(0xFFE8C4A8);
+  /// 浅色模式主色：森绿（自然与生活风格）
+  static const Color lightPrimary = Color(0xFF2D4F35);
+  static const Color lightPrimaryLight = Color(0xFF3D6B48);
+  static const Color lightPrimaryDark = Color(0xFF1A3328);
+  /// 浅色模式次要：哑光金
+  static const Color lightSecondary = Color(0xFFC5A059);
+  static const Color lightSecondaryLight = Color(0xFFD4B87A);
 
-  // 功能色（深色 UI 上略提高饱和度）
-  static const Color success = Color(0xFF00E676);
+  /// 根据亮度返回当前主题的主色
+  static Color primaryOf(Brightness brightness) =>
+      brightness == Brightness.dark ? primary : lightPrimary;
+  /// 根据亮度返回当前主题的次色
+  static Color secondaryOf(Brightness brightness) =>
+      brightness == Brightness.dark ? secondary : lightSecondary;
+
+  /// 霓虹氛围光色（深色模式发光效果）
+  static const Color neonGlow = Color(0xFFC6FF00);
+  static const Color neonGlowDim = Color(0x40C6FF00);
+
+  // 功能色
+  static const Color success = Color(0xFF00C853);
   static const Color warning = Color(0xFFFFB020);
-  static const Color error = Color(0xFFFF5252);
+  static const Color error = Color(0xFFFF3B30);
   static const Color info = Color(0xFF448AFF);
 
-  /// 收入 / 支出（金融类深色 App 常用绿 / 珊瑚红）
-  static const Color income = Color(0xFF00E676);
-  static const Color expense = Color(0xFFFF5252);
+  /// 收入 / 支出
+  static const Color income = Color(0xFF00C853);
+  static const Color expense = Color(0xFFFF3B30);
 
-  // 亮色模式
-  static const Color lightBackground = Color(0xFFF8FAFC);
+  // 浅色模式（自然与生活风格）
+  static const Color lightBackground = Color(0xFFFFFFFF);
   static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceVariant = Color(0xFFF1F5F9);
-  static const Color lightOnBackground = Color(0xFF1E293B);
-  static const Color lightOnSurface = Color(0xFF1E293B);
-  static const Color lightOnSurfaceVariant = Color(0xFF64748B);
-  static const Color lightOutline = Color(0xFFE2E8F0);
+  static const Color lightSurfaceVariant = Color(0xFFF7F8FA);
+  static const Color lightInputFill = Color(0xFFF2F2F2);
+  static const Color lightOnBackground = Color(0xFF1A1A1A);
+  static const Color lightOnSurface = Color(0xFF1A1A1A);
+  static const Color lightOnSurfaceVariant = Color(0xFF666666);
+  static const Color lightTextTertiary = Color(0xFF999999);
+  static const Color lightOutline = Color(0xFFEEEEEE);
   static const Color lightShadow = Color(0x0D000000);
 
-  /// 暗色：近纯黑底 + iOS 银行风卡片灰
-  static const Color darkBackground = Color(0xFF0D0D0D);
-  static const Color darkSurface = Color(0xFF1C1C1E);
-  static const Color darkSurfaceVariant = Color(0xFF2C2C2E);
+  /// 暗色：纯黑底 + 霓虹金融科技风
+  static const Color darkBackground = Color(0xFF000000);
+  static const Color darkSurface = Color(0xFF121212);
+  static const Color darkSurfaceVariant = Color(0xFF1A1A1A);
   static const Color darkOnBackground = Color(0xFFFFFFFF);
   static const Color darkOnSurface = Color(0xFFFFFFFF);
-  static const Color darkOnSurfaceVariant = Color(0xFF9E9E9E);
-  static const Color darkOutline = Color(0xFF38383A);
+  static const Color darkOnSurfaceVariant = Color(0xFF8E8E93);
+  static const Color darkOutline = Color(0xFF2A2A2A);
   static const Color darkShadow = Color(0x66000000);
 
-  /// 深色卡片边缘（轻内描边）
+  /// 深色卡片边缘（白色约 8% 透明度，模拟玻璃感）
   static const Color darkCardBorder = Color(0x14FFFFFF);
 
-  /// 主摘要卡片深色渐变（暖褐 → 深蓝黑）
-  static const Color balanceGradientStart = Color(0xFF2A2420);
-  static const Color balanceGradientEnd = Color(0xFF121826);
+  /// Hero 余额卡片渐变（霓虹柠绿 → 深森绿）
+  static const Color balanceGradientStart = Color(0xFFD4FF00);
+  static const Color balanceGradientEnd = Color(0xFF1B5E20);
 
   // 分类颜色（保持区分度）
   static const List<Color> categoryColors = [

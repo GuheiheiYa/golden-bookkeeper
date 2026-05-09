@@ -47,6 +47,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     // 从数据库读取按日期分组的交易记录
     final groupedAsync = ref.watch(groupedTransactionsProvider);
     final filter = ref.watch(transactionFilterProvider);
@@ -141,7 +142,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       body: Column(
         children: [
           // 筛选条件 Chips
-          if (filter.hasFilters) _buildFilterChips(filter),
+          if (filter.hasFilters) _buildFilterChips(filter, brightness),
           // 多选模式顶部栏
           if (_isMultiSelectMode)
             Container(
@@ -282,7 +283,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                                 }
                                               });
                                             },
-                                            activeColor: AppColors.primary,
+                                            activeColor: AppColors.primaryOf(brightness),
                                           )
                                         : CircleAvatar(
                                             backgroundColor: Color(categoryColor).withOpacity(0.1),
@@ -326,7 +327,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                   padding: const EdgeInsets.only(left: 20),
                                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary,
+                                    color: AppColors.primaryOf(brightness),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Icon(Icons.edit, color: Colors.white),
@@ -425,7 +426,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   }
 
   /// 构建筛选条件 Chips
-  Widget _buildFilterChips(TransactionFilter filter) {
+  Widget _buildFilterChips(TransactionFilter filter, Brightness brightness) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -437,6 +438,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             _buildFilterTag(
               icon: Icons.clear_all,
               label: '清空',
+              brightness: brightness,
               onTap: () {
                 ref.read(transactionFilterProvider.notifier).state =
                     const TransactionFilter();
@@ -448,6 +450,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               _buildFilterTag(
                 icon: Icons.search,
                 label: '搜索: ${filter.keyword}',
+                brightness: brightness,
                 onDeleted: () {
                   ref.read(transactionFilterProvider.notifier).state =
                       filter.copyWith(clearKeyword: true);
@@ -460,6 +463,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                 icon: filter.isExpense! ? Icons.arrow_downward : Icons.arrow_upward,
                 iconColor: filter.isExpense! ? AppColors.expense : AppColors.income,
                 label: filter.isExpense! ? '支出' : '收入',
+                brightness: brightness,
                 onDeleted: () {
                   ref.read(transactionFilterProvider.notifier).state =
                       filter.copyWith(clearIsExpense: true);
@@ -470,6 +474,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               _buildFilterTag(
                 icon: Icons.date_range,
                 label: _formatDateRange(filter.startDate, filter.endDate),
+                brightness: brightness,
                 onDeleted: () {
                   ref.read(transactionFilterProvider.notifier).state =
                       filter.copyWith(
@@ -483,6 +488,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               _buildFilterTag(
                 icon: Icons.category,
                 label: '${filter.categoryIds!.length}个分类',
+                brightness: brightness,
                 onDeleted: () {
                   ref.read(transactionFilterProvider.notifier).state =
                       filter.copyWith(clearCategoryIds: true);
@@ -493,6 +499,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               _buildFilterTag(
                 icon: Icons.account_balance_wallet,
                 label: '指定账户',
+                brightness: brightness,
                 onDeleted: () {
                   ref.read(transactionFilterProvider.notifier).state =
                       filter.copyWith(clearAccountId: true);
@@ -508,10 +515,12 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   Widget _buildFilterTag({
     required IconData icon,
     required String label,
+    required Brightness brightness,
     Color? iconColor,
     VoidCallback? onTap,
     VoidCallback? onDeleted,
   }) {
+    final primaryColor = AppColors.primaryOf(brightness);
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: GestureDetector(
@@ -519,19 +528,19 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.08),
+            color: primaryColor.withOpacity(0.08),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: iconColor ?? AppColors.primary),
+              Icon(icon, size: 14, color: iconColor ?? primaryColor),
               const SizedBox(width: 4),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.primary,
+                  color: primaryColor,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -539,7 +548,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                 const SizedBox(width: 4),
                 GestureDetector(
                   onTap: onDeleted,
-                  child: Icon(Icons.close, size: 14, color: AppColors.primary.withOpacity(0.6)),
+                  child: Icon(Icons.close, size: 14, color: primaryColor.withOpacity(0.6)),
                 ),
               ],
             ],
@@ -747,6 +756,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
   /// 长按显示快捷操作
   void _showQuickActions(Map<String, dynamic> tx) {
+    final brightness = Theme.of(context).brightness;
     final isExpense = (tx['is_expense'] as int) == 1;
     final amount = (tx['amount'] as num).toDouble();
     final categoryName = tx['category_name'] as String? ?? '未分类';
@@ -825,10 +835,10 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primaryOf(brightness).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.edit, color: AppColors.primary, size: 20),
+                    child: Icon(Icons.edit, color: AppColors.primaryOf(brightness), size: 20),
                   ),
                   title: const Text('编辑'),
                   subtitle: const Text('修改交易信息'),

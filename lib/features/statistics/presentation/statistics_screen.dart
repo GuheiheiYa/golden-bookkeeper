@@ -33,6 +33,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Scaffold(
       appBar: AppBar(
         title: const Text('统计报表'),
@@ -52,8 +53,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.primary,
-          labelColor: AppColors.primary,
+          indicatorColor: AppColors.primaryOf(brightness),
+          labelColor: AppColors.primaryOf(brightness),
           unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
           dividerColor: Colors.transparent,
           dividerHeight: 0,

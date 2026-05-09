@@ -39,6 +39,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Scaffold(
       appBar: AppBar(
         title: const Text('分类管理'),
@@ -50,8 +51,8 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.primary,
-          labelColor: AppColors.primary,
+          indicatorColor: AppColors.primaryOf(brightness),
+          labelColor: AppColors.primaryOf(brightness),
           unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
           dividerColor: Colors.transparent,
           dividerHeight: 0,
@@ -214,6 +215,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
     required String selectedIcon,
     required ValueChanged<String> onIconSelected,
   }) {
+    final brightness = Theme.of(context).brightness;
     final categories = IconUtils.iconsByCategory;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,18 +254,18 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.primary.withOpacity(0.1)
+                              ? AppColors.primaryOf(brightness).withOpacity(0.1)
                               : Theme.of(context).colorScheme.surfaceVariant,
                           borderRadius: BorderRadius.circular(10),
                           border: isSelected
-                              ? Border.all(color: AppColors.primary, width: 2)
+                              ? Border.all(color: AppColors.primaryOf(brightness), width: 2)
                               : null,
                         ),
                         child: Icon(
                           info.icon,
                           size: 22,
                           color: isSelected
-                              ? AppColors.primary
+                              ? AppColors.primaryOf(brightness)
                               : Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),

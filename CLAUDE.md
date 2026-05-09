@@ -110,13 +110,26 @@ lib/
 | import_records | 导入记录表 |
 | import_duplicates | 重复记录检测表 |
 
-## Claude 风格 UI 设计
+## 双主题 UI 设计
 
-- **主色调**: `#7C3AED` (紫色) + `#6366F1` (靛蓝)
-- **卡片**: `BorderRadius.circular(16)`，微弱阴影
-- **暗色模式背景**: `#0F0F23` 或 `#1A1A2E`
-- **字体**: Inter (英文) + Noto Sans SC (中文)
-- **动画**: flutter_animate 链式调用
+### 深色模式（霓虹金融科技）
+- **主色**: `#C6FF00` (霓虹柠绿)，按钮/图标文字用黑色
+- **背景**: `#000000` 纯黑，卡片 `#121212`
+- **卡片**: `BorderRadius.circular(28)`，绿色发光替代黑阴影
+- **发光**: `AppColors.primaryDark.withOpacity(0.15~0.30)`
+- **渐变**: Hero 卡 `#D4FF00` → `#1B5E20`
+
+### 浅色模式（自然与生活）
+- **主色**: `#2D4F35` (森绿)，次色 `#C5A059` (哑光金)
+- **背景**: `#FFFFFF` 纯白，卡片白色靠阴影分层
+- **卡片**: `BorderRadius.circular(16)`，极柔阴影
+- **文字**: 三级色阶 `#1A1A1A` → `#666666` → `#999999`
+
+### 主题感知
+- 使用 `AppColors.primaryOf(brightness)` 获取当前主题主色
+- 使用 `AppColors.secondaryOf(brightness)` 获取当前主题次色
+- 字体: Noto Sans SC (中文)
+- 动画: flutter_animate 链式调用
 
 ## 文档管理
 

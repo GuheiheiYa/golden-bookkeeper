@@ -19,6 +19,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       appBar: AppBar(
@@ -142,12 +143,12 @@ class SettingsScreen extends ConsumerWidget {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primaryOf(brightness).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       Icons.info_outline,
-                      color: AppColors.primary,
+                      color: AppColors.primaryOf(brightness),
                     ),
                   ),
                   title: const Text('版本'),
@@ -195,12 +196,13 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildSectionHeader(BuildContext context, String title) {
+    final brightness = Theme.of(context).brightness;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: AppColors.primary,
+              color: AppColors.primaryOf(brightness),
               fontWeight: FontWeight.w600,
             ),
       ),
@@ -352,7 +354,7 @@ class _ExportDialogContentState extends State<_ExportDialogContent> {
     return AlertDialog(
       title: Row(
         children: [
-          Icon(Icons.file_upload, color: AppColors.primary),
+          Icon(Icons.file_upload, color: AppColors.primaryOf(Theme.of(context).brightness)),
           const SizedBox(width: 8),
           const Text('数据导出'),
         ],
@@ -431,7 +433,7 @@ class _ExportDialogContentState extends State<_ExportDialogContent> {
             _buildExportOption(
               context,
               icon: Icons.description,
-              iconColor: AppColors.primary,
+              iconColor: AppColors.primaryOf(Theme.of(context).brightness),
               title: '导出为 Excel',
               subtitle: '带格式化的表格文件',
               onTap: _isExporting ? null : () => _doExport(isExcel: true),

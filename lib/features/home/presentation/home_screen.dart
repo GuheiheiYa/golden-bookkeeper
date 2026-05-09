@@ -73,14 +73,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // 监听预算数据，确保交易更新后预算也会刷新
     ref.watch(budgetUsageProvider);
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           // 应用栏（金融类顶栏：底缘铜色弧光 + 左头像 + 右铃铛/搜索）
           SliverAppBar(
-            expandedHeight: isDark ? 104 : 112,
             floating: false,
             pinned: true,
             automaticallyImplyLeading: false,
@@ -99,7 +99,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             title: isDark
                 ? const SizedBox.shrink()
                 : Text(
-                    '记账本',
+                    '咯噔记账',
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
@@ -127,9 +127,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               center: Alignment.bottomCenter,
                               radius: 1.0,
                               colors: [
-                                AppColors.accentCopper.withOpacity(0.42),
-                                AppColors.accentCopper.withOpacity(0.12),
-                                AppColors.accentCopper.withOpacity(0.0),
+                                AppColors.primaryDark.withOpacity(0.25),
+                                AppColors.primaryDark.withOpacity(0.08),
+                                AppColors.primaryDark.withOpacity(0.0),
                               ],
                               stops: const [0.0, 0.45, 1.0],
                             ),
@@ -147,7 +147,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              AppColors.accentCopper.withOpacity(0.06),
+                              AppColors.primaryDark.withOpacity(0.04),
                             ],
                           ),
                         ),
@@ -162,8 +162,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppColors.primary.withOpacity(0.1),
-                          AppColors.secondary.withOpacity(0.05),
+                          AppColors.lightPrimary.withOpacity(0.1),
+                          AppColors.lightSecondary.withOpacity(0.05),
                         ],
                       ),
                     ),
@@ -395,10 +395,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildQuickActions(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
     final actions = [
-      {'icon': Icons.receipt_long, 'label': '记账', 'color': AppColors.primary},
-      {'icon': Icons.pie_chart, 'label': '统计', 'color': AppColors.secondary},
+      {'icon': Icons.receipt_long, 'label': '记账', 'color': AppColors.primaryOf(brightness)},
+      {'icon': Icons.pie_chart, 'label': '统计', 'color': AppColors.secondaryOf(brightness)},
       {'icon': Icons.account_balance, 'label': '预算', 'color': AppColors.warning},
       {'icon': Icons.repeat, 'label': '周期', 'color': AppColors.info},
     ];
@@ -456,6 +457,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildBudgetProgress(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final budgetUsageAsync = ref.watch(budgetUsageProvider);
 
     return budgetUsageAsync.when(
@@ -553,7 +555,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   ? AppColors.error
                                   : percentage > 80
                                       ? AppColors.warning
-                                      : AppColors.primary,
+                                      : AppColors.primaryOf(brightness),
                             ),
                           ),
                         ),

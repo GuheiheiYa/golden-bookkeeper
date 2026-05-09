@@ -93,6 +93,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     // 从数据库读取分类列表
     final categoriesAsync = _tabController.index == 0
         ? ref.watch(expenseCategoriesProvider)
@@ -131,7 +132,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
             child: Text(
               '保存',
               style: TextStyle(
-                color: AppColors.primary,
+                color: AppColors.primaryOf(brightness),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -139,8 +140,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.primary,
-          labelColor: AppColors.primary,
+          indicatorColor: AppColors.primaryOf(brightness),
+          labelColor: AppColors.primaryOf(brightness),
           unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
           dividerColor: Colors.transparent,
           dividerHeight: 0,
@@ -174,6 +175,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   }
 
   Widget _buildAmountDisplay() {
+    final brightness = Theme.of(context).brightness;
     final currencySymbol = getCurrencySymbol(_selectedCurrency);
     // 构建显示表达式
     String displayText = _amount;
@@ -200,7 +202,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 '${_firstOperand!.toStringAsFixed(_firstOperand!.truncateToDouble() == _firstOperand! ? 0 : 2)} ${_pendingOperator == '+' ? '+' : '-'}',
                 style: TextStyle(
                   fontSize: 16,
-                  color: AppColors.primary.withOpacity(0.7),
+                  color: AppColors.primaryOf(brightness).withOpacity(0.7),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -215,7 +217,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primaryOf(brightness).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -226,14 +228,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                          color: AppColors.primaryOf(brightness),
                         ),
                       ),
                       const SizedBox(width: 2),
                       Icon(
                         Icons.keyboard_arrow_down,
                         size: 16,
-                        color: AppColors.primary,
+                        color: AppColors.primaryOf(brightness),
                       ),
                     ],
                   ),
@@ -538,8 +540,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     required String value,
     required VoidCallback onTap,
   }) {
+    final brightness = Theme.of(context).brightness;
     return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
+      leading: Icon(icon, color: AppColors.primaryOf(brightness)),
       title: Text(label),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -718,12 +721,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   }
 
   Widget _buildKey(String text, {bool isAction = false, bool isConfirm = false, bool isDate = false}) {
+    final brightness = Theme.of(context).brightness;
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Material(
           color: isConfirm
-              ? AppColors.primary
+              ? AppColors.primaryOf(brightness)
               : isAction
                   ? Theme.of(context).colorScheme.surfaceVariant
                   : Theme.of(context).colorScheme.surface,
@@ -741,14 +745,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                         Icon(
                           Icons.calendar_today,
                           size: 18,
-                          color: AppColors.primary,
+                          color: AppColors.primaryOf(brightness),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           '${_selectedDate.month}/${_selectedDate.day}',
                           style: TextStyle(
                             fontSize: 10,
-                            color: AppColors.primary,
+                            color: AppColors.primaryOf(brightness),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -860,6 +864,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         builder: (context) {
+          final brightness = Theme.of(context).brightness;
           return Container(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -885,7 +890,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                     ),
                     title: Text(accName),
                     trailing: _selectedAccountId == accId
-                        ? Icon(Icons.check_circle, color: AppColors.primary)
+                        ? Icon(Icons.check_circle, color: AppColors.primaryOf(brightness))
                         : null,
                     onTap: () {
                       setState(() {
@@ -911,6 +916,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
+        final brightness = Theme.of(context).brightness;
         return Container(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -963,11 +969,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                       duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.primary.withOpacity(0.1)
+                            ? AppColors.primaryOf(brightness).withOpacity(0.1)
                             : Theme.of(context).colorScheme.surfaceVariant,
                         borderRadius: BorderRadius.circular(12),
                         border: isSelected
-                            ? Border.all(color: AppColors.primary, width: 2)
+                            ? Border.all(color: AppColors.primaryOf(brightness), width: 2)
                             : null,
                       ),
                       child: Column(
@@ -979,7 +985,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                               fontSize: 24,
                               fontWeight: FontWeight.w600,
                               color: isSelected
-                                  ? AppColors.primary
+                                  ? AppColors.primaryOf(brightness)
                                   : Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
@@ -990,7 +996,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: isSelected
-                                  ? AppColors.primary
+                                  ? AppColors.primaryOf(brightness)
                                   : Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
@@ -1000,7 +1006,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                             style: TextStyle(
                               fontSize: 10,
                               color: isSelected
-                                  ? AppColors.primary.withOpacity(0.7)
+                                  ? AppColors.primaryOf(brightness).withOpacity(0.7)
                                   : Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
