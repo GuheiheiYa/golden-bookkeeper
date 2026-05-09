@@ -96,16 +96,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             leading: _HomeHeaderAvatar(
               onTap: () => GoRouter.of(context).go('/settings'),
             ),
-            title: isDark
-                ? const SizedBox.shrink()
-                : Text(
+            title: Text(
                     '咯噔记账',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-            centerTitle: !isDark,
+            centerTitle: true,
             flexibleSpace: Stack(
               fit: StackFit.expand,
               children: [
@@ -115,24 +113,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       : Theme.of(context).colorScheme.surface,
                 ),
                 if (isDark) ...[
-                  IgnorePointer(
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
+                  Positioned(
+                    bottom: -36,
+                    left: 0,
+                    right: 0,
+                    height: 140,
+                    child: IgnorePointer(
                       child: Container(
-                        height: 140,
-                        margin: const EdgeInsets.only(bottom: -36),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: RadialGradient(
-                              center: Alignment.bottomCenter,
-                              radius: 1.0,
-                              colors: [
-                                AppColors.primaryDark.withOpacity(0.25),
-                                AppColors.primaryDark.withOpacity(0.08),
-                                AppColors.primaryDark.withOpacity(0.0),
-                              ],
-                              stops: const [0.0, 0.45, 1.0],
-                            ),
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: Alignment.bottomCenter,
+                            radius: 1.0,
+                            colors: [
+                              AppColors.primaryDark.withOpacity(0.25),
+                              AppColors.primaryDark.withOpacity(0.08),
+                              AppColors.primaryDark.withOpacity(0.0),
+                            ],
+                            stops: const [0.0, 0.45, 1.0],
                           ),
                         ),
                       ),
@@ -901,7 +898,7 @@ class _HomeHeaderAvatar extends StatelessWidget {
               boxShadow: isDark
                   ? [
                       BoxShadow(
-                        color: AppColors.accentCopper.withOpacity(0.5),
+                        color: AppColors.primaryDark.withOpacity(0.5),
                         blurRadius: 14,
                         spreadRadius: 0.5,
                       ),

@@ -148,7 +148,14 @@ class MainScreen extends StatelessWidget {
         height: 58,
         decoration: BoxDecoration(
           gradient: isDark
-              ? null
+              ? LinearGradient(
+                  colors: [
+                    AppColors.primaryDark,
+                    AppColors.secondary,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
               : LinearGradient(
                   colors: [
                     AppColors.lightPrimary,
@@ -157,7 +164,6 @@ class MainScreen extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-          color: isDark ? AppColors.primary : null,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
