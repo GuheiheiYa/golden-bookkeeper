@@ -174,14 +174,14 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                     ),
                   ],
                 ),
-              )
-                  .animate()
-                  .fadeIn(
-                    delay: Duration(milliseconds: 50 * index),
-                    duration: 200.ms,
-                  )
-                  .slideX(begin: 0.05, end: 0),
-            );
+              ),
+            )
+                .animate()
+                .fadeIn(
+                  delay: Duration(milliseconds: 50 * index),
+                  duration: 200.ms,
+                )
+                .slideX(begin: 0.05, end: 0);
           },
         );
       },

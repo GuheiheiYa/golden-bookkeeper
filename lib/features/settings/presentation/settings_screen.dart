@@ -159,12 +159,12 @@ class SettingsScreen extends ConsumerWidget {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.secondary.withOpacity(0.1),
+                      color: AppColors.secondaryOf(brightness).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       Icons.description,
-                      color: AppColors.secondary,
+                      color: AppColors.secondaryOf(brightness),
                     ),
                   ),
                   title: const Text('用户协议'),

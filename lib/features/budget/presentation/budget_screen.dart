@@ -79,10 +79,10 @@ class BudgetScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final brightness = Theme.of(context).brightness;
     final budgetUsageAsync = ref.watch(budgetUsageProvider);
     final year = ref.watch(currentYearProvider);
     final month = ref.watch(currentMonthProvider);
-    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       appBar: AppBar(
@@ -436,6 +436,7 @@ class BudgetScreen extends ConsumerWidget {
   // ========== 添加预算对话框 ==========
 
   void _showAddBudgetDialog(BuildContext context, WidgetRef ref) {
+    final brightness = Theme.of(context).brightness;
     final amountController = TextEditingController();
     int? selectedCategoryId;
     String? selectedCategoryName;
@@ -452,7 +453,6 @@ class BudgetScreen extends ConsumerWidget {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            final brightness = Theme.of(context).brightness;
             return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -655,6 +655,7 @@ class BudgetScreen extends ConsumerWidget {
 
   void _showCategoryPicker(
       BuildContext context, Function(int?, String?) onSelected) async {
+    final brightness = Theme.of(context).brightness;
     final db = AppDatabase();
     final categories = await db.getCategories(isExpense: true);
 
@@ -666,7 +667,6 @@ class BudgetScreen extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        final brightness = Theme.of(context).brightness;
         return Container(
           padding: const EdgeInsets.all(20),
           child: Column(
