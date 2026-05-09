@@ -94,7 +94,9 @@ class MainScreen extends StatelessWidget {
           padding: EdgeInsets.zero,
           notchMargin: 8,
           shape: const CircularNotchedRectangle(),
-          color: theme.colorScheme.surface,
+          color: isDark ? AppColors.darkSurfaceVariant : theme.colorScheme.surface,
+          elevation: isDark ? 8 : 2,
+          shadowColor: Colors.black.withOpacity(isDark ? 0.45 : 0.12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -146,8 +148,8 @@ class MainScreen extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppColors.primary,
-              AppColors.primary.withOpacity(0.8),
+              AppColors.primaryLight,
+              AppColors.secondary,
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -155,9 +157,9 @@ class MainScreen extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.4),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: AppColors.primary.withOpacity(isDark ? 0.55 : 0.35),
+              blurRadius: isDark ? 16 : 10,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
@@ -187,7 +189,24 @@ class MainScreen extends StatelessWidget {
     required bool isSelected,
   }) {
     final theme = Theme.of(context);
-    final color = isSelected ? AppColors.primary : theme.colorScheme.onSurfaceVariant;
+    final isDark = theme.brightness == Brightness.dark;
+
+    late final Color iconColor;
+    late final Color labelColor;
+    if (isDark) {
+      if (isSelected) {
+        iconColor = AppColors.darkBackground;
+        labelColor = AppColors.darkBackground;
+      } else {
+        iconColor = AppColors.darkOnSurfaceVariant;
+        labelColor = AppColors.darkOnSurfaceVariant;
+      }
+    } else {
+      final color =
+          isSelected ? AppColors.primary : theme.colorScheme.onSurfaceVariant;
+      iconColor = color;
+      labelColor = color;
+    }
 
     return InkWell(
       onTap: () {
@@ -204,16 +223,33 @@ class MainScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              isSelected ? selectedIcon : icon,
-              color: color,
-              size: 24,
+            SizedBox(
+              height: 34,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (isDark && isSelected)
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  Icon(
+                    isSelected ? selectedIcon : icon,
+                    color: iconColor,
+                    size: 24,
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
-                color: color,
+                color: labelColor,
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),

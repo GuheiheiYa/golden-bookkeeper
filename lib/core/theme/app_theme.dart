@@ -39,8 +39,9 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.lightSurface,
         elevation: 0,
+        shadowColor: AppColors.lightShadow,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(22),
         ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
@@ -61,15 +62,15 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.lightSurfaceVariant,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: AppColors.primary, width: 2),
         ),
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -81,7 +82,7 @@ class AppTheme {
           elevation: 0,
           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
       ),
@@ -106,15 +107,18 @@ class AppTheme {
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: AppColors.darkOnSurface,
+        onSurfaceVariant: AppColors.darkOnSurfaceVariant,
         outline: AppColors.darkOutline,
         error: AppColors.error,
       ),
       scaffoldBackgroundColor: AppColors.darkBackground,
+      shadowColor: Colors.black.withOpacity(0.45),
       textTheme: _buildTextTheme(Brightness.dark),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.darkSurface,
+        backgroundColor: AppColors.darkBackground,
         foregroundColor: AppColors.darkOnSurface,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: true,
         titleTextStyle: GoogleFonts.notoSansSc(
           fontSize: 18,
@@ -125,13 +129,14 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.darkSurface,
         elevation: 0,
+        shadowColor: AppColors.darkShadow,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
         ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.darkSurface,
-        selectedItemColor: AppColors.primaryLight,
+        selectedItemColor: AppColors.darkOnSurface,
         unselectedItemColor: AppColors.darkOnSurfaceVariant,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
@@ -147,15 +152,15 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.darkSurfaceVariant,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: AppColors.primaryLight, width: 2),
         ),
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -167,7 +172,7 @@ class AppTheme {
           elevation: 0,
           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
       ),
@@ -183,6 +188,9 @@ class AppTheme {
     final color = brightness == Brightness.light
         ? AppColors.lightOnSurface
         : AppColors.darkOnSurface;
+    final muted = brightness == Brightness.light
+        ? AppColors.lightOnSurfaceVariant
+        : AppColors.darkOnSurfaceVariant;
 
     return TextTheme(
       displayLarge: GoogleFonts.notoSansSc(
@@ -228,7 +236,7 @@ class AppTheme {
       titleSmall: GoogleFonts.notoSansSc(
         fontSize: 12,
         fontWeight: FontWeight.w500,
-        color: color,
+        color: muted,
       ),
       bodyLarge: GoogleFonts.notoSansSc(
         fontSize: 16,
@@ -243,7 +251,7 @@ class AppTheme {
       bodySmall: GoogleFonts.notoSansSc(
         fontSize: 12,
         fontWeight: FontWeight.normal,
-        color: color,
+        color: muted,
       ),
       labelLarge: GoogleFonts.notoSansSc(
         fontSize: 14,
@@ -253,12 +261,12 @@ class AppTheme {
       labelMedium: GoogleFonts.notoSansSc(
         fontSize: 12,
         fontWeight: FontWeight.w500,
-        color: color,
+        color: muted,
       ),
       labelSmall: GoogleFonts.notoSansSc(
         fontSize: 10,
         fontWeight: FontWeight.w500,
-        color: color,
+        color: muted,
       ),
     );
   }

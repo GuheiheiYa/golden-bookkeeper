@@ -73,6 +73,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // 监听预算数据，确保交易更新后预算也会刷新
     ref.watch(budgetUsageProvider);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -81,6 +83,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             expandedHeight: 120,
             floating: false,
             pinned: true,
+            backgroundColor:
+                isDark ? AppColors.darkBackground : Theme.of(context).colorScheme.surface,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 '记账本',
@@ -94,10 +98,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.primary.withOpacity(0.1),
-                      AppColors.secondary.withOpacity(0.05),
-                    ],
+                    colors: isDark
+                        ? [
+                            AppColors.primary.withOpacity(0.22),
+                            AppColors.darkBackground,
+                            AppColors.secondary.withOpacity(0.12),
+                          ]
+                        : [
+                            AppColors.primary.withOpacity(0.1),
+                            AppColors.secondary.withOpacity(0.05),
+                          ],
                   ),
                 ),
               ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_colors.dart';
+
 class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -20,23 +22,32 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final r = borderRadius ?? (isDark ? 24.0 : 22.0);
+
     return Container(
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: color ?? Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(borderRadius ?? 16),
+        color: color ?? theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(r),
+        border: isDark
+            ? Border.all(color: AppColors.darkCardBorder, width: 1)
+            : Border.all(color: AppColors.lightOutline.withOpacity(0.35), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).shadowColor.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: isDark
+                ? Colors.black.withOpacity(0.45)
+                : theme.shadowColor.withOpacity(0.06),
+            blurRadius: isDark ? 20 : 10,
+            offset: Offset(0, isDark ? 8 : 3),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(borderRadius ?? 16),
+          borderRadius: BorderRadius.circular(r),
           onTap: onTap,
           child: Padding(
             padding: padding ?? const EdgeInsets.all(16),

@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-05-09
+
+### 1. Premium Dark 主题与组件样式（对齐参考稿气质，不含复杂自定义控件）
+**时间**: 2026-05-09 14:30:00
+**原因**: 在不做圆环、色轮、K 线等炫技控件的前提下，让整体配色、圆角、层次与底部导航风格接近参考深色 UI。
+**文件**:
+- `lib/core/theme/app_colors.dart`
+- `lib/core/theme/app_theme.dart`
+- `lib/shared/widgets/app_card.dart`
+- `lib/app/router/app_router.dart`
+- `lib/features/home/presentation/home_screen.dart`
+**变更**:
+- 深色背景改为近 `#121212`，卡片面 `#1E1E1E`，次级文字 `#9E9E9E`，并统一更高圆角与阴影层次
+- 主色略提亮、收入/支出改为高饱和绿/珊瑚红，功能色同步微调
+- `AppCard` 增加轻边框与深色下更柔和的投影
+- 深色模式下底部导航选中态改为白底圆托 + 深色图标/标签；中间 FAB 使用紫–靛渐变与高一点的发光
+- 首页 `SliverAppBar` 展开区在深色下使用略强的紫靛氛围渐变
+
+---
+
 ## 2026-05-06
 
 ### 1. 项目初始化
