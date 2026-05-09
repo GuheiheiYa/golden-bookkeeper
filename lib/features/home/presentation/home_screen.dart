@@ -78,140 +78,142 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // 应用栏
+          // 应用栏（金融类顶栏：底缘铜色弧光 + 左头像 + 右铃铛/搜索）
           SliverAppBar(
-            expandedHeight: 120,
+            expandedHeight: isDark ? 104 : 112,
             floating: false,
             pinned: true,
+            automaticallyImplyLeading: false,
             backgroundColor:
                 isDark ? AppColors.darkBackground : Theme.of(context).colorScheme.surface,
-            flexibleSpace: FlexibleSpaceBar(
-              title: isDark
-                  ? ShaderMask(
-                      blendMode: BlendMode.srcIn,
-                      shaderCallback: (bounds) {
-                        return LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppColors.accentPeach,
-                            AppColors.darkOnSurface,
-                          ],
-                        ).createShader(bounds);
-                      },
-                      child: Text(
-                        '记账本',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize:
-                              Theme.of(context).textTheme.titleLarge?.fontSize ?? 18,
-                        ),
-                      ),
-                    )
-                  : Text(
-                      '记账本',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
+            foregroundColor:
+                isDark ? Colors.white : Theme.of(context).colorScheme.onSurface,
+            iconTheme: IconThemeData(
+              color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface,
+              size: 24,
+            ),
+            leadingWidth: 56,
+            leading: _HomeHeaderAvatar(
+              onTap: () => GoRouter.of(context).go('/settings'),
+            ),
+            title: isDark
+                ? const SizedBox.shrink()
+                : Text(
+                    '记账本',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
                     ),
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Container(
-                    color: isDark
-                        ? AppColors.darkBackground
-                        : Theme.of(context).colorScheme.surface,
                   ),
-                  if (isDark) ...[
-                    Positioned(
-                      top: -80,
-                      left: -60,
-                      child: IgnorePointer(
+            centerTitle: !isDark,
+            flexibleSpace: Stack(
+              fit: StackFit.expand,
+              children: [
+                ColoredBox(
+                  color: isDark
+                      ? AppColors.darkBackground
+                      : Theme.of(context).colorScheme.surface,
+                ),
+                if (isDark) ...[
+                  IgnorePointer(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        height: 140,
+                        margin: const EdgeInsets.only(bottom: -36),
                         child: Container(
-                          width: 280,
-                          height: 280,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
                             gradient: RadialGradient(
+                              center: Alignment.bottomCenter,
+                              radius: 1.05,
                               colors: [
-                                AppColors.accentCopper.withOpacity(0.35),
+                                AppColors.accentCopper.withOpacity(0.42),
+                                AppColors.accentCopper.withOpacity(0.12),
                                 AppColors.accentCopper.withOpacity(0.0),
                               ],
+                              stops: const [0.0, 0.45, 1.0],
                             ),
                           ),
                         ),
                       ),
                     ),
-                    Positioned(
-                      top: 20,
-                      right: -40,
-                      child: IgnorePointer(
-                        child: Container(
-                          width: 180,
-                          height: 180,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: RadialGradient(
-                              colors: [
-                                AppColors.primary.withOpacity(0.12),
-                                AppColors.primary.withOpacity(0.0),
-                              ],
-                            ),
+                  ),
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              AppColors.accentCopper.withOpacity(0.06),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                  ],
-                  if (!isDark)
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppColors.primary.withOpacity(0.1),
-                            AppColors.secondary.withOpacity(0.05),
-                          ],
-                        ),
-                      ),
-                    ),
+                  ),
                 ],
-              ),
+                if (!isDark)
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.primary.withOpacity(0.1),
+                          AppColors.secondary.withOpacity(0.05),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
             actions: [
               Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
+                    color: isDark ? Colors.white : null,
                     onPressed: () => _showNotificationList(context),
                   ),
                   if (_notificationService.unreadCount > 0)
                     Positioned(
-                      right: 8,
-                      top: 8,
+                      right: 6,
+                      top: 6,
                       child: Container(
-                        padding: const EdgeInsets.all(2),
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.error,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         constraints: const BoxConstraints(
-                          minWidth: 16,
+                          minWidth: 18,
                           minHeight: 16,
                         ),
                         child: Text(
-                          '${_notificationService.unreadCount}',
+                          _notificationService.unreadCount > 99
+                              ? '99+'
+                              : '${_notificationService.unreadCount}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
+                            fontWeight: FontWeight.w600,
                           ),
                           textAlign: TextAlign.center,
                         ),
                       ),
                     ),
                 ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.search),
+                color: isDark ? Colors.white : null,
+                tooltip: '搜索明细',
+                onPressed: () => GoRouter.of(context).go('/transactions'),
               ),
             ],
           ),
@@ -870,5 +872,67 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ).whenComplete(() {
       setState(() {});
     });
+  }
+}
+
+/// 首页顶栏头像：浅灰底剪影 + 细白边 + 深色模式下铜色外光（对齐金融类顶栏）
+class _HomeHeaderAvatar extends StatelessWidget {
+  const _HomeHeaderAvatar({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: isDark
+                  ? [
+                      BoxShadow(
+                        color: AppColors.accentCopper.withOpacity(0.5),
+                        blurRadius: 14,
+                        spreadRadius: 0.5,
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(2.5),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFE8E8E8),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(isDark ? 0.95 : 0.85),
+                    width: 1.2,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.person,
+                  size: 22,
+                  color: Color(0xFF424242),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
