@@ -125,7 +125,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           decoration: BoxDecoration(
                             gradient: RadialGradient(
                               center: Alignment.bottomCenter,
-                              radius: 1.05,
+                              radius: 1.0,
                               colors: [
                                 AppColors.accentCopper.withOpacity(0.42),
                                 AppColors.accentCopper.withOpacity(0.12),
