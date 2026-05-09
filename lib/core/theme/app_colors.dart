@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  /// 主色：偏亮紫，在深色底上更接近参考图的点缀色
-  static const Color primary = Color(0xFF8B5CF6);
-  static const Color primaryLight = Color(0xFFA78BFA);
-  static const Color primaryDark = Color(0xFF7C3AED);
-  static const Color secondary = Color(0xFF6366F1);
-  static const Color secondaryLight = Color(0xFF818CF8);
+  /// 交互主色：柔和蓝（链接、选中 Tab、底栏高亮）
+  static const Color primary = Color(0xFF5EB8FF);
+  static const Color primaryLight = Color(0xFF82C9FF);
+  static const Color primaryDark = Color(0xFF3D9EE9);
+  /// 次要渐变 / 点缀
+  static const Color secondary = Color(0xFF26C6DA);
+  static const Color secondaryLight = Color(0xFF4DD0E1);
+
+  /// 铜 / 桃色氛围（顶部光晕、大字渐变，对齐金融类深色稿）
+  static const Color accentCopper = Color(0xFFD4A574);
+  static const Color accentPeach = Color(0xFFE8C4A8);
 
   // 功能色（深色 UI 上略提高饱和度）
   static const Color success = Color(0xFF00E676);
@@ -28,9 +33,9 @@ class AppColors {
   static const Color lightOutline = Color(0xFFE2E8F0);
   static const Color lightShadow = Color(0x0D000000);
 
-  /// 暗色：近黑底 + 略亮一级卡片（对齐常见 premium dark / #121212 体系）
-  static const Color darkBackground = Color(0xFF121212);
-  static const Color darkSurface = Color(0xFF1E1E1E);
+  /// 暗色：近纯黑底 + iOS 银行风卡片灰
+  static const Color darkBackground = Color(0xFF0D0D0D);
+  static const Color darkSurface = Color(0xFF1C1C1E);
   static const Color darkSurfaceVariant = Color(0xFF2C2C2E);
   static const Color darkOnBackground = Color(0xFFFFFFFF);
   static const Color darkOnSurface = Color(0xFFFFFFFF);
@@ -38,13 +43,17 @@ class AppColors {
   static const Color darkOutline = Color(0xFF38383A);
   static const Color darkShadow = Color(0x66000000);
 
-  /// 深色卡片边缘高光（轻层次，非重度玻璃模糊）
+  /// 深色卡片边缘（轻内描边）
   static const Color darkCardBorder = Color(0x14FFFFFF);
 
-  // 分类颜色
+  /// 主摘要卡片深色渐变（暖褐 → 深蓝黑）
+  static const Color balanceGradientStart = Color(0xFF2A2420);
+  static const Color balanceGradientEnd = Color(0xFF121826);
+
+  // 分类颜色（保持区分度）
   static const List<Color> categoryColors = [
-    Color(0xFF7C3AED),
-    Color(0xFF6366F1),
+    Color(0xFF5EB8FF),
+    Color(0xFF26C6DA),
     Color(0xFF3B82F6),
     Color(0xFF06B6D4),
     Color(0xFF10B981),

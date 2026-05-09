@@ -86,30 +86,98 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             backgroundColor:
                 isDark ? AppColors.darkBackground : Theme.of(context).colorScheme.surface,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                '记账本',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: isDark
-                        ? [
-                            AppColors.primary.withOpacity(0.22),
-                            AppColors.darkBackground,
-                            AppColors.secondary.withOpacity(0.12),
-                          ]
-                        : [
+              title: isDark
+                  ? ShaderMask(
+                      blendMode: BlendMode.srcIn,
+                      shaderCallback: (bounds) {
+                        return LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.accentPeach,
+                            AppColors.darkOnSurface,
+                          ],
+                        ).createShader(bounds);
+                      },
+                      child: Text(
+                        '记账本',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize:
+                              Theme.of(context).textTheme.titleLarge?.fontSize ?? 18,
+                        ),
+                      ),
+                    )
+                  : Text(
+                      '记账本',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(
+                    color: isDark
+                        ? AppColors.darkBackground
+                        : Theme.of(context).colorScheme.surface,
+                  ),
+                  if (isDark) ...[
+                    Positioned(
+                      top: -80,
+                      left: -60,
+                      child: IgnorePointer(
+                        child: Container(
+                          width: 280,
+                          height: 280,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                AppColors.accentCopper.withOpacity(0.35),
+                                AppColors.accentCopper.withOpacity(0.0),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 20,
+                      right: -40,
+                      child: IgnorePointer(
+                        child: Container(
+                          width: 180,
+                          height: 180,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                AppColors.primary.withOpacity(0.12),
+                                AppColors.primary.withOpacity(0.0),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (!isDark)
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
                             AppColors.primary.withOpacity(0.1),
                             AppColors.secondary.withOpacity(0.05),
                           ],
-                  ),
-                ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             actions: [
@@ -187,12 +255,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: Container(
           height: 180,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppColors.primary, AppColors.secondary],
+              colors: [
+                AppColors.balanceGradientStart,
+                AppColors.balanceGradientEnd,
+              ],
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(24),
           ),
           child: const Center(child: CircularProgressIndicator(color: Colors.white)),
         ),
@@ -208,12 +279,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           padding: EdgeInsets.zero,
           child: Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [AppColors.primary, AppColors.secondary],
+                colors: [
+                  AppColors.balanceGradientStart,
+                  AppColors.balanceGradientEnd,
+                ],
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(24),
             ),
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -319,6 +393,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildQuickActions(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final actions = [
       {'icon': Icons.receipt_long, 'label': '记账', 'color': AppColors.primary},
       {'icon': Icons.pie_chart, 'label': '统计', 'color': AppColors.secondary},
@@ -329,6 +404,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: actions.map((action) {
+        final accent = action['color'] as Color;
         return GestureDetector(
           onTap: () {
             final label = action['label'] as String;
@@ -351,12 +427,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: (action['color'] as Color).withOpacity(0.1),
+                  color: isDark
+                      ? AppColors.darkSurfaceVariant
+                      : accent.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
+                  border: isDark
+                      ? Border.all(color: AppColors.darkCardBorder)
+                      : null,
                 ),
                 child: Icon(
                   action['icon'] as IconData,
-                  color: action['color'] as Color,
+                  color: isDark ? Colors.white.withOpacity(0.92) : accent,
                   size: 28,
                 ),
               ),

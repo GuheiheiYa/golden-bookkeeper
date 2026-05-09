@@ -63,7 +63,7 @@ class SettingsScreen extends ConsumerWidget {
                 _buildNavigationTile(
                   context,
                   icon: Icons.label,
-                  iconColor: 0xFF8B5CF6,
+                  iconColor: 0xFF5EB8FF,
                   title: '标签管理',
                   subtitle: '管理交易标签',
                   onTap: () => _navigateTo(context, const TagListScreen()),

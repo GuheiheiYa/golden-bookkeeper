@@ -99,10 +99,10 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: ColorScheme.dark(
-        primary: AppColors.primaryLight,
-        primaryContainer: AppColors.primary,
-        secondary: AppColors.secondaryLight,
-        secondaryContainer: AppColors.secondary,
+        primary: AppColors.primary,
+        primaryContainer: const Color(0xFF1E3A52),
+        secondary: AppColors.secondary,
+        secondaryContainer: const Color(0xFF004D5C),
         surface: AppColors.darkSurface,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
@@ -135,14 +135,29 @@ class AppTheme {
         ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AppColors.darkSurface,
-        selectedItemColor: AppColors.darkOnSurface,
+        backgroundColor: Colors.transparent,
+        selectedItemColor: AppColors.primaryLight,
         unselectedItemColor: AppColors.darkOnSurfaceVariant,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
+      tabBarTheme: TabBarTheme(
+        labelColor: AppColors.primaryLight,
+        unselectedLabelColor: AppColors.darkOnSurfaceVariant,
+        indicatorColor: AppColors.primaryLight,
+        dividerColor: AppColors.darkOutline,
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: SegmentedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          foregroundColor: AppColors.darkOnSurfaceVariant,
+          selectedForegroundColor: AppColors.darkOnSurface,
+          selectedBackgroundColor: AppColors.darkSurfaceVariant,
+          side: BorderSide(color: AppColors.darkOutline),
+        ),
+      ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primaryLight,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -161,13 +176,13 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: AppColors.primaryLight, width: 2),
+          borderSide: BorderSide(color: AppColors.primary, width: 2),
         ),
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryLight,
+          backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),

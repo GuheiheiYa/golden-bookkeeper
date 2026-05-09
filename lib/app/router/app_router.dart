@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -79,68 +81,66 @@ class MainScreen extends StatelessWidget {
 
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomAppBar(
-          height: 65,
-          padding: EdgeInsets.zero,
-          notchMargin: 8,
-          shape: const CircularNotchedRectangle(),
-          color: isDark ? AppColors.darkSurfaceVariant : theme.colorScheme.surface,
-          elevation: isDark ? 8 : 2,
-          shadowColor: Colors.black.withOpacity(isDark ? 0.45 : 0.12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              // 首页
-              _buildNavItem(
-                context,
-                icon: Icons.home_outlined,
-                selectedIcon: Icons.home,
-                label: '首页',
-                index: 0,
-                isSelected: navigationShell.currentIndex == 0,
+      bottomNavigationBar: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        child: isDark
+            ? Stack(
+                children: [
+                  Positioned.fill(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                      child: Container(
+                        color: AppColors.darkSurface.withOpacity(0.52),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: Colors.white.withOpacity(0.06)),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.35),
+                          blurRadius: 24,
+                          offset: const Offset(0, -4),
+                        ),
+                      ],
+                    ),
+                    child: BottomAppBar(
+                      height: 65,
+                      padding: EdgeInsets.zero,
+                      notchMargin: 8,
+                      shape: const CircularNotchedRectangle(),
+                      color: Colors.transparent,
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
+                      child: _bottomNavRow(context),
+                    ),
+                  ),
+                ],
+              )
+            : Container(
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: BottomAppBar(
+                  height: 65,
+                  padding: EdgeInsets.zero,
+                  notchMargin: 8,
+                  shape: const CircularNotchedRectangle(),
+                  color: theme.colorScheme.surface,
+                  elevation: 2,
+                  shadowColor: Colors.black.withOpacity(0.12),
+                  child: _bottomNavRow(context),
+                ),
               ),
-              // 明细
-              _buildNavItem(
-                context,
-                icon: Icons.receipt_long_outlined,
-                selectedIcon: Icons.receipt_long,
-                label: '明细',
-                index: 1,
-                isSelected: navigationShell.currentIndex == 1,
-              ),
-              // 占位（中间留给记一笔按钮）
-              const SizedBox(width: 60),
-              // 统计
-              _buildNavItem(
-                context,
-                icon: Icons.bar_chart_outlined,
-                selectedIcon: Icons.bar_chart,
-                label: '统计',
-                index: 2,
-                isSelected: navigationShell.currentIndex == 2,
-              ),
-              // 设置
-              _buildNavItem(
-                context,
-                icon: Icons.settings_outlined,
-                selectedIcon: Icons.settings,
-                label: '设置',
-                index: 3,
-                isSelected: navigationShell.currentIndex == 3,
-              ),
-            ],
-          ),
-        ),
       ),
       floatingActionButton: Container(
         width: 58,
@@ -180,6 +180,47 @@ class MainScreen extends StatelessWidget {
     );
   }
 
+  Widget _bottomNavRow(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildNavItem(
+          context,
+          icon: Icons.home_outlined,
+          selectedIcon: Icons.home,
+          label: '首页',
+          index: 0,
+          isSelected: navigationShell.currentIndex == 0,
+        ),
+        _buildNavItem(
+          context,
+          icon: Icons.receipt_long_outlined,
+          selectedIcon: Icons.receipt_long,
+          label: '明细',
+          index: 1,
+          isSelected: navigationShell.currentIndex == 1,
+        ),
+        const SizedBox(width: 60),
+        _buildNavItem(
+          context,
+          icon: Icons.bar_chart_outlined,
+          selectedIcon: Icons.bar_chart,
+          label: '统计',
+          index: 2,
+          isSelected: navigationShell.currentIndex == 2,
+        ),
+        _buildNavItem(
+          context,
+          icon: Icons.settings_outlined,
+          selectedIcon: Icons.settings,
+          label: '设置',
+          index: 3,
+          isSelected: navigationShell.currentIndex == 3,
+        ),
+      ],
+    );
+  }
+
   Widget _buildNavItem(
     BuildContext context, {
     required IconData icon,
@@ -194,13 +235,10 @@ class MainScreen extends StatelessWidget {
     late final Color iconColor;
     late final Color labelColor;
     if (isDark) {
-      if (isSelected) {
-        iconColor = AppColors.darkBackground;
-        labelColor = AppColors.darkBackground;
-      } else {
-        iconColor = AppColors.darkOnSurfaceVariant;
-        labelColor = AppColors.darkOnSurfaceVariant;
-      }
+      iconColor =
+          isSelected ? AppColors.primaryLight : AppColors.darkOnSurfaceVariant;
+      labelColor =
+          isSelected ? AppColors.primaryLight : AppColors.darkOnSurfaceVariant;
     } else {
       final color =
           isSelected ? AppColors.primary : theme.colorScheme.onSurfaceVariant;
@@ -223,27 +261,10 @@ class MainScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              height: 34,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  if (isDark && isSelected)
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  Icon(
-                    isSelected ? selectedIcon : icon,
-                    color: iconColor,
-                    size: 24,
-                  ),
-                ],
-              ),
+            Icon(
+              isSelected ? selectedIcon : icon,
+              color: iconColor,
+              size: 24,
             ),
             const SizedBox(height: 2),
             Text(
