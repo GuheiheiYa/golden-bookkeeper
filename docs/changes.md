@@ -6,6 +6,12 @@
 
 ## 2026-05-09
 
+### 4. 修复 `app_theme.dart` 与旧版 Flutter API 不兼容
+**时间**: 2026-05-09 18:00:00
+**原因**: `TabBarThemeData.dividerColor`、`SegmentedButton.styleFrom` 等在部分 SDK 下报错或不可用。
+**文件**: `lib/core/theme/app_theme.dart`
+**变更**: 去掉 `dividerColor`；`SegmentedButton` 改为显式 `ButtonStyle` + `MaterialStateProperty`。
+
 ### 3. 首页顶栏对齐金融参考稿（底缘铜弧光、头像、铃铛与搜索）
 **时间**: 2026-05-09 17:10:00
 **原因**: 用户反馈顶部观感不佳，改为左头像（白边+铜色外光）、右线性图标与底部中央铜色径向光晕，深色下去掉居中标题大字。

@@ -141,19 +141,28 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: TabBarThemeData(
         labelColor: AppColors.primaryLight,
         unselectedLabelColor: AppColors.darkOnSurfaceVariant,
         indicatorColor: AppColors.primaryLight,
-        dividerColor: AppColors.darkOutline,
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
-        style: SegmentedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          foregroundColor: AppColors.darkOnSurfaceVariant,
-          selectedForegroundColor: AppColors.darkOnSurface,
-          selectedBackgroundColor: AppColors.darkSurfaceVariant,
-          side: BorderSide(color: AppColors.darkOutline),
+        style: ButtonStyle(
+          side: MaterialStateProperty.all(
+            BorderSide(color: AppColors.darkOutline),
+          ),
+          backgroundColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.selected)) {
+              return AppColors.darkSurfaceVariant;
+            }
+            return Colors.transparent;
+          }),
+          foregroundColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.selected)) {
+              return AppColors.darkOnSurface;
+            }
+            return AppColors.darkOnSurfaceVariant;
+          }),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
