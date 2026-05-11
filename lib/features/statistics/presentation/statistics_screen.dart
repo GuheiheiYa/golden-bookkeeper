@@ -142,8 +142,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
               const SizedBox(height: 16),
               AppCard(
                 child: items.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(32),
+                    ? Padding(
+                        padding: const EdgeInsets.all(32),
                         child: Center(
                           child: Text('暂无数据', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ),
@@ -233,8 +233,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
               AppCard(
                 padding: EdgeInsets.zero,
                 child: items.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(24),
+                    ? Padding(
+                        padding: const EdgeInsets.all(24),
                         child: Center(
                           child: Text('暂无数据', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ),

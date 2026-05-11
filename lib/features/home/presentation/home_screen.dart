@@ -619,9 +619,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           error: (e, _) => AppCard(child: Center(child: Text('加载失败: $e'))),
           data: (transactions) {
             if (transactions.isEmpty) {
-              return const AppCard(
+              return AppCard(
                 child: Padding(
-                  padding: EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(24),
                   child: Center(
                     child: Text(
                       '暂无交易记录，快去记一笔吧',
