@@ -140,7 +140,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                     final isExpense = (rule['is_expense'] as int?) == 1;
                     final amount = (rule['amount'] as num).toDouble();
                     final iconName = rule['category_icon'] as String?;
-                    final colorValue = rule['category_color'] as int? ?? 0xFF7C3AED;
+                    final colorValue = rule['category_color'] as int? ?? AppColors.primary.value;
                     final frequency = rule['frequency'] as String? ?? 'monthly';
                     final dayOfMonth = rule['day_of_month'] as int?;
 
@@ -746,7 +746,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                 }
                 final cat = categories[index - 1];
                 final iconName = cat['icon'] as String? ?? 'category';
-                final colorValue = cat['color'] as int? ?? 0xFF7C3AED;
+                final colorValue = cat['color'] as int? ?? AppColors.primary.value;
                 return ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -815,7 +815,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                 }
                 final acc = accounts[index - 1];
                 final iconName = acc['icon'] as String? ?? 'payments';
-                final colorValue = acc['color'] as int? ?? 0xFF7C3AED;
+                final colorValue = acc['color'] as int? ?? AppColors.primary.value;
                 return ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),

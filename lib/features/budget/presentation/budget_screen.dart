@@ -266,7 +266,7 @@ class BudgetScreen extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: Color(colorValue ?? 0xFF7C3AED)
+                                  color: Color(colorValue ?? AppColors.primary.value)
                                       .withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -274,7 +274,7 @@ class BudgetScreen extends ConsumerWidget {
                                   iconName != null
                                       ? IconUtils.fromName(iconName)
                                       : Icons.savings,
-                                  color: Color(colorValue ?? 0xFF7C3AED),
+                                  color: Color(colorValue ?? AppColors.primary.value),
                                   size: 20,
                                 ),
                               ),
@@ -322,7 +322,7 @@ class BudgetScreen extends ConsumerWidget {
                                     ? AppColors.error
                                     : percent > 80
                                         ? AppColors.warning
-                                        : Color(colorValue ?? 0xFF7C3AED),
+                                        : Color(colorValue ?? AppColors.primary.value),
                               ),
                             ),
                           ),
@@ -593,7 +593,7 @@ class BudgetScreen extends ConsumerWidget {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Color(budget['category_color'] as int? ?? 0xFF7C3AED)
+                      color: Color(budget['category_color'] as int? ?? AppColors.primary.value)
                           .withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -601,7 +601,7 @@ class BudgetScreen extends ConsumerWidget {
                       budget['category_icon'] != null
                           ? IconUtils.fromName(budget['category_icon'] as String)
                           : Icons.savings,
-                      color: Color(budget['category_color'] as int? ?? 0xFF7C3AED),
+                      color: Color(budget['category_color'] as int? ?? AppColors.primary.value),
                     ),
                   ),
                   title: Text(budget['category_name'] as String),
@@ -691,7 +691,7 @@ class BudgetScreen extends ConsumerWidget {
               // 分类列表
               ...categories.map((cat) {
                 final iconName = cat['icon'] as String? ?? 'category';
-                final colorValue = cat['color'] as int? ?? 0xFF7C3AED;
+                final colorValue = cat['color'] as int? ?? AppColors.primary.value;
                 return ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),

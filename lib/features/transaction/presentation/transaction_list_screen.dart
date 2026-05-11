@@ -784,7 +784,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1082,7 +1082,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                         color: Theme.of(context).colorScheme.surface,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.primaryDark.withOpacity(0.15)
+                                : Colors.black.withOpacity(0.05),
                             blurRadius: 8,
                             offset: const Offset(0, -4),
                           ),
@@ -1139,7 +1141,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           children: categories.map((cat) {
             final catId = cat['id'] as int;
             final catName = cat['name'] as String;
-            final colorValue = cat['color'] as int? ?? 0xFF7C3AED;
+            final colorValue = cat['color'] as int? ?? AppColors.primary.value;
             final isSelected = selectedIds.contains(catId);
             return FilterChip(
               avatar: Icon(
@@ -1201,7 +1203,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             ...accounts.map((acc) {
               final accId = acc['id'] as int;
               final accName = acc['name'] as String;
-              final colorValue = acc['color'] as int? ?? 0xFF7C3AED;
+              final colorValue = acc['color'] as int? ?? AppColors.primary.value;
               final isSelected = selectedId == accId;
               return FilterChip(
                 avatar: Icon(
@@ -1355,6 +1357,7 @@ class _ListToastWidgetState extends State<_ListToastWidget>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       color: Colors.black26,
       child: Center(
@@ -1377,7 +1380,9 @@ class _ListToastWidgetState extends State<_ListToastWidget>
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
+                  color: isDark
+                      ? AppColors.primaryDark.withOpacity(0.15)
+                      : Colors.black.withOpacity(0.15),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -1391,7 +1396,7 @@ class _ListToastWidgetState extends State<_ListToastWidget>
                   decoration: BoxDecoration(
                     color: widget.isError
                         ? Colors.red.withOpacity(0.1)
-                        : const Color(0xFF7C3AED).withOpacity(0.1),
+                        : AppColors.success.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -1400,7 +1405,7 @@ class _ListToastWidgetState extends State<_ListToastWidget>
                         : Icons.check_circle_outline,
                     color: widget.isError
                         ? Colors.red
-                        : const Color(0xFF7C3AED),
+                        : AppColors.success,
                     size: 40,
                   ),
                 ),

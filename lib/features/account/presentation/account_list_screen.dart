@@ -109,7 +109,7 @@ class AccountListScreen extends ConsumerWidget {
                   final index = entry.key;
                   final account = entry.value;
                   final iconName = account['icon'] as String? ?? 'payments';
-                  final colorValue = account['color'] as int? ?? 0xFF7C3AED;
+                  final colorValue = account['color'] as int? ?? AppColors.primary.value;
                   final balance = (account['balance'] as num?)?.toDouble() ?? 0.0;
 
                   return AppCard(

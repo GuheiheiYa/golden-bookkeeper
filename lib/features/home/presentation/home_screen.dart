@@ -491,9 +491,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 Center(
                   child: Column(
                     children: [
-                      Icon(Icons.savings_outlined, size: 40, color: Colors.grey.withOpacity(0.5)),
+                      Icon(Icons.savings_outlined, size: 40, color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5)),
                       const SizedBox(height: 8),
-                      Text('暂未设置预算', style: TextStyle(color: Colors.grey)),
+                      Text('暂未设置预算', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                     ],
                   ),
                 ),
@@ -625,7 +625,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Center(
                     child: Text(
                       '暂无交易记录，快去记一笔吧',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ),
                 ),

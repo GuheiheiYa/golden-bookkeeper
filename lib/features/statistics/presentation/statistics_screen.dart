@@ -145,7 +145,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                     ? const Padding(
                         padding: EdgeInsets.all(32),
                         child: Center(
-                          child: Text('暂无数据', style: TextStyle(color: Colors.grey)),
+                          child: Text('暂无数据', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ),
                       )
                     : Column(
@@ -236,7 +236,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                     ? const Padding(
                         padding: EdgeInsets.all(24),
                         child: Center(
-                          child: Text('暂无数据', style: TextStyle(color: Colors.grey)),
+                          child: Text('暂无数据', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ),
                       )
                     : ListView.separated(

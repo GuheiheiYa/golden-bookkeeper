@@ -590,7 +590,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 children: tags.map((tag) {
                   final tagId = tag['id'] as int;
                   final tagName = tag['name'] as String;
-                  final tagColor = tag['color'] as int? ?? 0xFF7C3AED;
+                  final tagColor = tag['color'] as int? ?? AppColors.primary.value;
                   final isSelected = _selectedTagIds.contains(tagId);
 
                   return GestureDetector(
@@ -672,7 +672,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.primaryDark.withOpacity(0.15)
+                : Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -1353,6 +1355,7 @@ class _ToastWidgetState extends State<_ToastWidget>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       color: Colors.black26,
       child: Center(
@@ -1375,7 +1378,9 @@ class _ToastWidgetState extends State<_ToastWidget>
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
+                  color: isDark
+                      ? AppColors.primaryDark.withOpacity(0.15)
+                      : Colors.black.withOpacity(0.15),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -1389,7 +1394,7 @@ class _ToastWidgetState extends State<_ToastWidget>
                   decoration: BoxDecoration(
                     color: widget.isError
                         ? Colors.red.withOpacity(0.1)
-                        : const Color(0xFF7C3AED).withOpacity(0.1),
+                        : AppColors.success.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -1398,7 +1403,7 @@ class _ToastWidgetState extends State<_ToastWidget>
                         : Icons.check_circle_outline,
                     color: widget.isError
                         ? Colors.red
-                        : const Color(0xFF7C3AED),
+                        : AppColors.success,
                     size: 40,
                   ),
                 ),

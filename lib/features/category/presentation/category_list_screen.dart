@@ -121,7 +121,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
             final category = categories[index];
             final name = category['name'] as String;
             final iconName = category['icon'] as String? ?? 'category';
-            final colorValue = category['color'] as int? ?? 0xFF7C3AED;
+            final colorValue = category['color'] as int? ?? AppColors.primary.value;
             final isSystem = (category['is_system'] as int?) == 1;
 
             return Container(
@@ -309,7 +309,12 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                   color: color,
                   shape: BoxShape.circle,
                   border: isSelected
-                      ? Border.all(color: Colors.white, width: 3)
+                      ? Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : AppColors.darkOutline,
+                          width: 3,
+                        )
                       : null,
                   boxShadow: isSelected
                       ? [
@@ -405,7 +410,9 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                         color: Theme.of(context).scaffoldBackgroundColor,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.primaryDark.withOpacity(0.15)
+                                : Colors.black.withOpacity(0.05),
                             blurRadius: 10,
                             offset: const Offset(0, -2),
                           ),
@@ -464,7 +471,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
 
     final nameController = TextEditingController(text: category['name'] as String);
     String selectedIcon = category['icon'] as String? ?? 'category';
-    int selectedColor = category['color'] as int? ?? 0xFF7C3AED;
+    int selectedColor = category['color'] as int? ?? AppColors.primary.value;
 
     showModalBottomSheet(
       context: context,
@@ -541,7 +548,9 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                         color: Theme.of(context).scaffoldBackgroundColor,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.primaryDark.withOpacity(0.15)
+                                : Colors.black.withOpacity(0.05),
                             blurRadius: 10,
                             offset: const Offset(0, -2),
                           ),

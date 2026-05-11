@@ -99,7 +99,7 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
                     final index = entry.key;
                     final tag = entry.value;
                     final name = tag['name'] as String;
-                    final colorValue = tag['color'] as int? ?? 0xFF7C3AED;
+                    final colorValue = tag['color'] as int? ?? AppColors.primary.value;
 
                     return GestureDetector(
                       onTap: () => _showEditTagDialog(context, tag),
@@ -282,7 +282,7 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
 
   void _showEditTagDialog(BuildContext context, Map<String, dynamic> tag) {
     final nameController = TextEditingController(text: tag['name'] as String);
-    int selectedColor = tag['color'] as int? ?? 0xFF7C3AED;
+    int selectedColor = tag['color'] as int? ?? AppColors.primary.value;
 
     showModalBottomSheet(
       context: context,
