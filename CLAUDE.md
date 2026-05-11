@@ -171,6 +171,26 @@ lib/
   - 代码重构完成后
 - 禁止积压多个功能后一次性提交
 
+### 文档更新规范（硬性要求）
+- **每次完成一个功能或修复后，必须在 Git 提交之前同步更新文档**
+- 文档更新流程（先文档，后提交，一次 commit 包含代码 + 文档）：
+  1. 更新 `docs/changelog.md`：在 `[未发布]` 之前插入新版本条目
+  2. 更新 `docs/features.md`：在版本历史区插入新版本条目
+  3. 如果涉及新功能模块，更新 features.md 的功能描述部分
+  4. 如果涉及数据库变更，更新 `docs/database.md`
+  5. 将文档和代码一起 `git add` + `git commit`
+- 禁止"先提交代码、再补文档"的做法——文档和代码必须在同一个 commit 中
+- 触发时机（与 Git 提交规范一致）：
+  - 新功能开发完成后
+  - Bug 修复完成后
+  - UI/UX 重构完成后
+  - 代码重构完成后
+  - 数据库表结构变更后
+- changelog.md 版本条目格式：
+  - 标题：`## [版本号] - YYYY-MM-DD`
+  - 分区：新增功能 / 改进优化 / 问题修复 / 技术变更
+  - 同步更新底部版本历史表格
+
 [//]: # (### 测试规范（硬性要求）)
 
 [//]: # (- **每次功能开发或修改完成后，必须启动子 agent 作为资深测试工程师进行测试**)
@@ -338,33 +358,3 @@ lib/
 ### 代码生成
 - drift 和 riverpod 需要代码生成
 - 修改表定义后必须运行 `dart run build_runner build`
-- `.g.dart` 文件是自动生成的，不要手动修改
-
-### 数据库迁移
-- 修改表结构需要更新 schemaVersion
-- 在 migration 中添加迁移逻辑
-- 测试迁移脚本的正确性
-
-### 主题切换
-- 使用 Riverpod 管理主题状态
-- 支持深色/浅色/跟随系统三种模式
-- 主题持久化到 SharedPreferences
-
-## 常见问题
-
-### Q: 如何添加新的数据库表？
-A: 在 `core/database/tables/` 中创建表定义，然后在 `app_database.dart` 中注册，最后运行代码生成。
-
-### Q: 如何添加新的功能模块？
-A: 在 `features/` 中创建新的模块目录，包含 `presentation/`、`domain/`、`providers/` 子目录。
-
-### Q: 如何更新文档？
-A: 使用 `/update-docs` skill，指定文档类型和更新内容。
-
-## 相关资源
-
-- [Flutter 官方文档](https://flutter.dev)
-- [drift 文档](https://drift.simonbinder.eu)
-- [Riverpod 文档](https://riverpod.dev)
-- [go_router 文档](https://pub.dev/packages/go_router)
-- [fl_chart 文档](https://pub.dev/packages/fl_chart)
