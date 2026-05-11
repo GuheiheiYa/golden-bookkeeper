@@ -33,6 +33,7 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
     final tagsAsync = ref.watch(tagsProvider);
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('标签管理'),
         actions: [
@@ -443,9 +444,4 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
               ),
               child: const Text('删除'),
             ),
-          ],
-        );
-      },
-    );
-  }
-}
+   

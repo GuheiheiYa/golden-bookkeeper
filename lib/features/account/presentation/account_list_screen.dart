@@ -31,6 +31,7 @@ class AccountListScreen extends ConsumerWidget {
     final totalBalanceAsync = ref.watch(totalBalanceProvider);
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('账户管理'),
         actions: [
@@ -586,7 +587,4 @@ class AccountListScreen extends ConsumerWidget {
         ],
       ),
       selected: isSelected,
-      onSelected: (_) => onSelected(value),
-    );
-  }
-}
+      onSelect

@@ -7,29 +7,30 @@ export 'app_colors.dart';
 class AppTheme {
   AppTheme._();
 
+  /// 浅色模式 - Peekaboo 柔和梦幻风格
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: ColorScheme.light(
         primary: AppColors.lightPrimary,
-        primaryContainer: const Color(0xFFE8EFE9),
+        primaryContainer: const Color(0xFFF0ECF5),
         secondary: AppColors.lightSecondary,
-        secondaryContainer: const Color(0xFFF5F0E6),
+        secondaryContainer: const Color(0xFFFDE8EF),
         surface: AppColors.lightSurface,
         surfaceContainerHighest: AppColors.lightSurfaceVariant,
         onPrimary: Colors.white,
-        onSecondary: Colors.white,
+        onSecondary: AppColors.lightOnSurface,
         onSurface: AppColors.lightOnSurface,
         onSurfaceVariant: AppColors.lightOnSurfaceVariant,
         outline: AppColors.lightOutline,
         error: AppColors.error,
       ),
-      scaffoldBackgroundColor: AppColors.lightBackground,
-      shadowColor: Colors.black.withOpacity(0.05),
+      scaffoldBackgroundColor: AppColors.bgGradientTop,
+      shadowColor: AppColors.lightShadow,
       textTheme: _buildTextTheme(Brightness.light),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.lightSurface,
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.lightOnSurface,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -43,51 +44,51 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.lightSurface,
         elevation: 0,
-        shadowColor: AppColors.lightShadow,
+        shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
         ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AppColors.lightSurface,
+        backgroundColor: Colors.transparent,
         selectedItemColor: AppColors.lightPrimary,
         unselectedItemColor: AppColors.lightTextTertiary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: AppColors.lightPrimary,
-        foregroundColor: Colors.white,
-        elevation: 2,
+        backgroundColor: AppColors.warmYellow,
+        foregroundColor: AppColors.warmYellowText,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(28),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.lightInputFill,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: AppColors.lightPrimary, width: 2),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.lightPrimary, width: 2),
         ),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.lightPrimary,
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.warmYellow,
+          foregroundColor: AppColors.warmYellowText,
           elevation: 0,
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(28),
           ),
         ),
       ),
@@ -99,18 +100,19 @@ class AppTheme {
     );
   }
 
+  /// 深色模式 - 适配梦幻风格
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: ColorScheme.dark(
         primary: AppColors.primary,
-        primaryContainer: const Color(0xFF1B3D1F),
+        primaryContainer: const Color(0xFF2A2040),
         secondary: AppColors.secondary,
-        secondaryContainer: const Color(0xFF1B3D1F),
+        secondaryContainer: const Color(0xFF352535),
         surface: AppColors.darkSurface,
         surfaceContainerHighest: AppColors.darkSurfaceVariant,
-        onPrimary: Colors.black,
+        onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: AppColors.darkOnSurface,
         onSurfaceVariant: AppColors.darkOnSurfaceVariant,
@@ -118,10 +120,10 @@ class AppTheme {
         error: AppColors.error,
       ),
       scaffoldBackgroundColor: AppColors.darkBackground,
-      shadowColor: Colors.black.withOpacity(0.45),
+      shadowColor: Colors.black.withOpacity(0.4),
       textTheme: _buildTextTheme(Brightness.dark),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.darkBackground,
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.darkOnSurface,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -135,9 +137,9 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.darkSurface,
         elevation: 0,
-        shadowColor: AppColors.darkShadow,
+        shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(24),
         ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
@@ -155,7 +157,7 @@ class AppTheme {
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
           side: WidgetStateProperty.all(
-            BorderSide(color: AppColors.darkOutline),
+            const BorderSide(color: AppColors.darkOutline),
           ),
           backgroundColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
@@ -173,7 +175,7 @@ class AppTheme {
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.black,
+        foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(28),
         ),
@@ -182,27 +184,27 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.darkSurfaceVariant,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.black,
+          backgroundColor: AppColors.warmYellow,
+          foregroundColor: AppColors.warmYellowText,
           elevation: 0,
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(28),
           ),
         ),
       ),
@@ -223,7 +225,7 @@ class AppTheme {
         : AppColors.darkOnSurfaceVariant;
     final tertiary = brightness == Brightness.light
         ? AppColors.lightTextTertiary
-        : AppColors.darkOnSurfaceVariant;
+        : AppColors.darkTextTertiary;
 
     return TextTheme(
       displayLarge: GoogleFonts.notoSansSc(
@@ -284,7 +286,7 @@ class AppTheme {
       bodySmall: GoogleFonts.notoSansSc(
         fontSize: 12,
         fontWeight: FontWeight.normal,
-        color: muted,
+        color: tertiary,
       ),
       labelLarge: GoogleFonts.notoSansSc(
         fontSize: 14,
@@ -296,11 +298,4 @@ class AppTheme {
         fontWeight: FontWeight.w500,
         color: muted,
       ),
-      labelSmall: GoogleFonts.notoSansSc(
-        fontSize: 10,
-        fontWeight: FontWeight.w500,
-        color: tertiary,
-      ),
-    );
-  }
-}
+      labelSmall: GoogleFonts.notoSa

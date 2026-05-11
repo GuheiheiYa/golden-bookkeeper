@@ -85,6 +85,7 @@ class BudgetScreen extends ConsumerWidget {
     final month = ref.watch(currentMonthProvider);
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('预算管理'),
         actions: [
@@ -805,9 +806,4 @@ class BudgetScreen extends ConsumerWidget {
               ),
               child: const Text('删除'),
             ),
-          ],
-        );
-      },
-    );
-  }
-}
+   

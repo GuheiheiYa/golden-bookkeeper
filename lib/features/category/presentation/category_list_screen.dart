@@ -41,6 +41,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('分类管理'),
         actions: [
@@ -637,9 +638,4 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                 ),
               ],
             );
-          },
-        );
-      },
-    );
-  }
-}
+   

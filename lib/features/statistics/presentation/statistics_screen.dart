@@ -35,6 +35,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('统计报表'),
         actions: [
@@ -574,8 +575,4 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           ),
         ),
         const SizedBox(width: 4),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-      ],
-    );
-  }
-}
+        Text(label, style: Theme.of(context).textT

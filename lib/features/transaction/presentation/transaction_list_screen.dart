@@ -53,6 +53,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     final filter = ref.watch(transactionFilterProvider);
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: _isSearching
             ? TextField(
@@ -1423,9 +1424,4 @@ class _ListToastWidgetState extends State<_ListToastWidget>
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+   

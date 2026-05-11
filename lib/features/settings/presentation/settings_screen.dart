@@ -22,6 +22,7 @@ class SettingsScreen extends ConsumerWidget {
     final brightness = Theme.of(context).brightness;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('设置'),
       ),
@@ -678,8 +679,4 @@ class _ExportDialogContentState extends State<_ExportDialogContent> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('导出失败: $e')),
         );
-        setState(() => _isExporting = false);
-      }
-    }
-  }
-}
+        setState(() => _isE

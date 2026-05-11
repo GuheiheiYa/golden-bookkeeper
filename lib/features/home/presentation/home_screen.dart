@@ -24,11 +24,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // 每次进入首页时检查是否有到期的周期记账规则
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndExecuteRecurringRules();
     });
-    // 启动定时器，每分钟检查一次周期记账规则
     _startRecurringTimer();
   }
 
@@ -38,9 +36,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.dispose();
   }
 
-  /// 定时器，用于定期检查周期记账规则
   void _startRecurringTimer() {
-    // 每分钟检查一次
     _recurringTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       _checkAndExecuteRecurringRules();
     });
@@ -48,14 +44,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Timer? _recurringTimer;
 
-  /// 检查并自动执行到期的周期记账规则
   Future<void> _checkAndExecuteRecurringRules() async {
     final db = ref.read(appDatabaseProvider);
     final executedIds = await db.executeDueRecurringRules();
     if (executedIds.isNotEmpty && mounted) {
-      // 刷新交易数据
       ref.read(transactionRefreshProvider.notifier).state++;
-      // 发送通知消息
       _notificationService.success(
         title: '周期记账执行',
         message: '已自动执行 ${executedIds.length} 条周期记账',
@@ -70,202 +63,192 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final monthlySummary = ref.watch(monthlySummaryProvider);
     final recentTransactions = ref.watch(recentTransactionsProvider);
-    // 监听预算数据，确保交易更新后预算也会刷新
     ref.watch(budgetUsageProvider);
 
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
+    // 问候语
+    final hour = DateTime.now().hour;
+    String greeting;
+    if (hour < 6) {
+      greeting = '夜深了，注意休息';
+    } else if (hour < 12) {
+      greeting = '早上好';
+    } else if (hour < 18) {
+      greeting = '下午好';
+    } else {
+      greeting = '晚上好';
+    }
+
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // 应用栏（金融类顶栏：底缘铜色弧光 + 左头像 + 右铃铛/搜索）
-          SliverAppBar(
-            floating: false,
-            pinned: true,
-            automaticallyImplyLeading: false,
-            backgroundColor:
-                isDark ? AppColors.darkBackground : Theme.of(context).colorScheme.surface,
-            foregroundColor:
-                isDark ? Colors.white : Theme.of(context).colorScheme.onSurface,
-            iconTheme: IconThemeData(
-              color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface,
-              size: 24,
-            ),
-            leadingWidth: 56,
-            leading: _HomeHeaderAvatar(
-              onTap: () => GoRouter.of(context).go('/settings'),
-            ),
-            title: Text(
-                    '咯噔记账',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-            centerTitle: true,
-            flexibleSpace: Stack(
-              fit: StackFit.expand,
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ColoredBox(
-                  color: isDark
-                      ? AppColors.darkBackground
-                      : Theme.of(context).colorScheme.surface,
-                ),
-                if (isDark) ...[
-                  Positioned(
-                    bottom: -36,
-                    left: 0,
-                    right: 0,
-                    height: 140,
-                    child: IgnorePointer(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: RadialGradient(
-                            center: Alignment.bottomCenter,
-                            radius: 1.0,
-                            colors: [
-                              AppColors.primaryDark.withOpacity(0.25),
-                              AppColors.primaryDark.withOpacity(0.08),
-                              AppColors.primaryDark.withOpacity(0.0),
-                            ],
-                            stops: const [0.0, 0.45, 1.0],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              AppColors.primaryDark.withOpacity(0.04),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-                if (!isDark)
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.lightPrimary.withOpacity(0.1),
-                          AppColors.lightSecondary.withOpacity(0.05),
-                        ],
-                      ),
-                    ),
-                  ),
+                const SizedBox(height: 12),
+                // 顶部栏：头像 + 设置
+                _buildTopBar(context, isDark),
+                const SizedBox(height: 24),
+                // 问候语
+                _buildGreeting(context, greeting, isDark),
+                const SizedBox(height: 24),
+                // 余额卡片（Hero Card）
+                _buildBalanceCard(context, monthlySummary, isDark),
+                const SizedBox(height: 24),
+                // 快捷操作
+                _buildQuickActions(context, isDark),
+                const SizedBox(height: 24),
+                // 预算进度
+                _buildBudgetProgress(context, isDark),
+                const SizedBox(height: 24),
+                // 最近交易
+                _buildRecentTransactions(context, recentTransactions, isDark),
+                // 底部留白（给浮动导航栏）
+                const SizedBox(height: 100),
               ],
             ),
-            actions: [
-              Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined),
-                    color: isDark ? Colors.white : null,
-                    onPressed: () => _showNotificationList(context),
-                  ),
-                  if (_notificationService.unreadCount > 0)
-                    Positioned(
-                      right: 6,
-                      top: 6,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.error,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 18,
-                          minHeight: 16,
-                        ),
-                        child: Text(
-                          _notificationService.unreadCount > 99
-                              ? '99+'
-                              : '${_notificationService.unreadCount}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              IconButton(
-                icon: const Icon(Icons.search),
-                color: isDark ? Colors.white : null,
-                tooltip: '搜索明细',
-                onPressed: () => GoRouter.of(context).go('/transactions'),
-              ),
-            ],
           ),
-          // 内容
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 余额卡片（从数据库读取）
-                  _buildBalanceCard(context, monthlySummary),
-                  const SizedBox(height: 24),
-                  // 快捷操作
-                  _buildQuickActions(context, ref),
-                  const SizedBox(height: 24),
-                  // 预算进度
-                  _buildBudgetProgress(context),
-                  const SizedBox(height: 24),
-                  // 最近交易（从数据库读取）
-                  _buildRecentTransactions(context, recentTransactions),
-                  // 底部留白
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  /// 余额卡片 - 显示本月收入/支出/结余
-  Widget _buildBalanceCard(BuildContext context, AsyncValue<Map<String, double>> summary) {
-    final now = DateTime.now();
-    final monthLabel = '${now.year}年${now.month}月';
-
-    return summary.when(
-      loading: () => AppCard(
-        padding: EdgeInsets.zero,
-        child: Container(
-          height: 180,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.balanceGradientStart,
-                AppColors.balanceGradientEnd,
+  /// 顶部栏
+  Widget _buildTopBar(BuildContext context, bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // 左侧：头像
+        GestureDetector(
+          onTap: () => GoRouter.of(context).go('/settings'),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isDark ? AppColors.darkSurface : Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withOpacity(0.2)
+                      : AppColors.lightPrimary.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
               ],
             ),
-            borderRadius: BorderRadius.circular(24),
+            child: Icon(
+              Icons.person_rounded,
+              color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightTextTertiary,
+              size: 22,
+            ),
           ),
-          child: const Center(child: CircularProgressIndicator(color: Colors.white)),
         ),
+        // 右侧：通知
+        Row(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                GestureDetector(
+                  onTap: () => _showNotificationList(context),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isDark ? AppColors.darkSurface : Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDark
+                              ? Colors.black.withOpacity(0.2)
+                              : AppColors.lightPrimary.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.notifications_outlined,
+                      color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightTextTertiary,
+                      size: 20,
+                    ),
+                  ),
+                ),
+                if (_notificationService.unreadCount > 0)
+                  Positioned(
+                    right: 2,
+                    top: 2,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: AppColors.error,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).animate().fadeIn(duration: 300.ms);
+  }
+
+  /// 问候语
+  Widget _buildGreeting(BuildContext context, String greeting, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$greeting，记账达人',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${DateTime.now().month}月${DateTime.now().day}日 星期${_weekday(DateTime.now().weekday)}',
+          style: TextStyle(
+            fontSize: 14,
+            color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightTextTertiary,
+          ),
+        ),
+      ],
+    ).animate().fadeIn(delay: 50.ms, duration: 300.ms);
+  }
+
+  String _weekday(int day) {
+    const days = ['一', '二', '三', '四', '五', '六', '日'];
+    return days[day - 1];
+  }
+
+  /// 余额卡片 - 梦幻紫渐变
+  Widget _buildBalanceCard(BuildContext context, AsyncValue<Map<String, double>> summary, bool isDark) {
+    final now = DateTime.now();
+    final monthLabel = '${now.month}月';
+
+    return summary.when(
+      loading: () => Container(
+        height: 180,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppColors.balanceGradientStart, AppColors.balanceGradientEnd],
+          ),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: const Center(child: CircularProgressIndicator(color: Colors.white)),
       ),
       error: (e, _) => AppCard(
         child: Center(child: Text('加载失败: $e')),
@@ -274,97 +257,98 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         final balance = data['balance'] ?? 0;
         final income = data['income'] ?? 0;
         final expense = data['expense'] ?? 0;
-        return AppCard(
-          padding: EdgeInsets.zero,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.balanceGradientStart,
-                  AppColors.balanceGradientEnd,
+        return Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppColors.balanceGradientStart, AppColors.balanceGradientEnd],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.lightPrimary.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '本月结余',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 14,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      monthLabel,
+                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '本月结余',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 14,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        monthLabel,
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 12),
+              Text(
+                CurrencyFormatter.format(balance),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  CurrencyFormatter.format(balance),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  _buildBalanceItem(
+                    label: '收入',
+                    amount: CurrencyFormatter.format(income),
+                    icon: Icons.arrow_downward_rounded,
+                    color: const Color(0xFF7EC8A0),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    _buildBalanceItem(
-                      context,
-                      label: '收入',
-                      amount: CurrencyFormatter.format(income),
-                      icon: Icons.arrow_downward,
-                    ),
-                    const SizedBox(width: 32),
-                    _buildBalanceItem(
-                      context,
-                      label: '支出',
-                      amount: CurrencyFormatter.format(expense),
-                      icon: Icons.arrow_upward,
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  const SizedBox(width: 24),
+                  _buildBalanceItem(
+                    label: '支出',
+                    amount: CurrencyFormatter.format(expense),
+                    icon: Icons.arrow_upward_rounded,
+                    color: const Color(0xFFFFB8B8),
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
+        ).animate().fadeIn(delay: 100.ms, duration: 400.ms).slideY(begin: 0.05, end: 0, delay: 100.ms, duration: 400.ms);
       },
     );
   }
 
-  Widget _buildBalanceItem(
-    BuildContext context, {
+  Widget _buildBalanceItem({
     required String label,
     required String amount,
     required IconData icon,
+    required Color color,
   }) {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: Colors.white, size: 16),
+          child: Icon(icon, color: color, size: 14),
         ),
         const SizedBox(width: 8),
         Column(
@@ -373,7 +357,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Text(
               label,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withOpacity(0.7),
                 fontSize: 12,
               ),
             ),
@@ -381,7 +365,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               amount,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -391,23 +375,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context, WidgetRef ref) {
-    final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
+  /// 快捷操作
+  Widget _buildQuickActions(BuildContext context, bool isDark) {
     final actions = [
-      {'icon': Icons.receipt_long, 'label': '记账', 'color': AppColors.primaryOf(brightness)},
-      {'icon': Icons.pie_chart, 'label': '统计', 'color': AppColors.secondaryOf(brightness)},
-      {'icon': Icons.account_balance, 'label': '预算', 'color': AppColors.warning},
-      {'icon': Icons.repeat, 'label': '周期', 'color': AppColors.info},
+      {'icon': Icons.edit_rounded, 'label': '记账', 'color': AppColors.lightPrimary},
+      {'icon': Icons.pie_chart_outline_rounded, 'label': '统计', 'color': AppColors.info},
+      {'icon': Icons.savings_outlined, 'label': '预算', 'color': AppColors.warning},
+      {'icon': Icons.repeat_rounded, 'label': '周期', 'color': AppColors.success},
     ];
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: actions.map((action) {
         final accent = action['color'] as Color;
+        final icon = action['icon'] as IconData;
+        final label = action['label'] as String;
+
         return GestureDetector(
           onTap: () {
-            final label = action['label'] as String;
             if (label == '记账') {
               context.push('/add-transaction');
             } else if (label == '统计') {
@@ -425,36 +410,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Column(
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: isDark
-                      ? AppColors.darkSurfaceVariant
-                      : accent.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  border: isDark
-                      ? Border.all(color: AppColors.darkCardBorder)
-                      : null,
+                      ? AppColors.darkSurface
+                      : accent.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                child: Icon(
-                  action['icon'] as IconData,
-                  color: isDark ? Colors.white.withOpacity(0.92) : accent,
-                  size: 28,
-                ),
+                child: Icon(icon, color: accent, size: 24),
               ),
               const SizedBox(height: 8),
               Text(
-                action['label'] as String,
-                style: Theme.of(context).textTheme.bodySmall,
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+                ),
               ),
             ],
           ),
         );
       }).toList(),
-    ).animate().fadeIn(delay: 100.ms, duration: 300.ms);
+    ).animate().fadeIn(delay: 150.ms, duration: 300.ms);
   }
 
-  Widget _buildBudgetProgress(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
+  /// 预算进度
+  Widget _buildBudgetProgress(BuildContext context, bool isDark) {
     final budgetUsageAsync = ref.watch(budgetUsageProvider);
 
     return budgetUsageAsync.when(
@@ -472,37 +455,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       data: (budgets) {
         if (budgets.isEmpty) {
           return AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const BudgetScreen()),
+            ),
+            child: Row(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('本月预算', style: Theme.of(context).textTheme.titleMedium),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const BudgetScreen()),
-                      ),
-                      child: const Text('去设置'),
-                    ),
-                  ],
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightPrimary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.savings_outlined, color: AppColors.lightPrimary, size: 24),
                 ),
-                const SizedBox(height: 16),
-                Center(
+                const SizedBox(width: 14),
+                Expanded(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.savings_outlined, size: 40, color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5)),
-                      const SizedBox(height: 8),
-                      Text('暂未设置预算', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      Text('本月预算', style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 2),
+                      Text(
+                        '暂未设置，点击去设置',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                        ),
+                      ),
                     ],
                   ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                  size: 20,
                 ),
               ],
             ),
           ).animate().fadeIn(delay: 200.ms, duration: 300.ms);
         }
 
-        // 计算总预算和总支出
         double totalBudget = 0;
         double totalSpent = 0;
         for (final b in budgets) {
@@ -514,6 +507,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         final isOver = remaining < 0;
 
         return AppCard(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const BudgetScreen()),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -521,11 +517,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('本月预算', style: Theme.of(context).textTheme.titleMedium),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const BudgetScreen()),
-                    ),
-                    child: const Text('查看详情'),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                    size: 20,
                   ),
                 ],
               ),
@@ -536,44 +531,52 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '已使用 ${percentage.toStringAsFixed(0)}%',
-                          style: Theme.of(context).textTheme.bodyLarge,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '已使用 ${percentage.toStringAsFixed(0)}%',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+                              ),
+                            ),
+                            Text(
+                              isOver ? '超支' : '剩余',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 8),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                           child: LinearProgressIndicator(
                             value: percentage / 100,
                             minHeight: 8,
-                            backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                            backgroundColor: isDark ? AppColors.darkOutline : AppColors.lightOutline,
                             valueColor: AlwaysStoppedAnimation<Color>(
                               isOver
                                   ? AppColors.error
                                   : percentage > 80
                                       ? AppColors.warning
-                                      : AppColors.primaryOf(brightness),
+                                      : AppColors.lightPrimary,
                             ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '¥ ${remaining.abs().toStringAsFixed(0)}',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: isOver ? AppColors.error : AppColors.lightPrimary,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 24),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        isOver ? '超支' : '剩余',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      Text(
-                        '¥ ${remaining.abs().toStringAsFixed(0)}',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: isOver ? AppColors.error : AppColors.success,
-                            ),
-                      ),
-                    ],
                   ),
                 ],
               ),
@@ -584,10 +587,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// 最近交易 - 从数据库读取最近 5 笔
+  /// 最近交易
   Widget _buildRecentTransactions(
     BuildContext context,
     AsyncValue<List<Map<String, dynamic>>> recentTx,
+    bool isDark,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -597,96 +601,146 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             Text(
               '最近交易',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+              ),
             ),
-            TextButton(
-              onPressed: () {
-                // 切换到明细 Tab
-                GoRouter.of(context).go('/transactions');
-              },
-              child: const Text('查看全部'),
+            GestureDetector(
+              onTap: () => GoRouter.of(context).go('/transactions'),
+              child: Text(
+                '查看全部',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.lightPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         recentTx.when(
-          loading: () => const AppCard(
-            child: Center(child: Padding(
-              padding: EdgeInsets.all(32),
-              child: CircularProgressIndicator(),
-            )),
+          loading: () => AppCard(
+            child: const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: CircularProgressIndicator(),
+              ),
+            ),
           ),
           error: (e, _) => AppCard(child: Center(child: Text('加载失败: $e'))),
           data: (transactions) {
             if (transactions.isEmpty) {
               return AppCard(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(32),
                   child: Center(
-                    child: Text(
-                      '暂无交易记录，快去记一笔吧',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.receipt_long_outlined,
+                          size: 48,
+                          color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          '暂无交易记录',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '点击下方 + 开始记账',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               );
             }
             return AppCard(
-              padding: EdgeInsets.zero,
-              child: ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: transactions.length,
-                separatorBuilder: (context, index) => Divider(
-                  height: 1,
-                  indent: 60,
-                  endIndent: 16,
-                ),
-                itemBuilder: (context, index) {
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                children: List.generate(transactions.length, (index) {
                   final tx = transactions[index];
                   final isExpense = (tx['is_expense'] as int) == 1;
                   final amount = (tx['amount'] as num).toDouble();
                   final categoryName = tx['category_name'] as String? ?? '未分类';
-                  final categoryColor = tx['category_color'] as int? ?? 0xFF6B7280;
+                  final categoryColor = tx['category_color'] as int? ?? 0xFFB8A9E8;
                   final categoryIcon = tx['category_icon'] as String?;
                   final txDate = DateTime.parse(tx['date'] as String);
                   final timeStr = '${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}';
                   final note = tx['note'] as String? ?? categoryName;
 
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Color(categoryColor).withOpacity(0.1),
-                      child: Icon(
-                        mapIconName(categoryIcon),
-                        color: Color(categoryColor),
-                        size: 20,
+                  return Column(
+                    children: [
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                        leading: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Color(categoryColor).withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(
+                            mapIconName(categoryIcon),
+                            color: Color(categoryColor),
+                            size: 20,
+                          ),
+                        ),
+                        title: Text(
+                          note.isNotEmpty ? note : categoryName,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '$categoryName · $timeStr',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                          ),
+                        ),
+                        trailing: Text(
+                          '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: isExpense ? AppColors.expense : AppColors.income,
+                          ),
+                        ),
+                        onTap: () => _showTransactionDetail(context, tx),
                       ),
-                    ),
-                    title: Text(note.isNotEmpty ? note : categoryName),
-                    subtitle: Text(
-                      '$categoryName · $timeStr',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    trailing: Text(
-                      '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: isExpense ? AppColors.expense : AppColors.income,
-                      ),
-                    ),
-                    onTap: () => _showTransactionDetail(context, tx),
+                      if (index < transactions.length - 1)
+                        Divider(
+                          height: 1,
+                          indent: 68,
+                          endIndent: 16,
+                          color: isDark ? AppColors.darkOutline : AppColors.lightOutline,
+                        ),
+                    ],
                   );
-                },
+                }),
               ),
             );
           },
         ),
       ],
-    ).animate().fadeIn(delay: 300.ms, duration: 300.ms);
+    ).animate().fadeIn(delay: 250.ms, duration: 300.ms);
   }
 
-  /// 点击交易查看详情
+  /// 交易详情弹窗
   void _showTransactionDetail(BuildContext context, Map<String, dynamic> tx) {
     final isExpense = (tx['is_expense'] as int) == 1;
     final amount = (tx['amount'] as num).toDouble();
@@ -697,40 +751,63 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Container(
-          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // 顶部拖拽条
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkOutline : AppColors.lightOutline,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
               Text(
                 isExpense ? '支出' : '收入',
-                style: Theme.of(context).textTheme.titleMedium,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightTextTertiary,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: isExpense ? AppColors.expense : AppColors.income,
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: isExpense ? AppColors.expense : AppColors.income,
+                ),
               ),
               const SizedBox(height: 24),
               _buildDetailRow(context, '分类', categoryName),
               _buildDetailRow(context, '账户', accountName),
-              _buildDetailRow(context, '日期', '${txDate.year}-${txDate.month.toString().padLeft(2, '0')}-${txDate.day.toString().padLeft(2, '0')} ${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}'),
+              _buildDetailRow(
+                context,
+                '日期',
+                '${txDate.year}-${txDate.month.toString().padLeft(2, '0')}-${txDate.day.toString().padLeft(2, '0')} ${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}',
+              ),
               _buildDetailRow(context, '备注', note.isNotEmpty ? note : '无'),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
+                height: 52,
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('确定'),
+                  child: const Text('确定', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 ),
               ),
+              const SizedBox(height: 8),
             ],
           ),
         );
@@ -739,57 +816,88 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildDetailRow(BuildContext context, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+            ),
           ),
-          Text(value, style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  /// 显示消息通知列表
+  /// 通知列表弹窗
   void _showNotificationList(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.of(context).size.height * 0.75,
               ),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // 顶部拖拽条
+                  Container(
+                    margin: const EdgeInsets.only(top: 12),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkOutline : AppColors.lightOutline,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           '消息通知',
-                          style: Theme.of(context).textTheme.titleLarge,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+                          ),
                         ),
                         if (_notificationService.notifications.isNotEmpty)
-                          TextButton(
-                            onPressed: () {
+                          GestureDetector(
+                            onTap: () {
                               _notificationService.clearAll();
                               setModalState(() {});
                             },
-                            child: const Text('清空'),
+                            child: Text(
+                              '清空',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.lightPrimary,
+                              ),
+                            ),
                           ),
                       ],
                     ),
@@ -803,23 +911,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               children: [
                                 Icon(
                                   Icons.notifications_off_outlined,
-                                  size: 64,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant
-                                      .withOpacity(0.5),
+                                  size: 56,
+                                  color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 12),
                                 Text(
                                   '暂无消息',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge
-                                      ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
-                                      ),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+                                  ),
                                 ),
                               ],
                             ),
@@ -828,110 +929,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             shrinkWrap: true,
                             itemCount: _notificationService.notifications.length,
                             itemBuilder: (context, index) {
-                              final notification =
-                                  _notificationService.notifications[index];
+                              final notification = _notificationService.notifications[index];
                               return ListTile(
                                 leading: Container(
-                                  padding: const EdgeInsets.all(8),
+                                  width: 40,
+                                  height: 40,
                                   decoration: BoxDecoration(
-                                    color: notification.color.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(
-                                    notification.icon,
-                                    color: notification.color,
-                                    size: 20,
-                                  ),
-                                ),
-                                title: Text(notification.title),
-                                subtitle: Text(notification.message),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.close, size: 16),
-                                  onPressed: () {
-                                    _notificationService.removeNotification(
-                                        notification.id);
-                                    setModalState(() {});
-                                  },
-                                ),
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  notification.onTap?.call();
-                                },
-                              );
-                            },
-                          ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    ).whenComplete(() {
-      setState(() {});
-    });
-  }
-}
-
-/// 首页顶栏头像：浅灰底剪影 + 细白边 + 深色模式下铜色外光（对齐金融类顶栏）
-class _HomeHeaderAvatar extends StatelessWidget {
-  const _HomeHeaderAvatar({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Center(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: isDark
-                  ? [
-                      BoxShadow(
-                        color: AppColors.primaryDark.withOpacity(0.5),
-                        blurRadius: 14,
-                        spreadRadius: 0.5,
-                      ),
-                    ]
-                  : [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(2.5),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFE8E8E8),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(isDark ? 0.95 : 0.85),
-                    width: 1.2,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.person,
-                  size: 22,
-                  color: Color(0xFF424242),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+                                    color: notification.color.withOpacity(0.12),
+     
