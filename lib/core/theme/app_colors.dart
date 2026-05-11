@@ -101,6 +101,45 @@ class AppColors {
   static const Color balanceGradientEnd = Color(0xFF9B8AC4);
 
   // ═══════════════════════════════════════════════
+  // Deep Purple Finance 头部渐变（明细页专用）
+  // ═══════════════════════════════════════════════
+  static const Color headerGradientStart = Color(0xFF1E1B4B); // rgb(30, 27, 75)
+  static const Color headerGradientEnd = Color(0xFF312E81);   // rgb(49, 46, 129)
+
+  // ═══════════════════════════════════════════════
+  // Glassmorphism 卡片色
+  // ═══════════════════════════════════════════════
+  static const Color glassCardBg = Color(0xB8FFFFFF);          // 72% 白色
+  static const Color glassSummaryCardBg = Color(0xE6FFFFFF);   // 90% 白色
+  static const Color glassBorder = Color(0x99FFFFFF);          // 60% 白色
+  static const Color glassSummaryBorder = Color(0xB3FFFFFF);   // 70% 白色
+  static const Color glassNavBg = Color(0x99FFFFFF);           // 60% 白色
+
+  // ═══════════════════════════════════════════════
+  // 深靛蓝文字色（交易金额用）
+  // ═══════════════════════════════════════════════
+  static const Color indigo950 = Color(0xFF1E1B4B);  // rgb(30, 27, 75)
+  static const Color indigo900_80 = Color(0xCC312E81); // rgba(49, 46, 129, 0.8)
+  static const Color indigo400_80 = Color(0xCC818CF8); // rgba(129, 140, 248, 0.8)
+  static const Color indigo200_60 = Color(0x99C7D2FE); // rgba(199, 210, 254, 0.6)
+
+  // ═══════════════════════════════════════════════
+  // 琥珀金色（收入汇总金额用）
+  // ═══════════════════════════════════════════════
+  static const Color amber500 = Color(0xFFF59E0B);    // rgb(245, 158, 11)
+
+  // ═══════════════════════════════════════════════
+  // Emerald-600（收入金额用）
+  // ═══════════════════════════════════════════════
+  static const Color emerald600 = Color(0xFF059669);   // rgb(5, 150, 105)
+
+  // ═══════════════════════════════════════════════
+  // 淡薰衣白→淡紫丁香 渐变（明细页背景）
+  // ═══════════════════════════════════════════════
+  static const Color bgDetailTop = Color(0xFFfdf4ff);   // rgb(253, 244, 255)
+  static const Color bgDetailBottom = Color(0xFFe9d5ff); // rgb(233, 213, 255)
+
+  // ═══════════════════════════════════════════════
   // 分类颜色（柔和梦幻色系）
   // ═══════════════════════════════════════════════
   static const List<Color> categoryColors = [
