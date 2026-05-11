@@ -56,7 +56,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
     final brightness = Theme.of(context).brightness;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('周期记账'),
         actions: [
@@ -993,5 +993,4 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                 backgroundColor: AppColors.error,
               ),
               child: const Text('删除'),
-            ),
-        
+ 

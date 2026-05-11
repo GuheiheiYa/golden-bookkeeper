@@ -33,7 +33,7 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
     final tagsAsync = ref.watch(tagsProvider);
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('标签管理'),
         actions: [
@@ -442,6 +442,4 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
               ),
-              child: const Text('删除'),
-            ),
-   
+              child: const Text('删�

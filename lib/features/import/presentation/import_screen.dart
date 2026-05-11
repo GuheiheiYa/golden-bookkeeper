@@ -29,7 +29,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(_activeParser != null
             ? '${_activeParser!.sourceName}账单导入'
@@ -779,4 +779,3 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
         return cat['id'] as int;
       }
     }
-    // 兜底：硬编�

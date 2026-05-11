@@ -119,7 +119,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     }
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(_isEditing ? '编辑交易' : '记一笔'),
         leading: IconButton(
@@ -1427,4 +1427,3 @@ class _ToastWidgetState extends State<_ToastWidget>
     );
   }
 }
-                       
