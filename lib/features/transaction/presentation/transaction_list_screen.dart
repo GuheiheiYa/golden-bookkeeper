@@ -46,6 +46,10 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     super.dispose();
   }
 
+  // ═══════════════════════════════════════════
+  // 主构建
+  // ═══════════════════════════════════════════
+
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
@@ -57,52 +61,56 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // ═══ 页面背景渐变 ═══
+          // ═══ 全屏背景渐变 ═══
           _buildPageBackground(isDark),
-          // ═══ 主内容区 ═══
+          // ═══ 主内容 ═══
           SafeArea(
             bottom: false,
             child: Column(
               children: [
-                // ═══ 自定义头部 ═══
-                _buildHeader(isDark),
-                // ═══ 摘要卡片（覆盖在头部下方） ═══
-                groupedAsync.when(
-                  loading: () => const SizedBox(height: 110),
-                  error: (_, __) => const SizedBox(height: 110),
-                  data: (groupedTransactions) {
-                    final monthlyIncome = groupedTransactions.values
-                        .expand((txs) => txs)
-                        .where((tx) => (tx['is_expense'] as int) != 1)
-                        .fold<double>(0, (sum, tx) => sum + (tx['amount'] as num).toDouble());
-                    final monthlyExpense = groupedTransactions.values
-                        .expand((txs) => txs)
-                        .where((tx) => (tx['is_expense'] as int) == 1)
-                        .fold<double>(0, (sum, tx) => sum + (tx['amount'] as num).toDouble());
-                    return _buildSummaryCards(monthlyExpense, monthlyIncome);
-                  },
+                // ═══ 深紫渐变头部 ═══
+                _buildHeader(context, isDark, filter),
+                // ═══ 摘要卡片（向上偏移覆盖头部底部） ═══
+                Transform.translate(
+                  offset: const Offset(0, -56),
+                  child: groupedAsync.when(
+                    loading: () => const SizedBox(height: 110),
+                    error: (_, __) => const SizedBox(height: 110),
+                    data: (groupedTransactions) {
+                      final monthlyIncome = groupedTransactions.values
+                          .expand((txs) => txs)
+                          .where((tx) => (tx['is_expense'] as int) != 1)
+                          .fold<double>(0, (sum, tx) => sum + (tx['amount'] as num).toDouble());
+                      final monthlyExpense = groupedTransactions.values
+                          .expand((txs) => txs)
+                          .where((tx) => (tx['is_expense'] as int) == 1)
+                          .fold<double>(0, (sum, tx) => sum + (tx['amount'] as num).toDouble());
+                      return _buildSummaryCards(monthlyExpense, monthlyIncome);
+                    },
+                  ),
                 ),
-                // ═══ 筛选条件 Chips ═══
+                // ═══ 筛选 Chips / 多选栏 ═══
                 if (filter.hasFilters) _buildFilterChips(filter, brightness),
-                // ═══ 多选模式顶部栏 ═══
                 if (_isMultiSelectMode) _buildMultiSelectBar(isDark),
                 // ═══ 交易列表 ═══
                 Expanded(
-                  child: groupedAsync.when(
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Center(child: Text('加载失败: $e')),
-                    data: (groupedTransactions) {
-                      final entries = groupedTransactions.entries.toList();
-                      if (entries.isEmpty) {
-                        return const EmptyState(
-                          icon: Icons.receipt_long,
-                          title: '暂无交易记录',
-                          subtitle: '点击右下角按钮开始记账',
-                        );
-                      }
-                      return _buildTransactionList(entries, isDark, brightness);
-                    },
+                  child: Transform.translate(
+                    offset: Offset(0, filter.hasFilters || _isMultiSelectMode ? -8 : -16),
+                    child: groupedAsync.when(
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (e, _) => Center(child: Text('加载失败: $e')),
+                      data: (groupedTransactions) {
+                        final entries = groupedTransactions.entries.toList();
+                        if (entries.isEmpty) {
+                          return const EmptyState(
+                            icon: Icons.receipt_long,
+                            title: '暂无交易记录',
+                            subtitle: '点击右下角按钮开始记账',
+                          );
+                        }
+                        return _buildTransactionList(entries, isDark, brightness);
+                      },
+                    ),
                   ),
                 ),
               ],
@@ -114,7 +122,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   }
 
   // ═══════════════════════════════════════════
-  // 页面背景渐变
+  // 页面背景（淡薰衣白→淡紫丁香渐变）
   // ═══════════════════════════════════════════
 
   Widget _buildPageBackground(bool isDark) {
@@ -124,30 +132,30 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: isDark
-              ? [AppColors.bgGradientTopDark, AppColors.bgGradientBottomDark]
-              : [AppColors.bgDetailTop, AppColors.bgDetailBottom],
+              ? const [AppColors.bgGradientTopDark, AppColors.bgGradientBottomDark]
+              : const [AppColors.bgDetailTop, AppColors.bgDetailBottom],
         ),
       ),
     );
   }
 
   // ═══════════════════════════════════════════
-  // 自定义头部（深紫渐变 + 毛玻璃按钮）
+  // 深紫渐变头部（底部圆角48px）
   // ═══════════════════════════════════════════
 
-  Widget _buildHeader(bool isDark) {
+  Widget _buildHeader(BuildContext context, bool isDark, TransactionFilter filter) {
     final now = DateTime.now();
     final monthStr = _getMonthStr(now.month);
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(32, 24, 32, 96),
+      padding: const EdgeInsets.fromLTRB(32, 20, 32, 80),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: const Alignment(0.0, 0.6), // ~160deg approximation
+          begin: const Alignment(0.0, 0.6),
           end: Alignment.bottomCenter,
           colors: isDark
-              ? [AppColors.darkBackground, AppColors.darkSurface]
-              : [AppColors.headerGradientStart, AppColors.headerGradientEnd],
+              ? const [AppColors.darkBackground, AppColors.darkSurface]
+              : const [AppColors.headerGradientStart, AppColors.headerGradientEnd],
         ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(48),
@@ -155,8 +163,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: (isDark ? Colors.black : AppColors.headerGradientStart)
-                .withOpacity(0.3),
+            color: (isDark ? Colors.black : AppColors.headerGradientStart).withOpacity(0.3),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -164,57 +171,85 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       ),
       child: _isSearching
           ? _buildSearchHeader(isDark)
-          : _buildNormalHeader(isDark, monthStr),
+          : _buildNormalHeader(isDark, monthStr, filter),
     );
   }
 
-  Widget _buildNormalHeader(bool isDark, String monthStr) {
+  Widget _buildNormalHeader(bool isDark, String monthStr, TransactionFilter filter) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 左侧：月份 + 标题
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              monthStr,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 3.2, // 0.2em
-                color: isDark
-                    ? AppColors.darkOnSurfaceVariant.withOpacity(0.6)
-                    : AppColors.indigo200_60,
+        // ═══ 左侧：月份 + 标题 ═══
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                monthStr,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 3.2,
+                  color: isDark
+                      ? AppColors.darkOnSurfaceVariant.withOpacity(0.6)
+                      : AppColors.indigo200_60,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '收支明细',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
-                color: Colors.white,
+              const SizedBox(height: 4),
+              Text(
+                '收支明细',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                  color: Colors.white,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        // 右侧：搜索 + 日历按钮
+        // ═══ 右侧：4个毛玻璃功能按钮（保留原功能） ═══
         Row(
           children: [
-            _buildGlassButton(
-              icon: Icons.search,
+            // 多选模式切换
+            _buildGlassIconButton(
+              icon: Icons.checklist,
+              isDark: isDark,
+              onTap: () => setState(() => _isMultiSelectMode = true),
+            ),
+            const SizedBox(width: 10),
+            // 搜索
+            _buildGlassIconButton(
+              icon: _isSearching ? Icons.close : Icons.search,
               isDark: isDark,
               onTap: () {
-                setState(() => _isSearching = true);
+                setState(() {
+                  _isSearching = !_isSearching;
+                  if (!_isSearching) {
+                    _searchController.clear();
+                    ref.read(transactionFilterProvider.notifier).state =
+                        ref.read(transactionFilterProvider).copyWith(clearKeyword: true);
+                  }
+                });
               },
             ),
-            const SizedBox(width: 12),
-            _buildGlassButton(
-              icon: Icons.calendar_today_outlined,
+            const SizedBox(width: 10),
+            // 筛选（带角标）
+            _buildGlassIconButton(
+              icon: Icons.filter_list,
               isDark: isDark,
+              badgeCount: filter.filterCount,
               onTap: () => _showFilterPanel(context),
+            ),
+            const SizedBox(width: 10),
+            // 添加
+            _buildGlassIconButton(
+              icon: Icons.add,
+              isDark: isDark,
+              onTap: () async {
+                await context.push('/add-transaction');
+                ref.read(transactionRefreshProvider.notifier).state++;
+              },
             ),
           ],
         ),
@@ -228,40 +263,43 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         Expanded(
           child: Container(
             height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.1),
-              ),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
-            child: TextField(
-              controller: _searchController,
-              autofocus: true,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              decoration: InputDecoration(
-                hintText: '搜索交易备注',
-                hintStyle: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: '搜索交易备注',
+                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                    border: InputBorder.none,
+                    icon: Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: Icon(Icons.search, color: Colors.white.withOpacity(0.6), size: 20),
+                    ),
+                    contentPadding: const EdgeInsets.only(bottom: 10),
+                  ),
+                  onChanged: (value) {
+                    ref.read(transactionFilterProvider.notifier).state =
+                        ref.read(transactionFilterProvider).copyWith(
+                              keyword: value,
+                              clearKeyword: value.isEmpty,
+                            );
+                  },
                 ),
-                border: InputBorder.none,
-                icon: Icon(Icons.search,
-                    color: Colors.white.withOpacity(0.6), size: 20),
-                contentPadding: const EdgeInsets.only(bottom: 10),
               ),
-              onChanged: (value) {
-                ref.read(transactionFilterProvider.notifier).state =
-                    ref.read(transactionFilterProvider).copyWith(
-                          keyword: value,
-                          clearKeyword: value.isEmpty,
-                        );
-              },
             ),
           ),
         ),
         const SizedBox(width: 12),
-        _buildGlassButton(
+        _buildGlassIconButton(
           icon: Icons.close,
           isDark: isDark,
           onTap: () {
@@ -269,9 +307,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               _isSearching = false;
               _searchController.clear();
               ref.read(transactionFilterProvider.notifier).state =
-                  ref.read(transactionFilterProvider).copyWith(
-                        clearKeyword: true,
-                      );
+                  ref.read(transactionFilterProvider).copyWith(clearKeyword: true);
             });
           },
         ),
@@ -279,10 +315,12 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     );
   }
 
-  Widget _buildGlassButton({
+  /// 毛玻璃圆形按钮（深色背景上，白色10%透明 + blur）
+  Widget _buildGlassIconButton({
     required IconData icon,
     required bool isDark,
     required VoidCallback onTap,
+    int badgeCount = 0,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -290,16 +328,22 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
           shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-          ),
+          color: Colors.white.withOpacity(0.1),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
         ),
         child: ClipOval(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Center(
+              child: badgeCount > 0
+                  ? Badge(
+                      isLabelVisible: true,
+                      label: Text('$badgeCount', style: const TextStyle(fontSize: 9)),
+                      child: Icon(icon, color: Colors.white, size: 20),
+                    )
+                  : Icon(icon, color: Colors.white, size: 20),
+            ),
           ),
         ),
       ),
@@ -307,7 +351,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   }
 
   // ═══════════════════════════════════════════
-  // 摘要卡片（毛玻璃风格，覆盖头部）
+  // 摘要卡片（毛玻璃，覆盖头部底边）
   // ═══════════════════════════════════════════
 
   Widget _buildSummaryCards(double expense, double income) {
@@ -320,8 +364,8 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               label: '支出',
               amount: CurrencyFormatter.format(expense),
               amountColor: AppColors.indigo950,
-              iconBg: const Color(0xFFFFF1F2), // rose-50
-              iconColor: const Color(0xFFF43F5E), // rose-500
+              iconBg: const Color(0xFFFFF1F2),
+              iconColor: const Color(0xFFF43F5E),
               icon: Icons.arrow_downward,
             ),
           ),
@@ -331,8 +375,8 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               label: '收入',
               amount: CurrencyFormatter.format(income),
               amountColor: AppColors.amber500,
-              iconBg: const Color(0xFFECFDF5), // emerald-50
-              iconColor: const Color(0xFF10B981), // emerald-500
+              iconBg: const Color(0xFFECFDF5),
+              iconColor: const Color(0xFF10B981),
               icon: Icons.arrow_upward,
             ),
           ),
@@ -350,14 +394,12 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     required IconData icon,
   }) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      height: 110,
       decoration: BoxDecoration(
-        color: AppColors.glassSummaryCardBg,
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: AppColors.glassSummaryBorder),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF312E81).withOpacity(0.05), // indigo shadow
+            color: const Color(0xFF312E81).withOpacity(0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -367,52 +409,61 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         borderRadius: BorderRadius.circular(32),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF94A3B8), // slate-400
-                      letterSpacing: 1.6,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.90),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(color: Colors.white.withOpacity(0.7)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // 标签行
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF94A3B8),
+                        letterSpacing: 1.6,
+                      ),
                     ),
-                  ),
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: iconBg,
-                      borderRadius: BorderRadius.circular(8),
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: iconBg,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(icon, color: iconColor, size: 12),
                     ),
-                    child: Icon(icon, color: iconColor, size: 12),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(
-                amount,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                  color: amountColor,
+                  ],
                 ),
-              ),
-            ],
+                // 金额
+                Text(
+                  amount,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                    color: amountColor,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    );
+    ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.05, end: 0);
   }
 
   // ═══════════════════════════════════════════
-  // 交易列表（独立毛玻璃卡片）
+  // 交易列表
   // ═══════════════════════════════════════════
 
   Widget _buildTransactionList(
@@ -435,7 +486,6 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           final transactions = entry.value;
           final dateLabel = _formatDateLabel(dateKey);
 
-          // 计算当日合计
           final dailyTotal = transactions.fold<double>(0, (sum, tx) {
             final amount = (tx['amount'] as num).toDouble();
             final isExp = (tx['is_expense'] as int) == 1;
@@ -448,7 +498,6 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             transactions: transactions,
             isDark: isDark,
             brightness: brightness,
-            isFirstGroup: groupIndex == 0,
             animationDelay: Duration(milliseconds: 80 * groupIndex),
           );
         },
@@ -457,7 +506,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   }
 
   // ═══════════════════════════════════════════
-  // 日期分组（标题在外 + 独立卡片列表）
+  // 日期分组（标题在外 + 独立毛玻璃卡片）
   // ═══════════════════════════════════════════
 
   Widget _buildDateGroup({
@@ -466,31 +515,21 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     required List<Map<String, dynamic>> transactions,
     required bool isDark,
     required Brightness brightness,
-    required bool isFirstGroup,
     required Duration animationDelay,
   }) {
-    // 判断日期标签颜色：今天用indigo，其他用灰色
     final isToday = dateLabel == '今天';
     final labelColor = isToday
         ? (isDark ? AppColors.darkOnBackground : AppColors.indigo900_80)
         : (isDark ? AppColors.darkOnSurfaceVariant : const Color(0xFF94A3B8));
     final dotColor = isToday
-        ? const Color(0xFF4F46E5) // indigo-600
-        : const Color(0x8094A3B8); // slate-400/50
+        ? const Color(0xFF4F46E5)
+        : const Color(0x8094A3B8);
     final dotShadow = isToday
-        ? [
-            BoxShadow(
-              color: const Color(0xFFC7D2FE).withOpacity(0.5),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
-            ),
-          ]
+        ? [BoxShadow(color: const Color(0xFFC7D2FE).withOpacity(0.5), blurRadius: 2, offset: const Offset(0, 1))]
         : <BoxShadow>[];
-
-    // 每日小计颜色
     final totalColor = dailyTotal >= 0
-        ? const Color(0xB310B981) // emerald-500/70
-        : const Color(0xB3F43F5E); // rose-500/70
+        ? const Color(0xB310B981)
+        : const Color(0xB3F43F5E);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
@@ -502,7 +541,6 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Row(
               children: [
-                // 彩色圆点
                 Container(
                   width: 8,
                   height: 8,
@@ -513,30 +551,20 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // 日期标签
                 Text(
                   dateLabel,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: labelColor,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: labelColor),
                 ),
                 const Spacer(),
-                // 每日小计
                 Text(
                   '${dailyTotal >= 0 ? '+' : ''}${CurrencyFormatter.format(dailyTotal)}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: totalColor,
-                  ),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: totalColor),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 12),
-          // ═══ 独立交易卡片列表 ═══
+          // ═══ 独立毛玻璃交易卡片 ═══
           ...List.generate(transactions.length, (txIndex) {
             final tx = transactions[txIndex];
             final isExpense = (tx['is_expense'] as int) == 1;
@@ -548,8 +576,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             final note = tx['note'] as String? ?? '';
             final goods = tx['goods'] as String? ?? '';
             final txDate = DateTime.parse(tx['date'] as String);
-            final timeStr =
-                '${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}';
+            final timeStr = '${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}';
             final txId = tx['id'] as int;
             final displayName = goods.isNotEmpty
                 ? goods
@@ -570,10 +597,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             );
 
             if (_isMultiSelectMode) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: txWidget,
-              );
+              return Padding(padding: const EdgeInsets.only(bottom: 12), child: txWidget);
             }
 
             return Padding(
@@ -587,8 +611,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     color: AppColors.primaryOf(brightness),
                     borderRadius: BorderRadius.circular(28),
                   ),
-                  child:
-                      const Icon(Icons.edit, color: Colors.white),
+                  child: const Icon(Icons.edit, color: Colors.white),
                 ),
                 secondaryBackground: Container(
                   alignment: Alignment.centerRight,
@@ -597,17 +620,14 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     color: AppColors.error,
                     borderRadius: BorderRadius.circular(28),
                   ),
-                  child:
-                      const Icon(Icons.delete, color: Colors.white),
+                  child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 confirmDismiss: (direction) async {
                   if (direction == DismissDirection.startToEnd) {
                     context.push('/transaction/edit/$txId');
                     return false;
-                  } else if (direction ==
-                      DismissDirection.endToStart) {
-                    return await _showDeleteConfirmation(
-                        txId, displayName);
+                  } else if (direction == DismissDirection.endToStart) {
+                    return await _showDeleteConfirmation(txId, displayName);
                   }
                   return false;
                 },
@@ -621,7 +641,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   }
 
   // ═══════════════════════════════════════════
-  // 毛玻璃交易卡片
+  // 单条毛玻璃交易卡片
   // ═══════════════════════════════════════════
 
   Widget _buildGlassTransactionCard({
@@ -640,9 +660,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     final catColor = Color(categoryColor);
 
     return GestureDetector(
-      onLongPress: _isMultiSelectMode
-          ? null
-          : () => _showQuickActions(tx),
+      onLongPress: _isMultiSelectMode ? null : () => _showQuickActions(tx),
       onTap: _isMultiSelectMode
           ? () {
               setState(() {
@@ -655,17 +673,8 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             }
           : () => _showTransactionDetail(tx),
       child: Container(
-        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark
-              ? AppColors.darkSurface.withOpacity(0.72)
-              : AppColors.glassCardBg,
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: isDark
-                ? AppColors.darkOutline.withOpacity(0.4)
-                : AppColors.glassBorder,
-          ),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF8B5CF6).withOpacity(0.12),
@@ -678,93 +687,96 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           borderRadius: BorderRadius.circular(28),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: Row(
-              children: [
-                // ═══ 多选复选框 or 分类图标 ═══
-                if (_isMultiSelectMode)
-                  Checkbox(
-                    value: _selectedIds.contains(txId),
-                    onChanged: (checked) {
-                      setState(() {
-                        if (checked == true) {
-                          _selectedIds.add(txId);
-                        } else {
-                          _selectedIds.remove(txId);
-                        }
-                      });
-                    },
-                    activeColor: AppColors.primaryOf(brightness),
-                  )
-                else
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: catColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      mapIconName(categoryIcon),
-                      color: catColor,
-                      size: 24,
-                    ),
-                  ),
-                const SizedBox(width: 16),
-                // ═══ 名称 + 时间·账户 ═══
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        displayName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppColors.darkOnBackground
-                              : AppColors.indigo950,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        '$timeStr · $accountName',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? AppColors.darkOnSurfaceVariant.withOpacity(0.8)
-                              : AppColors.indigo400_80,
-                        ),
-                      ),
-                    ],
-                  ),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withOpacity(0.08)
+                    : Colors.white.withOpacity(0.72),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.08)
+                      : Colors.white.withOpacity(0.6),
                 ),
-                const SizedBox(width: 8),
-                // ═══ 金额 ═══
-                Text(
-                  '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: isExpense
-                        ? (isDark
-                            ? AppColors.darkOnBackground
-                            : AppColors.indigo950)
-                        : (isDark ? AppColors.success : AppColors.emerald600),
+              ),
+              child: Row(
+                children: [
+                  // ═══ 图标（48x48圆角方形，20%透明度彩色背景） ═══
+                  if (_isMultiSelectMode)
+                    Checkbox(
+                      value: _selectedIds.contains(txId),
+                      onChanged: (checked) {
+                        setState(() {
+                          if (checked == true) {
+                            _selectedIds.add(txId);
+                          } else {
+                            _selectedIds.remove(txId);
+                          }
+                        });
+                      },
+                      activeColor: AppColors.primaryOf(brightness),
+                    )
+                  else
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: catColor.withOpacity(0.20),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(mapIconName(categoryIcon), color: catColor, size: 24),
+                    ),
+                  const SizedBox(width: 16),
+                  // ═══ 文字 ═══
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? AppColors.darkOnBackground : AppColors.indigo950,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          '$categoryName · $timeStr · $accountName',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.darkOnSurfaceVariant.withOpacity(0.8)
+                                : AppColors.indigo400_80,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  // ═══ 金额 ═══
+                  Text(
+                    '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: isExpense
+                          ? (isDark ? AppColors.darkOnBackground : AppColors.indigo950)
+                          : (isDark ? AppColors.success : AppColors.emerald600),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ).animate().fadeIn(
-            delay: const Duration(milliseconds: 100),
-            duration: 250.ms,
-          ),
+      ),
     );
   }
 
@@ -777,23 +789,19 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.primaryOf(
-                isDark ? Brightness.dark : Brightness.light)
-            .withOpacity(0.1),
+        color: AppColors.primaryOf(isDark ? Brightness.dark : Brightness.light).withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
           Icon(Icons.check_circle_outline,
               size: 18,
-              color: AppColors.primaryOf(
-                  isDark ? Brightness.dark : Brightness.light)),
+              color: AppColors.primaryOf(isDark ? Brightness.dark : Brightness.light)),
           const SizedBox(width: 8),
           Text(
             '已选择 ${_selectedIds.length} 项',
             style: TextStyle(
-              color: AppColors.primaryOf(
-                  isDark ? Brightness.dark : Brightness.light),
+              color: AppColors.primaryOf(isDark ? Brightness.dark : Brightness.light),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -804,8 +812,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             visualDensity: VisualDensity.compact,
           ),
           IconButton(
-            icon: const Icon(Icons.delete_outline,
-                color: Colors.red, size: 20),
+            icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
             onPressed: _selectedIds.isNotEmpty ? _batchDelete : null,
             visualDensity: VisualDensity.compact,
           ),
@@ -828,8 +835,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   // 筛选 Chips
   // ═══════════════════════════════════════════
 
-  Widget _buildFilterChips(
-      TransactionFilter filter, Brightness brightness) {
+  Widget _buildFilterChips(TransactionFilter filter, Brightness brightness) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
@@ -837,65 +843,47 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            _buildFilterTag(
-              icon: Icons.clear_all,
-              label: '清空',
-              brightness: brightness,
-              onTap: () {
-                ref.read(transactionFilterProvider.notifier).state =
-                    const TransactionFilter();
-                _searchController.clear();
-              },
-            ),
+            _buildFilterTag(icon: Icons.clear_all, label: '清空', brightness: brightness, onTap: () {
+              ref.read(transactionFilterProvider.notifier).state = const TransactionFilter();
+              _searchController.clear();
+            }),
             if (filter.keyword != null && filter.keyword!.isNotEmpty)
               _buildFilterTag(
                 icon: Icons.search,
                 label: '搜索: ${filter.keyword}',
                 brightness: brightness,
                 onDeleted: () {
-                  ref.read(transactionFilterProvider.notifier).state =
-                      filter.copyWith(clearKeyword: true);
+                  ref.read(transactionFilterProvider.notifier).state = filter.copyWith(clearKeyword: true);
                   _searchController.clear();
                 },
               ),
             if (filter.isExpense != null)
               _buildFilterTag(
-                icon: filter.isExpense!
-                    ? Icons.arrow_downward
-                    : Icons.arrow_upward,
-                iconColor: filter.isExpense!
-                    ? AppColors.expense
-                    : AppColors.income,
+                icon: filter.isExpense! ? Icons.arrow_downward : Icons.arrow_upward,
+                iconColor: filter.isExpense! ? AppColors.expense : AppColors.income,
                 label: filter.isExpense! ? '支出' : '收入',
                 brightness: brightness,
                 onDeleted: () {
-                  ref.read(transactionFilterProvider.notifier).state =
-                      filter.copyWith(clearIsExpense: true);
+                  ref.read(transactionFilterProvider.notifier).state = filter.copyWith(clearIsExpense: true);
                 },
               ),
             if (filter.startDate != null || filter.endDate != null)
               _buildFilterTag(
                 icon: Icons.date_range,
-                label: _formatDateRange(
-                    filter.startDate, filter.endDate),
+                label: _formatDateRange(filter.startDate, filter.endDate),
                 brightness: brightness,
                 onDeleted: () {
                   ref.read(transactionFilterProvider.notifier).state =
-                      filter.copyWith(
-                    clearStartDate: true,
-                    clearEndDate: true,
-                  );
+                      filter.copyWith(clearStartDate: true, clearEndDate: true);
                 },
               ),
-            if (filter.categoryIds != null &&
-                filter.categoryIds!.isNotEmpty)
+            if (filter.categoryIds != null && filter.categoryIds!.isNotEmpty)
               _buildFilterTag(
                 icon: Icons.category,
                 label: '${filter.categoryIds!.length}个分类',
                 brightness: brightness,
                 onDeleted: () {
-                  ref.read(transactionFilterProvider.notifier).state =
-                      filter.copyWith(clearCategoryIds: true);
+                  ref.read(transactionFilterProvider.notifier).state = filter.copyWith(clearCategoryIds: true);
                 },
               ),
             if (filter.accountId != null)
@@ -904,8 +892,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                 label: '指定账户',
                 brightness: brightness,
                 onDeleted: () {
-                  ref.read(transactionFilterProvider.notifier).state =
-                      filter.copyWith(clearAccountId: true);
+                  ref.read(transactionFilterProvider.notifier).state = filter.copyWith(clearAccountId: true);
                 },
               ),
           ],
@@ -938,21 +925,12 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             children: [
               Icon(icon, size: 14, color: iconColor ?? primaryColor),
               const SizedBox(width: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: primaryColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              Text(label, style: TextStyle(fontSize: 12, color: primaryColor, fontWeight: FontWeight.w500)),
               if (onDeleted != null) ...[
                 const SizedBox(width: 4),
                 GestureDetector(
                   onTap: onDeleted,
-                  child: Icon(Icons.close,
-                      size: 14,
-                      color: primaryColor.withOpacity(0.6)),
+                  child: Icon(Icons.close, size: 14, color: primaryColor.withOpacity(0.6)),
                 ),
               ],
             ],
@@ -967,23 +945,15 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   // ═══════════════════════════════════════════
 
   String _getMonthStr(int month) {
-    const months = [
-      '', 'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL',
-      'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER',
-      'OCTOBER', 'NOVEMBER', 'DECEMBER',
-    ];
+    const months = ['', 'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
     final now = DateTime.now();
     return '${months[month]} ${now.year}';
   }
 
   String _formatDateRange(DateTime? start, DateTime? end) {
-    if (start != null && end != null) {
-      return '${start.month}/${start.day} - ${end.month}/${end.day}';
-    } else if (start != null) {
-      return '从 ${start.month}/${start.day}';
-    } else {
-      return '至 ${end!.month}/${end.day}';
-    }
+    if (start != null && end != null) return '${start.month}/${start.day} - ${end.month}/${end.day}';
+    if (start != null) return '从 ${start.month}/${start.day}';
+    return '至 ${end!.month}/${end.day}';
   }
 
   String _formatDateLabel(String dateKey) {
@@ -992,7 +962,6 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     final today = DateTime(now.year, now.month, now.day);
     final target = DateTime(date.year, date.month, date.day);
     final diff = today.difference(target).inDays;
-
     if (diff == 0) return '今天';
     if (diff == 1) return '昨天';
     if (diff == 2) return '前天';
@@ -1006,39 +975,33 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   Future<bool> _showDeleteConfirmation(int txId, String label) async {
     return await showDialog<bool>(
           context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('删除交易'),
-              content: Text('确定要删除这笔交易吗？\n$label'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('取消'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final db = ref.read(appDatabaseProvider);
-                    try {
-                      await db.deleteTransaction(txId);
-                      ref.read(transactionRefreshProvider.notifier).state++;
-                      if (context.mounted) {
-                        Navigator.pop(context, true);
-                        _showCenterToast('已删除');
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        Navigator.pop(context, false);
-                        _showCenterToast('删除失败: $e', isError: true);
-                      }
+          builder: (context) => AlertDialog(
+            title: const Text('删除交易'),
+            content: Text('确定要删除这笔交易吗？\n$label'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('取消')),
+              ElevatedButton(
+                onPressed: () async {
+                  final db = ref.read(appDatabaseProvider);
+                  try {
+                    await db.deleteTransaction(txId);
+                    ref.read(transactionRefreshProvider.notifier).state++;
+                    if (context.mounted) {
+                      Navigator.pop(context, true);
+                      _showCenterToast('已删除');
                     }
-                  },
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.error),
-                  child: const Text('删除'),
-                ),
-              ],
-            );
-          },
+                  } catch (e) {
+                    if (context.mounted) {
+                      Navigator.pop(context, false);
+                      _showCenterToast('删除失败: $e', isError: true);
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                child: const Text('删除'),
+              ),
+            ],
+          ),
         ) ??
         false;
   }
@@ -1048,6 +1011,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   // ═══════════════════════════════════════════
 
   void _showTransactionDetail(Map<String, dynamic> tx) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isExpense = (tx['is_expense'] as int) == 1;
     final amount = (tx['amount'] as num).toDouble();
     final categoryName = tx['category_name'] as String? ?? '未分类';
@@ -1058,9 +1022,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     final note = tx['note'] as String? ?? '';
     final goods = tx['goods'] as String? ?? '';
     final txId = tx['id'] as int;
-    final displayName = goods.isNotEmpty
-        ? goods
-        : (note.isNotEmpty ? note : categoryName);
+    final displayName = goods.isNotEmpty ? goods : (note.isNotEmpty ? note : categoryName);
 
     showModalBottomSheet(
       context: context,
@@ -1075,7 +1037,6 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // 分类图标
                 Container(
                   width: 64,
                   height: 64,
@@ -1083,11 +1044,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     color: Color(categoryColor).withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Icon(
-                    mapIconName(categoryIcon),
-                    color: Color(categoryColor),
-                    size: 32,
-                  ),
+                  child: Icon(mapIconName(categoryIcon), color: Color(categoryColor), size: 32),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -1095,9 +1052,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? AppColors.darkOnSurfaceVariant
-                        : AppColors.lightOnSurfaceVariant,
+                    color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1107,17 +1062,13 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -1,
-                    color: isExpense
-                        ? AppColors.indigo950
-                        : AppColors.emerald600,
+                    color: isExpense ? AppColors.indigo950 : AppColors.emerald600,
                   ),
                 ),
                 const SizedBox(height: 32),
                 _buildDetailRow('分类', categoryName),
                 _buildDetailRow('账户', accountName),
-                _buildDetailRow(
-                    '日期',
-                    '${txDate.year}-${txDate.month.toString().padLeft(2, '0')}-${txDate.day.toString().padLeft(2, '0')} ${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}'),
+                _buildDetailRow('日期', '${txDate.year}-${txDate.month.toString().padLeft(2, '0')}-${txDate.day.toString().padLeft(2, '0')} ${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}'),
                 if (goods.isNotEmpty) _buildDetailRow('商品', goods),
                 _buildDetailRow('备注', note.isNotEmpty ? note : '无'),
                 const SizedBox(height: 28),
@@ -1142,9 +1093,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                         },
                         icon: const Icon(Icons.delete),
                         label: const Text('删除'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.error,
-                        ),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
                       ),
                     ),
                   ],
@@ -1163,21 +1112,11 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
           Flexible(
             child: Text(
               value,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
               textAlign: TextAlign.end,
             ),
           ),
@@ -1192,16 +1131,13 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
   void _showQuickActions(Map<String, dynamic> tx) {
     final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
     final isExpense = (tx['is_expense'] as int) == 1;
     final amount = (tx['amount'] as num).toDouble();
     final categoryName = tx['category_name'] as String? ?? '未分类';
     final note = tx['note'] as String? ?? '';
     final goods = tx['goods'] as String? ?? '';
     final txId = tx['id'] as int;
-    final displayName = goods.isNotEmpty
-        ? goods
-        : (note.isNotEmpty ? note : categoryName);
+    final displayName = goods.isNotEmpty ? goods : (note.isNotEmpty ? note : categoryName);
 
     showModalBottomSheet(
       context: context,
@@ -1229,42 +1165,30 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: (isExpense
-                                  ? AppColors.expense
-                                  : AppColors.income)
-                              .withOpacity(0.1),
+                          color: (isExpense ? AppColors.expense : AppColors.income).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           isExpense ? '支出' : '收入',
                           style: TextStyle(
                             fontSize: 12,
-                            color: isExpense
-                                ? AppColors.expense
-                                : AppColors.income,
+                            color: isExpense ? AppColors.expense : AppColors.income,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          displayName,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        child: Text(displayName, style: Theme.of(context).textTheme.bodyMedium, overflow: TextOverflow.ellipsis),
                       ),
                       Text(
                         '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: isExpense
-                              ? AppColors.indigo950
-                              : AppColors.emerald600,
+                          color: isExpense ? AppColors.indigo950 : AppColors.emerald600,
                         ),
                       ),
                     ],
@@ -1276,13 +1200,10 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryOf(brightness)
-                          .withOpacity(0.1),
+                      color: AppColors.primaryOf(brightness).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.edit,
-                        color: AppColors.primaryOf(brightness),
-                        size: 20),
+                    child: Icon(Icons.edit, color: AppColors.primaryOf(brightness), size: 20),
                   ),
                   title: const Text('编辑'),
                   subtitle: const Text('修改交易信息'),
@@ -1300,11 +1221,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                       color: AppColors.error.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.delete,
-                        color: AppColors.error, size: 20),
+                    child: Icon(Icons.delete, color: AppColors.error, size: 20),
                   ),
-                  title: Text('删除',
-                      style: TextStyle(color: AppColors.error)),
+                  title: Text('删除', style: TextStyle(color: AppColors.error)),
                   subtitle: const Text('删除此交易记录'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
@@ -1327,8 +1246,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
   void _showFilterPanel(BuildContext context) {
     final currentFilter = ref.read(transactionFilterProvider);
-    List<int> tempCategoryIds =
-        currentFilter.categoryIds?.toList() ?? [];
+    List<int> tempCategoryIds = currentFilter.categoryIds?.toList() ?? [];
     bool? tempIsExpense = currentFilter.isExpense;
     DateTime? tempStartDate = currentFilter.startDate;
     DateTime? tempEndDate = currentFilter.endDate;
@@ -1345,13 +1263,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
               child: Container(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.75,
-                ),
+                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -1360,21 +1274,16 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '筛选',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
+                          Text('筛选', style: Theme.of(context).textTheme.titleLarge),
                           TextButton(
-                            onPressed: () {
-                              setModalState(() {
-                                tempCategoryIds = [];
-                                tempIsExpense = null;
-                                tempStartDate = null;
-                                tempEndDate = null;
-                                tempAccountId = null;
-                                tempAccountName = null;
-                              });
-                            },
+                            onPressed: () => setModalState(() {
+                              tempCategoryIds = [];
+                              tempIsExpense = null;
+                              tempStartDate = null;
+                              tempEndDate = null;
+                              tempAccountId = null;
+                              tempAccountName = null;
+                            }),
                             child: const Text('重置'),
                           ),
                         ],
@@ -1387,36 +1296,24 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('收支类型',
-                                style:
-                                    Theme.of(context).textTheme.titleSmall),
+                            Text('收支类型', style: Theme.of(context).textTheme.titleSmall),
                             const SizedBox(height: 8),
                             SegmentedButton<int?>(
                               segments: const [
-                                ButtonSegment(
-                                    value: null, label: Text('全部')),
-                                ButtonSegment(
-                                    value: 0, label: Text('收入')),
-                                ButtonSegment(
-                                    value: 1, label: Text('支出')),
+                                ButtonSegment(value: null, label: Text('全部')),
+                                ButtonSegment(value: 0, label: Text('收入')),
+                                ButtonSegment(value: 1, label: Text('支出')),
                               ],
-                              selected: {
-                                tempIsExpense == null
-                                    ? null
-                                    : (tempIsExpense! ? 1 : 0)
-                              },
+                              selected: {tempIsExpense == null ? null : (tempIsExpense! ? 1 : 0)},
                               onSelectionChanged: (values) {
                                 setModalState(() {
                                   final val = values.first;
-                                  tempIsExpense =
-                                      val == null ? null : val == 1;
+                                  tempIsExpense = val == null ? null : val == 1;
                                 });
                               },
                             ),
                             const SizedBox(height: 20),
-                            Text('日期范围',
-                                style:
-                                    Theme.of(context).textTheme.titleSmall),
+                            Text('日期范围', style: Theme.of(context).textTheme.titleSmall),
                             const SizedBox(height: 8),
                             Row(
                               children: [
@@ -1425,28 +1322,18 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                     onPressed: () async {
                                       final picked = await showDatePicker(
                                         context: context,
-                                        initialDate:
-                                            tempStartDate ?? DateTime.now(),
+                                        initialDate: tempStartDate ?? DateTime.now(),
                                         firstDate: DateTime(2020),
                                         lastDate: DateTime(2030),
                                       );
-                                      if (picked != null) {
-                                        setModalState(
-                                            () => tempStartDate = picked);
-                                      }
+                                      if (picked != null) setModalState(() => tempStartDate = picked);
                                     },
-                                    icon: const Icon(
-                                        Icons.calendar_today, size: 18),
-                                    label: Text(
-                                      tempStartDate != null
-                                          ? '${tempStartDate!.month}/${tempStartDate!.day}'
-                                          : '开始日期',
-                                    ),
+                                    icon: const Icon(Icons.calendar_today, size: 18),
+                                    label: Text(tempStartDate != null ? '${tempStartDate!.month}/${tempStartDate!.day}' : '开始日期'),
                                   ),
                                 ),
                                 const Padding(
-                                  padding:
-                                      EdgeInsets.symmetric(horizontal: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: 8),
                                   child: Text('-'),
                                 ),
                                 Expanded(
@@ -1454,23 +1341,14 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                     onPressed: () async {
                                       final picked = await showDatePicker(
                                         context: context,
-                                        initialDate:
-                                            tempEndDate ?? DateTime.now(),
+                                        initialDate: tempEndDate ?? DateTime.now(),
                                         firstDate: DateTime(2020),
                                         lastDate: DateTime(2030),
                                       );
-                                      if (picked != null) {
-                                        setModalState(
-                                            () => tempEndDate = picked);
-                                      }
+                                      if (picked != null) setModalState(() => tempEndDate = picked);
                                     },
-                                    icon: const Icon(
-                                        Icons.calendar_today, size: 18),
-                                    label: Text(
-                                      tempEndDate != null
-                                          ? '${tempEndDate!.month}/${tempEndDate!.day}'
-                                          : '结束日期',
-                                    ),
+                                    icon: const Icon(Icons.calendar_today, size: 18),
+                                    label: Text(tempEndDate != null ? '${tempEndDate!.month}/${tempEndDate!.day}' : '结束日期'),
                                   ),
                                 ),
                               ],
@@ -1481,41 +1359,19 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                                 child: Align(
                                   alignment: Alignment.centerRight,
                                   child: TextButton(
-                                    onPressed: () {
-                                      setModalState(() {
-                                        tempStartDate = null;
-                                        tempEndDate = null;
-                                      });
-                                    },
+                                    onPressed: () => setModalState(() { tempStartDate = null; tempEndDate = null; }),
                                     child: const Text('清除日期'),
                                   ),
                                 ),
                               ),
                             const SizedBox(height: 20),
-                            Text('分类筛选',
-                                style:
-                                    Theme.of(context).textTheme.titleSmall),
+                            Text('分类筛选', style: Theme.of(context).textTheme.titleSmall),
                             const SizedBox(height: 8),
-                            _buildCategoryFilter(
-                              setModalState,
-                              tempCategoryIds,
-                              (ids) =>
-                                  setModalState(() => tempCategoryIds = ids),
-                            ),
+                            _buildCategoryFilter(setModalState, tempCategoryIds, (ids) => setModalState(() => tempCategoryIds = ids)),
                             const SizedBox(height: 20),
-                            Text('账户筛选',
-                                style:
-                                    Theme.of(context).textTheme.titleSmall),
+                            Text('账户筛选', style: Theme.of(context).textTheme.titleSmall),
                             const SizedBox(height: 8),
-                            _buildAccountFilter(
-                              setModalState,
-                              tempAccountId,
-                              tempAccountName,
-                              (id, name) => setModalState(() {
-                                tempAccountId = id;
-                                tempAccountName = name;
-                              }),
-                            ),
+                            _buildAccountFilter(setModalState, tempAccountId, tempAccountName, (id, name) => setModalState(() { tempAccountId = id; tempAccountName = name; })),
                             const SizedBox(height: 16),
                           ],
                         ),
@@ -1527,8 +1383,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                         color: Theme.of(context).colorScheme.surface,
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(context).brightness ==
-                                    Brightness.dark
+                            color: Theme.of(context).brightness == Brightness.dark
                                 ? AppColors.primaryDark.withOpacity(0.15)
                                 : Colors.black.withOpacity(0.05),
                             blurRadius: 8,
@@ -1540,13 +1395,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            ref
-                                .read(transactionFilterProvider.notifier)
-                                .state = TransactionFilter(
+                            ref.read(transactionFilterProvider.notifier).state = TransactionFilter(
                               keyword: currentFilter.keyword,
-                              categoryIds: tempCategoryIds.isNotEmpty
-                                  ? tempCategoryIds
-                                  : null,
+                              categoryIds: tempCategoryIds.isNotEmpty ? tempCategoryIds : null,
                               isExpense: tempIsExpense,
                               startDate: tempStartDate,
                               endDate: tempEndDate,
@@ -1568,50 +1419,27 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     );
   }
 
-  Widget _buildCategoryFilter(
-    StateSetter setModalState,
-    List<int> selectedIds,
-    ValueChanged<List<int>> onChanged,
-  ) {
+  Widget _buildCategoryFilter(StateSetter setModalState, List<int> selectedIds, ValueChanged<List<int>> onChanged) {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: ref.read(appDatabaseProvider).getCategories(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const SizedBox(
-            height: 48,
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-        final categories = snapshot.data!;
+        if (!snapshot.hasData) return const SizedBox(height: 48, child: Center(child: CircularProgressIndicator()));
         return Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: categories.map((cat) {
+          children: snapshot.data!.map((cat) {
             final catId = cat['id'] as int;
-            final catName = cat['name'] as String;
-            final colorValue =
-                cat['color'] as int? ?? AppColors.primary.value;
+            final colorValue = cat['color'] as int? ?? AppColors.primary.value;
             final isSelected = selectedIds.contains(catId);
             return FilterChip(
-              avatar: Icon(
-                IconUtils.fromName(cat['icon'] as String?),
-                size: 16,
-                color: isSelected ? Colors.white : Color(colorValue),
-              ),
-              label: Text(catName),
+              avatar: Icon(IconUtils.fromName(cat['icon'] as String?), size: 16, color: isSelected ? Colors.white : Color(colorValue)),
+              label: Text(cat['name'] as String),
               selected: isSelected,
               selectedColor: Color(colorValue),
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : null,
-                fontSize: 13,
-              ),
+              labelStyle: TextStyle(color: isSelected ? Colors.white : null, fontSize: 13),
               onSelected: (selected) {
                 final newIds = selectedIds.toList();
-                if (selected) {
-                  newIds.add(catId);
-                } else {
-                  newIds.remove(catId);
-                }
+                selected ? newIds.add(catId) : newIds.remove(catId);
                 onChanged(newIds);
               },
             );
@@ -1621,22 +1449,11 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     );
   }
 
-  Widget _buildAccountFilter(
-    StateSetter setModalState,
-    int? selectedId,
-    String? selectedName,
-    void Function(int?, String?) onChanged,
-  ) {
+  Widget _buildAccountFilter(StateSetter setModalState, int? selectedId, String? selectedName, void Function(int?, String?) onChanged) {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: ref.read(appDatabaseProvider).getAccounts(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const SizedBox(
-            height: 48,
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-        final accounts = snapshot.data!;
+        if (!snapshot.hasData) return const SizedBox(height: 48, child: Center(child: CircularProgressIndicator()));
         return Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -1647,26 +1464,17 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               selected: selectedId == null,
               onSelected: (_) => onChanged(null, null),
             ),
-            ...accounts.map((acc) {
+            ...snapshot.data!.map((acc) {
               final accId = acc['id'] as int;
-              final accName = acc['name'] as String;
-              final colorValue =
-                  acc['color'] as int? ?? AppColors.primary.value;
+              final colorValue = acc['color'] as int? ?? AppColors.primary.value;
               final isSelected = selectedId == accId;
               return FilterChip(
-                avatar: Icon(
-                  IconUtils.fromName(acc['icon'] as String?),
-                  size: 16,
-                  color: isSelected ? Colors.white : Color(colorValue),
-                ),
-                label: Text(accName),
+                avatar: Icon(IconUtils.fromName(acc['icon'] as String?), size: 16, color: isSelected ? Colors.white : Color(colorValue)),
+                label: Text(acc['name'] as String),
                 selected: isSelected,
                 selectedColor: Color(colorValue),
-                labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : null,
-                  fontSize: 13,
-                ),
-                onSelected: (_) => onChanged(accId, accName),
+                labelStyle: TextStyle(color: isSelected ? Colors.white : null, fontSize: 13),
+                onSelected: (_) => onChanged(accId, acc['name'] as String),
               );
             }),
           ],
@@ -1683,12 +1491,8 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     final groupedAsync = ref.read(groupedTransactionsProvider);
     groupedAsync.whenData((grouped) {
       setState(() {
-        final allIds = grouped.values
-            .expand((txs) => txs)
-            .map((tx) => tx['id'] as int)
-            .toSet();
-        if (_selectedIds.containsAll(allIds) &&
-            _selectedIds.length == allIds.length) {
+        final allIds = grouped.values.expand((txs) => txs).map((tx) => tx['id'] as int).toSet();
+        if (_selectedIds.containsAll(allIds) && _selectedIds.length == allIds.length) {
           _selectedIds.clear();
         } else {
           _selectedIds.clear();
@@ -1706,20 +1510,15 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         title: const Text('批量删除'),
         content: Text('确定要删除选中的 $count 条交易记录吗？'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('取消')),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style:
-                ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('删除'),
           ),
         ],
       ),
     );
-
     if (confirmed != true) return;
 
     final db = ref.read(appDatabaseProvider);
@@ -1730,35 +1529,21 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         deletedCount++;
       } catch (_) {}
     }
-
     ref.read(transactionRefreshProvider.notifier).state++;
     setState(() {
       _selectedIds.clear();
       _isMultiSelectMode = false;
     });
-
-    if (mounted) {
-      _showCenterToast('已删除 $deletedCount 条记录');
-    }
+    if (mounted) _showCenterToast('已删除 $deletedCount 条记录');
   }
 
   void _showCenterToast(String message, {bool isError = false}) {
     final overlay = Overlay.of(context);
     late OverlayEntry entry;
-    entry = OverlayEntry(
-      builder: (context) {
-        return _ListToastWidget(
-          message: message,
-          isError: isError,
-        );
-      },
-    );
+    entry = OverlayEntry(builder: (context) => _ListToastWidget(message: message, isError: isError));
     overlay.insert(entry);
-
     Future.delayed(const Duration(milliseconds: 1500), () {
-      if (entry.mounted) {
-        entry.remove();
-      }
+      if (entry.mounted) entry.remove();
     });
   }
 }
@@ -1767,18 +1552,12 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 class _ListToastWidget extends StatefulWidget {
   final String message;
   final bool isError;
-
-  const _ListToastWidget({
-    required this.message,
-    required this.isError,
-  });
-
+  const _ListToastWidget({required this.message, required this.isError});
   @override
   State<_ListToastWidget> createState() => _ListToastWidgetState();
 }
 
-class _ListToastWidgetState extends State<_ListToastWidget>
-    with SingleTickerProviderStateMixin {
+class _ListToastWidgetState extends State<_ListToastWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
@@ -1786,14 +1565,9 @@ class _ListToastWidgetState extends State<_ListToastWidget>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+    _controller = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
     _controller.forward();
   }
 
@@ -1814,24 +1588,18 @@ class _ListToastWidgetState extends State<_ListToastWidget>
           builder: (context, child) {
             return Transform.scale(
               scale: _scaleAnimation.value,
-              child: Opacity(
-                opacity: _opacityAnimation.value,
-                child: child,
-              ),
+              child: Opacity(opacity: _opacityAnimation.value, child: child),
             );
           },
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 40),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: isDark
-                      ? AppColors.primaryDark.withOpacity(0.15)
-                      : Colors.black.withOpacity(0.15),
+                  color: isDark ? AppColors.primaryDark.withOpacity(0.15) : Colors.black.withOpacity(0.15),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -1843,15 +1611,11 @@ class _ListToastWidgetState extends State<_ListToastWidget>
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: widget.isError
-                        ? Colors.red.withOpacity(0.1)
-                        : AppColors.success.withOpacity(0.1),
+                    color: widget.isError ? Colors.red.withOpacity(0.1) : AppColors.success.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    widget.isError
-                        ? Icons.error_outline
-                        : Icons.check_circle_outline,
+                    widget.isError ? Icons.error_outline : Icons.check_circle_outline,
                     color: widget.isError ? Colors.red : AppColors.success,
                     size: 40,
                   ),
@@ -1863,9 +1627,7 @@ class _ListToastWidgetState extends State<_ListToastWidget>
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: widget.isError
-                        ? Colors.red
-                        : Theme.of(context).colorScheme.onSurface,
+                    color: widget.isError ? Colors.red : Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -1876,3 +1638,4 @@ class _ListToastWidgetState extends State<_ListToastWidget>
     );
   }
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
