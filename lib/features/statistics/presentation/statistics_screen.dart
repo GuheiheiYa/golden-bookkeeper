@@ -575,4 +575,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
           ),
         ),
         const SizedBox(width: 4),
-        Text(label, style: Theme.of(context).textT
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
+      ],
+    );
+  }
+}

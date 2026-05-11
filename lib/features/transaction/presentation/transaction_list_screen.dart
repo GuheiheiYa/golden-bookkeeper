@@ -1424,4 +1424,9 @@ class _ListToastWidgetState extends State<_ListToastWidget>
                 ),
               ],
             ),
-   
+          ),
+        ),
+      ),
+    );
+  }
+}

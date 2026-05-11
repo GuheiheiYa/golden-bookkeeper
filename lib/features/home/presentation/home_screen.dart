@@ -936,4 +936,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   height: 40,
                                   decoration: BoxDecoration(
                                     color: notification.color.withOpacity(0.12),
-     
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(notification.icon, color: notification.color, size: 20),
+                                ),
+                                title: Text(
+                                  notification.title,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  notification.message,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                                  ),
+                                ),
+                                trailing: IconButton(
+                                  icon: Icon(
+                                    Icons.close_rounded,
+                                    size: 16,
+                                    color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                                  ),
+                                  onPressed: () {
+                                    _notificationService.removeNotification(notification.id);
+                                    setModalState(() {});
+                                  },
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  notification.onTap?.call();
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    ).whenComplete(() {
+      setState(() {});
+    });
+  }
+}

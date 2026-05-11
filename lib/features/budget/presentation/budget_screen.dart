@@ -804,4 +804,11 @@ class BudgetScreen extends ConsumerWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
               ),
-              child: const Text('删�
+              child: const Text('删除'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}

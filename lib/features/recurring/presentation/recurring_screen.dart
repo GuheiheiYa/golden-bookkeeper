@@ -993,4 +993,10 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                 backgroundColor: AppColors.error,
               ),
               child: const Text('删除'),
- 
+            ),
+          ],
+        );
+      },
+    );
+  }
+}

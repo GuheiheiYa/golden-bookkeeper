@@ -779,3 +779,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
         return cat['id'] as int;
       }
     }
+    // 兜底：硬编码 ID
+    return isExpense ? 8 : 12;
+  }
+}

@@ -298,4 +298,11 @@ class AppTheme {
         fontWeight: FontWeight.w500,
         color: muted,
       ),
-      labelSmall: GoogleFonts.notoSa
+      labelSmall: GoogleFonts.notoSansSc(
+        fontSize: 10,
+        fontWeight: FontWeight.w500,
+        color: tertiary,
+      ),
+    );
+  }
+}

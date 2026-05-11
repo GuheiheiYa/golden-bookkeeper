@@ -679,4 +679,8 @@ class _ExportDialogContentState extends State<_ExportDialogContent> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('导出失败: $e')),
         );
-        setState(() => _isE
+        setState(() => _isExporting = false);
+      }
+    }
+  }
+}

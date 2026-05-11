@@ -110,26 +110,27 @@ lib/
 | import_records | 导入记录表 |
 | import_duplicates | 重复记录检测表 |
 
-## 双主题 UI 设计
+## 双主题 UI 设计（Peekaboo 柔和梦幻风格）
 
-### 深色模式（霓虹金融科技）
-- **主色**: `#C6FF00` (霓虹柠绿)，按钮/图标文字用黑色
-- **背景**: `#000000` 纯黑，卡片 `#121212`
-- **卡片**: `BorderRadius.circular(28)`，绿色发光替代黑阴影
+### 浅色模式
+- **背景**: 紫粉渐变 `#E8DFF5` → `#F3EEF8` → `#FDE8EF`
+- **卡片**: 半透明白色 `#F0FFFFFF`（毛玻璃效果），渐变背景微透出
+- **强调色**: 暖黄 `#FFD93D`（FAB、按钮）
+- **文字**: `#1A1A1A` / `#666666` / `#999999`
+- **导航**: 浮动胶囊底部栏，圆角 24px
+
+### 深色模式
+- **背景**: 深紫渐变 `#1A1525` → `#1F1A2D` → `#251F30`
+- **卡片**: 半透明深色，毛玻璃描边
+- **强调色**: 暖黄 `#FFD93D`
 - **发光**: `AppColors.primaryDark.withOpacity(0.15~0.30)`
-- **渐变**: Hero 卡 `#D4FF00` → `#1B5E20`
-
-### 浅色模式（自然与生活）
-- **主色**: `#2D4F35` (森绿)，次色 `#C5A059` (哑光金)
-- **背景**: `#FFFFFF` 纯白，卡片白色靠阴影分层
-- **卡片**: `BorderRadius.circular(16)`，极柔阴影
-- **文字**: 三级色阶 `#1A1A1A` → `#666666` → `#999999`
 
 ### 主题感知
 - 使用 `AppColors.primaryOf(brightness)` 获取当前主题主色
 - 使用 `AppColors.secondaryOf(brightness)` 获取当前主题次色
 - 字体: Noto Sans SC (中文)
 - 动画: flutter_animate 链式调用
+- 设计规范: `docs/design/peekaboo_style_spec.md`
 
 ## 文档管理
 

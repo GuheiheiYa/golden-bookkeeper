@@ -586,4 +586,8 @@ class AccountListScreen extends ConsumerWidget {
           Text(label),
         ],
       ),
-      selected: isS
+      selected: isSelected,
+      onSelected: (_) => onSelected(value),
+    );
+  }
+}

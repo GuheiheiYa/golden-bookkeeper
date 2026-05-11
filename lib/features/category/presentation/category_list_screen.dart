@@ -636,4 +636,11 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                   ),
                   child: const Text('删除'),
                 ),
-            
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
