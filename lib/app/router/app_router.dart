@@ -103,34 +103,26 @@ class MainScreen extends StatelessWidget {
         ),
         child: navigationShell,
       ),
-      // 浮动胶囊底部导航栏（毛玻璃半透明）
-      bottomNavigationBar: Padding(
+      // 浮动胶囊底部导航栏（全透明底 + 毛玻璃胶囊）
+      bottomNavigationBar: Container(
+        color: Colors.transparent,
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
             child: Container(
               height: 68,
               decoration: BoxDecoration(
                 color: isDark
-                    ? Colors.white.withOpacity(0.08)
-                    : Colors.white.withOpacity(0.65),
+                    ? Colors.white.withOpacity(0.06)
+                    : Colors.white.withOpacity(0.25),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: isDark
-                      ? Colors.white.withOpacity(0.08)
-                      : Colors.white.withOpacity(0.5),
+                      ? Colors.white.withOpacity(0.06)
+                      : Colors.white.withOpacity(0.3),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: isDark
-                        ? Colors.black.withOpacity(0.2)
-                        : AppColors.lightPrimary.withOpacity(0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
