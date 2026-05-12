@@ -92,17 +92,17 @@ class MainScreen extends StatelessWidget {
             AppColors.bgGradientBottom,
           ];
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: gradientColors,
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: gradientColors,
         ),
-        child: navigationShell,
       ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: navigationShell,
       // 浮动胶囊底部导航栏
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
@@ -188,6 +188,7 @@ class MainScreen extends StatelessWidget {
               ),
             ),
       ),
+    ),
     );
   }
 
