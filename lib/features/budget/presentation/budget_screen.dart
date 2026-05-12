@@ -84,7 +84,20 @@ class BudgetScreen extends ConsumerWidget {
     final year = ref.watch(currentYearProvider);
     final month = ref.watch(currentMonthProvider);
 
-    return Scaffold(
+    final isDark = brightness == Brightness.dark;
+    final gradientColors = isDark
+        ? const [AppColors.bgGradientTopDark, AppColors.bgGradientMidDark, AppColors.bgGradientBottomDark]
+        : const [AppColors.bgGradientTop, AppColors.bgGradientMid, AppColors.bgGradientBottom];
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: gradientColors,
+        ),
+      ),
+      child: Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         foregroundColor: Colors.white,
@@ -363,6 +376,7 @@ class BudgetScreen extends ConsumerWidget {
           );
         },
       ),
+    ),
     );
   }
 
@@ -665,33 +679,47 @@ class BudgetScreen extends ConsumerWidget {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '选择分类',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              // 总预算选项
-              ListTile(
-                leading: Icon(Icons.savings, color: AppColors.primaryOf(brightness)),
-                title: const Text('总预算（全部分类）'),
-                onTap: () {
-                  onSelected(null, null);
-                  Navigator.pop(context);
-                },
-              ),
-              const Divider(),
-              // 分类列表
-              ...categories.map((cat) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          maxChildSize: 0.9,
+          minChildSize: 0.3,
+          expand: false,
+          builder: (context, scrollController) {
+            return ListView.builder(
+              controller: scrollController,
+              padding: const EdgeInsets.all(20),
+              itemCount: categories.length + 2,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      '选择分类',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  );
+                }
+                if (index == 1) {
+                  return Column(
+                    children: [
+                      ListTile(
+                        leading: Icon(Icons.savings, color: AppColors.primaryOf(brightness)),
+                        title: const Text('总预算（全部分类）'),
+                        onTap: () {
+                          onSelected(null, null);
+                          Navigator.pop(context);
+                        },
+                      ),
+                      const Divider(),
+                    ],
+                  );
+                }
+                final cat = categories[index - 2];
                 final iconName = cat['icon'] as String? ?? 'category';
                 final colorValue = cat['color'] as int? ?? AppColors.primary.value;
                 return ListTile(
@@ -713,9 +741,9 @@ class BudgetScreen extends ConsumerWidget {
                     Navigator.pop(context);
                   },
                 );
-              }),
-            ],
-          ),
+              },
+            );
+          },
         );
       },
     );
@@ -779,26 +807,26 @@ class BudgetScreen extends ConsumerWidget {
   // ========== 删除确认对话框 ==========
 
   void _showDeleteConfirmation(
-      BuildContext context, WidgetRef ref, Map<String, dynamic> budget) {
+      BuildContext outerContext, WidgetRef ref, Map<String, dynamic> budget) {
     showDialog(
-      context: context,
-      builder: (context) {
+      context: outerContext,
+      builder: (confirmContext) {
         return AlertDialog(
           title: const Text('删除预算'),
           content: Text('确定要删除"${budget['category_name']}"的预算吗？'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(confirmContext),
               child: const Text('取消'),
             ),
             ElevatedButton(
               onPressed: () async {
                 final db = AppDatabase();
                 await db.deleteBudget(budget['id'] as int);
-                Navigator.pop(context); // 关闭确认对话框
-                Navigator.pop(context); // 关闭编辑对话框
+                Navigator.pop(confirmContext); // 关闭确认对话框
+                Navigator.pop(outerContext); // 关闭编辑对话框
                 _refreshData(ref);
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(outerContext).showSnackBar(
                   const SnackBar(content: Text('预算已删除')),
                 );
               },

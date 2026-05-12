@@ -361,21 +361,21 @@ class SettingsScreen extends ConsumerWidget {
   void _showExportDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (context) => _ExportDialogContent(ref: ref),
+      builder: (context) => ExportDialogContent(ref: ref),
     );
   }
 }
 
 /// 导出对话框的独立 Stateful Widget
-class _ExportDialogContent extends StatefulWidget {
+class ExportDialogContent extends StatefulWidget {
   final WidgetRef ref;
-  const _ExportDialogContent({required this.ref});
+  const ExportDialogContent({super.key, required this.ref});
 
   @override
-  State<_ExportDialogContent> createState() => _ExportDialogContentState();
+  State<ExportDialogContent> createState() => ExportDialogContentState();
 }
 
-class _ExportDialogContentState extends State<_ExportDialogContent> {
+class ExportDialogContentState extends State<ExportDialogContent> {
   // 时间范围选项: 0=全部, 1=本月, 2=本年, 3=自定义
   int _timeRangeIndex = 0;
   DateTime? _customStartDate;

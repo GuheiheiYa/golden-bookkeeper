@@ -21,7 +21,7 @@ class AppDatabase {
       // Web 平台：使用内存数据库
       return await openDatabase(
         inMemoryDatabasePath,
-        version: 2,
+        version: 4,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
       );
@@ -30,7 +30,7 @@ class AppDatabase {
     final path = p.join(dbFolder.path, 'bookkeeper.db');
     return await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -63,7 +63,8 @@ class AppDatabase {
         color INTEGER,
         parent_id INTEGER,
         sort_order INTEGER DEFAULT 0,
-        is_system INTEGER DEFAULT 0
+        is_system INTEGER DEFAULT 0,
+        loan_id INTEGER
       )
     ''');
 
@@ -82,6 +83,7 @@ class AppDatabase {
         account_id INTEGER NOT NULL,
         recurring_rule_id INTEGER,
         image_path TEXT,
+        loan_deducted INTEGER DEFAULT 0,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT,
         FOREIGN KEY (category_id) REFERENCES categories (id),
@@ -165,6 +167,14 @@ class AppDatabase {
     if (oldVersion < 2) {
       // v2: transactions 表新增 goods 字段
       await db.execute('ALTER TABLE transactions ADD COLUMN goods TEXT');
+    }
+    if (oldVersion < 3) {
+      // v3: categories 表新增 loan_id 字段（关联贷款账户）
+      await db.execute('ALTER TABLE categories ADD COLUMN loan_id INTEGER');
+    }
+    if (oldVersion < 4) {
+      // v4: transactions 表新增 loan_deducted 字段（标记是否已扣减贷款）
+      await db.execute('ALTER TABLE transactions ADD COLUMN loan_deducted INTEGER DEFAULT 0');
     }
   }
 
@@ -432,6 +442,28 @@ class AppDatabase {
   Future<List<Map<String, dynamic>>> getAccounts() async {
     final db = await database;
     return await db.query('accounts', orderBy: 'sort_order ASC');
+  }
+
+  Future<List<Map<String, dynamic>>> getAccountsByType(String type) async {
+    final db = await database;
+    return await db.query('accounts', where: 'type = ?', whereArgs: [type], orderBy: 'sort_order ASC');
+  }
+
+  Future<List<Map<String, dynamic>>> getLoans() async {
+    final db = await database;
+    return await db.query('accounts', where: "type LIKE 'loan%'", orderBy: 'sort_order ASC');
+  }
+
+  Future<Map<String, dynamic>?> getCategoryById(int id) async {
+    final db = await database;
+    final results = await db.query('categories', where: 'id = ?', whereArgs: [id]);
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  Future<Map<String, dynamic>?> getAccountById(int id) async {
+    final db = await database;
+    final results = await db.query('accounts', where: 'id = ?', whereArgs: [id]);
+    return results.isNotEmpty ? results.first : null;
   }
 
   Future<int> insertAccount(Map<String, dynamic> account) async {

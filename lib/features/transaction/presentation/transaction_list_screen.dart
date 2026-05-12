@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../app/di/providers.dart';
+import '../../../core/database/app_database.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/utils/icon_utils.dart';
 
@@ -993,6 +994,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                 onPressed: () async {
                   final db = ref.read(appDatabaseProvider);
                   try {
+                    // 删除前恢复账户余额和关联贷款余额
+                    await _restoreAccountBalance(db, txId);
+                    await _restoreLoanBalance(db, txId);
                     await db.deleteTransaction(txId);
                     ref.read(transactionRefreshProvider.notifier).state++;
                     if (context.mounted) {
@@ -1534,6 +1538,8 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     int deletedCount = 0;
     for (final id in _selectedIds) {
       try {
+        await _restoreAccountBalance(db, id);
+        await _restoreLoanBalance(db, id);
         await db.deleteTransaction(id);
         deletedCount++;
       } catch (_) {}
@@ -1544,6 +1550,43 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       _isMultiSelectMode = false;
     });
     if (mounted) _showCenterToast('已删除 $deletedCount 条记录');
+  }
+
+  /// 删除交易时恢复账户余额
+  Future<void> _restoreAccountBalance(AppDatabase db, int transactionId) async {
+    try {
+      final tx = await db.getTransactionById(transactionId);
+      if (tx == null) return;
+      final accountId = tx['account_id'] as int?;
+      if (accountId == null) return;
+      final isExpense = (tx['is_expense'] as int?) == 1;
+      final amount = (tx['amount'] as num?)?.toDouble() ?? 0;
+      final account = await db.getAccountById(accountId);
+      final currentBalance = (account?['balance'] as num?)?.toDouble() ?? 0;
+      // 恢复：支出→加回，收入→减去
+      final restored = isExpense ? currentBalance + amount : currentBalance - amount;
+      await db.updateAccount(accountId, {'balance': restored});
+    } catch (_) {}
+  }
+
+  /// 删除交易时恢复关联贷款的余额
+  Future<void> _restoreLoanBalance(AppDatabase db, int transactionId) async {
+    try {
+      final tx = await db.getTransactionById(transactionId);
+      if (tx == null) return;
+      // 只有当初确实扣减过贷款才恢复
+      final loanDeducted = (tx['loan_deducted'] as int?) == 1;
+      if (!loanDeducted) return;
+      final categoryId = tx['category_id'] as int?;
+      if (categoryId == null) return;
+      final category = await db.getCategoryById(categoryId);
+      final loanId = category?['loan_id'] as int?;
+      if (loanId == null) return;
+      final loan = await db.getAccountById(loanId);
+      final currentBalance = (loan?['balance'] as num?)?.toDouble() ?? 0;
+      final amount = (tx['amount'] as num?)?.toDouble() ?? 0;
+      await db.updateAccount(loanId, {'balance': currentBalance + amount});
+    } catch (_) {}
   }
 
   void _showCenterToast(String message, {bool isError = false}) {

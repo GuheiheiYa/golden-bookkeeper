@@ -55,7 +55,20 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
     final rulesAsync = ref.watch(recurringRulesProvider);
     final brightness = Theme.of(context).brightness;
 
-    return Scaffold(
+    final isDark = brightness == Brightness.dark;
+    final gradientColors = isDark
+        ? const [AppColors.bgGradientTopDark, AppColors.bgGradientMidDark, AppColors.bgGradientBottomDark]
+        : const [AppColors.bgGradientTop, AppColors.bgGradientMid, AppColors.bgGradientBottom];
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: gradientColors,
+        ),
+      ),
+      child: Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         foregroundColor: Colors.white,
@@ -239,6 +252,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
           );
         },
       ),
+    ),
     );
   }
 
@@ -965,27 +979,27 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
   // ========== 删除确认对话框 ==========
 
   void _showDeleteConfirmation(
-      BuildContext context, Map<String, dynamic> rule) {
+      BuildContext outerContext, Map<String, dynamic> rule) {
     showDialog(
-      context: context,
-      builder: (context) {
+      context: outerContext,
+      builder: (confirmContext) {
         return AlertDialog(
           title: const Text('删除规则'),
           content: Text('确定要删除周期记账规则"${rule['title']}"吗？'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(confirmContext),
               child: const Text('取消'),
             ),
             ElevatedButton(
               onPressed: () async {
                 final db = AppDatabase();
                 await db.deleteRecurringRule(rule['id'] as int);
-                Navigator.pop(context); // 关闭确认对话框
-                Navigator.pop(context); // 关闭编辑对话框
+                Navigator.pop(confirmContext); // 关闭确认对话框
+                Navigator.pop(outerContext); // 关闭编辑对话框
                 _refreshData();
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(outerContext).showSnackBar(
                     const SnackBar(content: Text('规则已删除')),
                   );
                 }

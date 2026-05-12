@@ -158,52 +158,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
         // 右侧：通知
-        Row(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                GestureDetector(
-                  onTap: () => _showNotificationList(context),
+        GestureDetector(
+          onTap: () => _showNotificationList(context),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 20),
+              ),
+              if (_notificationService.unreadCount > 0)
+                Positioned(
+                  right: 0,
+                  top: 0,
                   child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFF6B6B),
                       shape: BoxShape.circle,
-                      color: isDark ? AppColors.darkSurface : Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: isDark
-                              ? Colors.black.withOpacity(0.2)
-                              : AppColors.lightPrimary.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.notifications_outlined,
-                      color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightTextTertiary,
-                      size: 20,
                     ),
                   ),
                 ),
-                if (_notificationService.unreadCount > 0)
-                  Positioned(
-                    right: 2,
-                    top: 2,
-                    child: Container(
-                      width: 10,
-                      height: 10,
-                      decoration: const BoxDecoration(
-                        color: AppColors.error,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     ).animate().fadeIn(duration: 300.ms);
@@ -477,11 +460,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               GoRouter.of(context).go('/statistics');
             } else if (label == '预算') {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const BudgetScreen()),
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) => const BudgetScreen(),
+                  transitionsBuilder: (_, animation, __, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
               );
             } else if (label == '周期') {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const RecurringScreen()),
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) => const RecurringScreen(),
+                  transitionsBuilder: (_, animation, __, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
               );
             }
           },
@@ -539,7 +532,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         if (budgets.isEmpty) {
           return AppCard(
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const BudgetScreen()),
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const BudgetScreen(),
+                transitionsBuilder: (_, animation, __, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+              ),
             ),
             child: Row(
               children: [

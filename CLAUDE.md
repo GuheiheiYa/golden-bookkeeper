@@ -358,3 +358,33 @@ lib/
 ### 代码生成
 - drift 和 riverpod 需要代码生成
 - 修改表定义后必须运行 `dart run build_runner build`
+- `.g.dart` 文件是自动生成的，不要手动修改
+
+### 数据库迁移
+- 修改表结构需要更新 schemaVersion
+- 在 migration 中添加迁移逻辑
+- 测试迁移脚本的正确性
+
+### 主题切换
+- 使用 Riverpod 管理主题状态
+- 支持深色/浅色/跟随系统三种模式
+- 主题持久化到 SharedPreferences
+
+## 常见问题
+
+### Q: 如何添加新的数据库表？
+A: 在 `core/database/tables/` 中创建表定义，然后在 `app_database.dart` 中注册，最后运行代码生成。
+
+### Q: 如何添加新的功能模块？
+A: 在 `features/` 中创建新的模块目录，包含 `presentation/`、`domain/`、`providers/` 子目录。
+
+### Q: 如何更新文档？
+A: 使用 `/update-docs` skill，指定文档类型和更新内容。
+
+## 相关资源
+
+- [Flutter 官方文档](https://flutter.dev)
+- [drift 文档](https://drift.simonbinder.eu)
+- [Riverpod 文档](https://riverpod.dev)
+- [go_router 文档](https://pub.dev/packages/go_router)
+- [fl_chart 文档](https://pub.dev/packages/fl_chart)

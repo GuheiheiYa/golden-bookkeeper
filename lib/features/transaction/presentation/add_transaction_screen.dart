@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/constants/currency_list.dart';
 import '../../../app/di/providers.dart';
+import '../../../core/database/app_database.dart';
 
 /// 从标签管理页面导入 tagsProvider，避免重复定义
 import '../../tag/presentation/tag_list_screen.dart' show tagsProvider;
@@ -859,7 +860,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   /// 账户选择弹窗 - 从数据库读取
   void _showAccountPicker(AsyncValue<List<Map<String, dynamic>>> accountsAsync) {
-    accountsAsync.whenData((accounts) {
+    accountsAsync.whenData((allAccounts) {
+      // 过滤掉贷款账户
+      final accounts = allAccounts.where((a) => !(a['type'] as String? ?? '').startsWith('loan')).toList();
       showModalBottomSheet(
         context: context,
         shape: const RoundedRectangleBorder(
@@ -1247,6 +1250,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     try {
       int transactionId;
 
+      // 编辑模式：先读取旧交易数据（用于贷款恢复）
+      Map<String, dynamic>? oldTx;
+      if (_isEditing) {
+        oldTx = await db.getTransactionById(widget.transactionId!);
+      }
+
       if (_isEditing) {
         // 编辑模式：更新已有交易
         transactionId = widget.transactionId!;
@@ -1261,6 +1270,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       // 保存标签关联
       for (final tagId in _selectedTagIds) {
         await db.insertTransactionTag(transactionId, tagId);
+      }
+
+      // 更新账户余额
+      await _updateAccountBalance(db, amount, isExpense, oldTx: oldTx);
+
+      // 贷款还款自动扣减/恢复（传入旧交易数据用于恢复）
+      if (isExpense) {
+        await _handleLoanRepayment(db, transactionId, amount, oldTx: oldTx);
       }
 
       // 通知刷新
@@ -1279,6 +1296,69 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         _showCenterToast('${_isEditing ? '更新' : '保存'}失败: $e', isError: true);
       }
     }
+  }
+
+  /// 处理贷款还款：新建时扣减，编辑时调整差额
+  Future<void> _handleLoanRepayment(AppDatabase db, int transactionId, double newAmount, {Map<String, dynamic>? oldTx}) async {
+    // 获取当前分类的 loan_id
+    final category = await db.getCategoryById(_selectedCategoryId!);
+    final loanId = category?['loan_id'] as int?;
+
+    if (_isEditing && oldTx != null) {
+      // 编辑模式：先恢复旧的扣减（如果之前扣过）
+      final oldLoanDeducted = (oldTx['loan_deducted'] as int?) == 1;
+      if (oldLoanDeducted) {
+        final oldCategoryId = oldTx['category_id'] as int?;
+        if (oldCategoryId != null) {
+          final oldCategory = await db.getCategoryById(oldCategoryId);
+          final oldLoanId = oldCategory?['loan_id'] as int?;
+          if (oldLoanId != null) {
+            final oldLoan = await db.getAccountById(oldLoanId);
+            final oldLoanBalance = (oldLoan?['balance'] as num?)?.toDouble() ?? 0;
+            final oldAmount = (oldTx['amount'] as num?)?.toDouble() ?? 0;
+            await db.updateAccount(oldLoanId, {
+              'balance': oldLoanBalance + oldAmount,
+            });
+          }
+        }
+      }
+    }
+
+    // 新分类如果关联了贷款，扣减余额并标记
+    if (loanId != null) {
+      final loan = await db.getAccountById(loanId);
+      final currentBalance = (loan?['balance'] as num?)?.toDouble() ?? 0;
+      final newBalance = (currentBalance - newAmount).clamp(0.0, double.infinity);
+      await db.updateAccount(loanId, {'balance': newBalance});
+      await db.updateTransaction(transactionId, {'loan_deducted': 1});
+    } else {
+      await db.updateTransaction(transactionId, {'loan_deducted': 0});
+    }
+  }
+
+  /// 更新账户余额：支出扣减、收入增加
+  Future<void> _updateAccountBalance(AppDatabase db, double amount, bool isExpense, {Map<String, dynamic>? oldTx}) async {
+    // 编辑模式：先恢复旧交易对账户的影响
+    if (_isEditing && oldTx != null) {
+      final oldAccountId = oldTx['account_id'] as int?;
+      final oldIsExpense = (oldTx['is_expense'] as int?) == 1;
+      final oldAmount = (oldTx['amount'] as num?)?.toDouble() ?? 0;
+      if (oldAccountId != null && oldAmount > 0) {
+        final oldAccount = await db.getAccountById(oldAccountId);
+        final oldBalance = (oldAccount?['balance'] as num?)?.toDouble() ?? 0;
+        // 恢复：支出→加回，收入→减去
+        final restored = oldIsExpense ? oldBalance + oldAmount : oldBalance - oldAmount;
+        await db.updateAccount(oldAccountId, {'balance': restored});
+      }
+    }
+
+    // 应用新交易对账户的影响
+    final accountId = _selectedAccountId!;
+    final account = await db.getAccountById(accountId);
+    final currentBalance = (account?['balance'] as num?)?.toDouble() ?? 0;
+    // 支出→扣减，收入→增加
+    final newBalance = isExpense ? currentBalance - amount : currentBalance + amount;
+    await db.updateAccount(accountId, {'balance': newBalance});
   }
 
   /// 显示居中提示（替代 SnackBar，不遮挡底部按钮）

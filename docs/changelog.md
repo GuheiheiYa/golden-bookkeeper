@@ -9,6 +9,58 @@
 
 ---
 
+## [1.8.0] - 2026-05-12
+
+### 🧑 个人中心 + 贷款管理 + 还款联动
+
+#### 新增功能
+- **"设置"改为"我的"个人中心**
+  - 底部导航栏从"设置"改为"我的"，图标为人像
+  - 新增头像区：金色边框圆形头像 + Lv.X 绿色徽章 + 用户名 + 头衔
+  - 新增等级进度条：绿色进度条 + 升级提示文字
+  - 新增资产摘要卡片：3 个并排 AppCard 小卡片（总资产/净资产/负债），从账户余额实时计算
+  - 新增荣誉室：横向滚动成就卡片（魅力之星/预算卫士/储蓄新星/记账达人/分类大师），已解锁/锁定状态
+
+- **用户档案系统**
+  - 新增 `UserProfile` 数据模型（SharedPreferences 持久化）
+  - 新增 `AssetSummary` provider（从账户表计算总资产/负债/净资产）
+  - 默认用户：咯噔，Lv.4，精打细算的见习镇长
+
+- **贷款管理**
+  - 新增贷款管理页面（仿照账户管理），支持添加/编辑/删除贷款
+  - 贷款类型：房贷 / 车贷 / 信用贷 / 网贷 / 其他
+  - 账户管理只显示普通账户（不含贷款），贷款管理只显示贷款
+  - 个人中心资产卡片：总资产从普通账户计算，负债从贷款账户计算
+
+- **分类关联贷款 + 还款自动扣减**
+  - 数据库版本升级到 3，categories 表新增 `loan_id` 字段
+  - 分类管理新增"关联贷款"选择器（可选，仅支出分类显示）
+  - 记账时若分类关联了贷款，自动扣减贷款余额
+  - 编辑交易时自动调整新旧金额差额
+  - 删除交易时自动恢复贷款余额
+  - 周期记账产生的还款也自动支持
+
+#### 改进优化
+- 原设置页所有功能完整保留在个人中心下方
+- `_ExportDialogContent` 改为公开类，支持跨页面复用
+
+#### 新增文件
+- `lib/features/profile/presentation/profile_provider.dart`
+- `lib/features/profile/presentation/profile_screen.dart`
+- `lib/features/loan/presentation/loan_list_screen.dart`
+
+#### 修改文件
+- `lib/core/database/app_database.dart` — 版本 3 迁移 + getLoans/getCategoryById/getAccountById
+- `lib/app/router/app_router.dart` — 导航切换为 ProfileScreen
+- `lib/features/settings/presentation/settings_screen.dart` — ExportDialogContent 改为公开类
+- `lib/features/account/presentation/account_list_screen.dart` — 过滤掉贷款账户
+- `lib/features/profile/presentation/profile_provider.dart` — 资产计算区分贷款/普通账户
+- `lib/features/category/presentation/category_list_screen.dart` — 新增关联贷款选择器
+- `lib/features/transaction/presentation/add_transaction_screen.dart` — 记账时自动扣减贷款余额
+- `lib/features/transaction/presentation/transaction_list_screen.dart` — 删除时恢复贷款余额
+
+---
+
 ## [1.1.0] - 2026-05-12
 
 ### Peekaboo 梦幻紫视觉风格改造
@@ -530,6 +582,7 @@
 | 版本 | 日期 | 状态 | 描述 |
 |------|------|------|------|
 | 1.0.0 | 2026-05-06 | ✅ 已发布 | 首次发布 |
+| 1.8.0 | 2026-05-12 | ✅ 已发布 | 个人中心 + 贷款管理 + 分类关联贷款还款自动扣减 |
 | 1.1.0 | 2026-05-07 | ✅ 已发布 | 功能完善（标签选择、交易编辑、搜索筛选、周期自动执行、多币种） |
 | 1.2.0 | 2026-05-07 | ✅ 已发布 | UI/UX 优化（计算器、图标库、中文化、文档完善） |
 | 1.2.1 | 2026-05-07 | ✅ 已发布 | 首页预算功能、长按快捷操作、筛选优化 |

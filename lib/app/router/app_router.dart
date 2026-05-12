@@ -8,7 +8,7 @@ import '../../features/home/presentation/home_screen.dart';
 import '../../features/transaction/presentation/transaction_list_screen.dart';
 import '../../features/transaction/presentation/add_transaction_screen.dart';
 import '../../features/statistics/presentation/statistics_screen.dart';
-import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -47,7 +47,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/settings',
-                builder: (context, state) => const SettingsScreen(),
+                builder: (context, state) => const ProfileScreen(),
               ),
             ],
           ),
@@ -178,9 +178,9 @@ class MainScreen extends StatelessWidget {
                   ),
                   _buildNavItem(
                     context,
-                    icon: Icons.settings_outlined,
-                    selectedIcon: Icons.settings_rounded,
-                    label: '设置',
+                    icon: Icons.person_outlined,
+                    selectedIcon: Icons.person_rounded,
+                    label: '我的',
                     index: 3,
                     isSelected: navigationShell.currentIndex == 3,
                   ),

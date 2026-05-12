@@ -344,6 +344,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
     final isExpense = _tabController.index == 0;
     String selectedIcon = 'restaurant';
     int selectedColor = AppColors.categoryColors[0].value;
+    int? selectedLoanId;
 
     showModalBottomSheet(
       context: context,
@@ -400,6 +401,15 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                                 setModalState(() => selectedColor = value);
                               },
                             ),
+                            if (isExpense) ...[
+                              const SizedBox(height: 16),
+                              _buildLoanPicker(
+                                selectedLoanId: selectedLoanId,
+                                onLoanSelected: (id) {
+                                  setModalState(() => selectedLoanId = id);
+                                },
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -430,17 +440,22 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                               return;
                             }
                             final db = AppDatabase();
-                            await db.insertCategory({
+                            final categoryData = <String, dynamic>{
                               'name': name,
                               'is_expense': isExpense ? 1 : 0,
                               'icon': selectedIcon,
                               'color': selectedColor,
                               'sort_order': 999,
                               'is_system': 0,
-                            });
+                            };
+                            if (selectedLoanId != null) {
+                              categoryData['loan_id'] = selectedLoanId;
+                            }
+                            final messenger = ScaffoldMessenger.of(context);
+                            await db.insertCategory(categoryData);
                             Navigator.pop(context);
                             _refreshData();
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            messenger.showSnackBar(
                               const SnackBar(content: Text('分类添加成功')),
                             );
                           },
@@ -472,6 +487,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
     final nameController = TextEditingController(text: category['name'] as String);
     String selectedIcon = category['icon'] as String? ?? 'category';
     int selectedColor = category['color'] as int? ?? AppColors.primary.value;
+    int? selectedLoanId = category['loan_id'] as int?;
 
     showModalBottomSheet(
       context: context,
@@ -538,6 +554,13 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                                 setModalState(() => selectedColor = value);
                               },
                             ),
+                            const SizedBox(height: 16),
+                            _buildLoanPicker(
+                              selectedLoanId: selectedLoanId,
+                              onLoanSelected: (id) {
+                                setModalState(() => selectedLoanId = id);
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -568,16 +591,25 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                               return;
                             }
                             final db = AppDatabase();
-                            await db.updateCategory(category['id'] as int, {
+                            final updateData = <String, dynamic>{
                               'name': name,
                               'icon': selectedIcon,
                               'color': selectedColor,
-                            });
-                            Navigator.pop(context);
-                            _refreshData();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('分类更新成功')),
-                            );
+                              'loan_id': selectedLoanId,
+                            };
+                            final messenger = ScaffoldMessenger.of(context);
+                            try {
+                              await db.updateCategory(category['id'] as int, updateData);
+                              Navigator.pop(context);
+                              _refreshData();
+                              messenger.showSnackBar(
+                                const SnackBar(content: Text('分类更新成功')),
+                              );
+                            } catch (e) {
+                              messenger.showSnackBar(
+                                SnackBar(content: Text('保存失败: $e')),
+                              );
+                            }
                           },
                           child: const Text('保存'),
                         ),
@@ -588,6 +620,87 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
               ),
             );
           },
+        );
+      },
+    );
+  }
+
+  // ========== 关联贷款选择器组件 ==========
+
+  Widget _buildLoanPicker({
+    required int? selectedLoanId,
+    required ValueChanged<int?> onLoanSelected,
+  }) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: AppDatabase().getLoans(),
+      builder: (context, snapshot) {
+        final loans = snapshot.data ?? [];
+        if (loans.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '关联贷款（可选）',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                GestureDetector(
+                  onTap: () => onLoanSelected(null),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: selectedLoanId == null
+                          ? AppColors.primaryOf(Theme.of(context).brightness).withOpacity(0.15)
+                          : Theme.of(context).colorScheme.surfaceVariant,
+                      borderRadius: BorderRadius.circular(20),
+                      border: selectedLoanId == null
+                          ? Border.all(color: AppColors.primaryOf(Theme.of(context).brightness))
+                          : null,
+                    ),
+                    child: Text(
+                      '不关联',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: selectedLoanId == null
+                            ? AppColors.primaryOf(Theme.of(context).brightness)
+                            : null,
+                      ),
+                    ),
+                  ),
+                ),
+                ...loans.map((loan) {
+                  final isSelected = selectedLoanId == loan['id'];
+                  return GestureDetector(
+                    onTap: () => onLoanSelected(loan['id'] as int),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color(0xFFEF4444).withOpacity(0.1)
+                            : Theme.of(context).colorScheme.surfaceVariant,
+                        borderRadius: BorderRadius.circular(20),
+                        border: isSelected
+                            ? Border.all(color: const Color(0xFFEF4444))
+                            : null,
+                      ),
+                      child: Text(
+                        loan['name'] as String,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isSelected ? const Color(0xFFEF4444) : null,
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ],
         );
       },
     );
