@@ -264,17 +264,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         final balance = data['balance'] ?? 0;
         final income = data['income'] ?? 0;
         final expense = data['expense'] ?? 0;
+
+        // 深色模式使用深色卡片渐变（如设计图所示）
+        final gradientColors = isDark
+            ? [AppColors.balanceGradientStartDark, AppColors.balanceGradientEndDark]
+            : [AppColors.balanceGradientStart, AppColors.balanceGradientEnd];
+        final shadowColor = isDark
+            ? Colors.black.withOpacity(0.4)
+            : AppColors.lightPrimary.withOpacity(0.3);
+
         return Container(
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppColors.balanceGradientStart, AppColors.balanceGradientEnd],
+              colors: gradientColors,
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppColors.lightPrimary.withOpacity(0.3),
+                color: shadowColor,
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -420,9 +429,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkSurface
-                      : accent.withOpacity(0.12),
+                  color: accent.withOpacity(isDark ? 0.2 : 0.12),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Icon(icon, color: accent, size: 24),

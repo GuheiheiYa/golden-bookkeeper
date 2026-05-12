@@ -100,16 +100,16 @@ class AppTheme {
     );
   }
 
-  /// 深色模式 - 适配梦幻风格
+  /// 深色模式 - 温暖暗色风格（适配设计稿）
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: ColorScheme.dark(
         primary: AppColors.primary,
-        primaryContainer: const Color(0xFF2A2040),
+        primaryContainer: const Color(0xFF2A2225),
         secondary: AppColors.secondary,
-        secondaryContainer: const Color(0xFF352535),
+        secondaryContainer: const Color(0xFF332A2D),
         surface: AppColors.darkSurface,
         surfaceContainerHighest: AppColors.darkSurfaceVariant,
         onPrimary: Colors.white,
@@ -120,7 +120,7 @@ class AppTheme {
         error: AppColors.error,
       ),
       scaffoldBackgroundColor: AppColors.darkBackground,
-      shadowColor: Colors.black.withOpacity(0.4),
+      shadowColor: Colors.black.withOpacity(0.5),
       textTheme: _buildTextTheme(Brightness.dark),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -174,8 +174,8 @@ class AppTheme {
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.warmYellow,
+        foregroundColor: AppColors.warmYellowText,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(28),
         ),

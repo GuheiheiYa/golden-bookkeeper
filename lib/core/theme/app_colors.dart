@@ -28,10 +28,10 @@ class AppColors {
       brightness == Brightness.dark ? secondary : lightSecondary;
 
   // ═══════════════════════════════════════════════
-  // 霓虹氛围光（深色模式）
+  // 霓虹氛围光（深色模式 - 温暖色调）
   // ═══════════════════════════════════════════════
-  static const Color neonGlow = Color(0xFFB8A9E8);
-  static const Color neonGlowDim = Color(0x40B8A9E8);
+  static const Color neonGlow = Color(0xFFD4A574);
+  static const Color neonGlowDim = Color(0x40D4A574);
 
   // ═══════════════════════════════════════════════
   // 功能色（柔和版）
@@ -74,31 +74,37 @@ class AppColors {
   static const Color bgGradientBottom = Color(0xFFFDE8EF);
 
   // ═══════════════════════════════════════════════
-  // 深色模式表面与文字
+  // 深色模式表面与文字（温暖暗色调）
   // ═══════════════════════════════════════════════
-  static const Color darkBackground = Color(0xFF1A1525);
-  static const Color darkSurface = Color(0xFF252035);
-  static const Color darkSurfaceVariant = Color(0xFF2A2535);
-  static const Color darkOnBackground = Color(0xFFF0ECF5);
-  static const Color darkOnSurface = Color(0xFFF0ECF5);
-  static const Color darkOnSurfaceVariant = Color(0xFFB0A8C0);
-  static const Color darkTextTertiary = Color(0xFF7A7090);
-  static const Color darkOutline = Color(0xFF353045);
+  static const Color darkBackground = Color(0xFF1C1618);
+  static const Color darkSurface = Color(0xFF2A2225);
+  static const Color darkSurfaceVariant = Color(0xFF332A2D);
+  static const Color darkOnBackground = Color(0xFFF5EDE8);
+  static const Color darkOnSurface = Color(0xFFF5EDE8);
+  static const Color darkOnSurfaceVariant = Color(0xFFBEB0A8);
+  static const Color darkTextTertiary = Color(0xFF8A7E78);
+  static const Color darkOutline = Color(0xFF3D3235);
   static const Color darkShadow = Color(0x66000000);
-  static const Color darkCardBorder = Color(0xFF353045);
+  static const Color darkCardBorder = Color(0xFF3D3235);
 
   // ═══════════════════════════════════════════════
-  // 深色模式页面背景渐变
+  // 深色模式页面背景渐变（温暖暗色）
   // ═══════════════════════════════════════════════
-  static const Color bgGradientTopDark = Color(0xFF1A1525);
-  static const Color bgGradientMidDark = Color(0xFF1F1A2D);
-  static const Color bgGradientBottomDark = Color(0xFF251F30);
+  static const Color bgGradientTopDark = Color(0xFF1C1618);
+  static const Color bgGradientMidDark = Color(0xFF201A1C);
+  static const Color bgGradientBottomDark = Color(0xFF251E20);
 
   // ═══════════════════════════════════════════════
-  // 余额卡片渐变
+  // 余额卡片渐变（浅色模式 - 梦幻紫）
   // ═══════════════════════════════════════════════
   static const Color balanceGradientStart = Color(0xFFB8A9E8);
   static const Color balanceGradientEnd = Color(0xFF9B8AC4);
+
+  // ═══════════════════════════════════════════════
+  // 余额卡片渐变（深色模式 - 深沉暗色）
+  // ═══════════════════════════════════════════════
+  static const Color balanceGradientStartDark = Color(0xFF2A2225);
+  static const Color balanceGradientEndDark = Color(0xFF1C1618);
 
   // ═══════════════════════════════════════════════
   // Deep Purple Finance 头部渐变（明细页专用）
