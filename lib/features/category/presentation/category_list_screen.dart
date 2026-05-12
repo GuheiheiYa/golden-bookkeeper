@@ -111,6 +111,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
         }
 
         return ReorderableListView.builder(
+          key: const ValueKey('category_list'),
           padding: const EdgeInsets.all(16),
           itemCount: categories.length,
           onReorder: (oldIndex, newIndex) {

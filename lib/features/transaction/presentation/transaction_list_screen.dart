@@ -274,22 +274,22 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               controller: _searchController,
               autofocus: true,
               style: const TextStyle(
-                color: Colors.white,
+                color: Color(0xFF1A1A2E),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
               decoration: InputDecoration(
                 hintText: '搜索备注、商品名、分类...',
-                hintStyle: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
+                hintStyle: const TextStyle(
+                  color: Color(0xFF9B9BB0),
                   fontSize: 14,
                 ),
                 border: InputBorder.none,
-                prefixIcon: Padding(
-                  padding: const EdgeInsets.only(left: 12, right: 4),
+                prefixIcon: const Padding(
+                  padding: EdgeInsets.only(left: 12, right: 4),
                   child: Icon(
                     Icons.search,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Color(0xFF9B9BB0),
                     size: 20,
                   ),
                 ),
