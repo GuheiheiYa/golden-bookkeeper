@@ -37,7 +37,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('统计报表'),
+        foregroundColor: Colors.white,
+        title: const Text('统计报表', style: TextStyle(color: Colors.white)),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -45,18 +46,18 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
               children: [
                 Text(
                   '本月',
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white),
                 ),
-                const Icon(Icons.arrow_drop_down),
+                const Icon(Icons.arrow_drop_down, color: Colors.white),
               ],
             ),
           ),
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.primaryOf(brightness),
-          labelColor: AppColors.primaryOf(brightness),
-          unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white.withOpacity(0.6),
           dividerColor: Colors.transparent,
           dividerHeight: 0,
           tabs: const [
