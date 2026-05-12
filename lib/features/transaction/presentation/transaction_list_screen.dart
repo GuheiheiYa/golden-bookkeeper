@@ -133,8 +133,8 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: isDark
-              ? const [AppColors.bgGradientTopDark, AppColors.bgGradientBottomDark]
-              : const [AppColors.bgDetailTop, AppColors.bgDetailBottom],
+              ? const [AppColors.bgGradientTopDark, AppColors.bgGradientMidDark, AppColors.bgGradientBottomDark]
+              : const [AppColors.bgGradientTop, AppColors.bgGradientMid, AppColors.bgGradientBottom],
         ),
       ),
     );
