@@ -33,9 +33,10 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
     final tagsAsync = ref.watch(tagsProvider);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('标签管理'),
+        foregroundColor: Colors.white,
+        title: const Text('标签管理', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -83,14 +84,16 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
                 Text(
                   '标签可以帮助你更好地分类和筛选交易记录',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: Colors.white.withOpacity(0.7),
                       ),
                 ),
                 const SizedBox(height: 24),
                 // 标签云
                 Text(
                   '所有标签',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Wrap(

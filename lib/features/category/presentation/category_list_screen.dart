@@ -41,9 +41,10 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('分类管理'),
+        foregroundColor: Colors.white,
+        title: const Text('分类管理', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -52,9 +53,9 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.primaryOf(brightness),
-          labelColor: AppColors.primaryOf(brightness),
-          unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white.withOpacity(0.6),
           dividerColor: Colors.transparent,
           dividerHeight: 0,
           tabs: const [
@@ -111,7 +112,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
         }
 
         return ReorderableListView.builder(
-          key: const ValueKey('category_list'),
+          key: ValueKey('category_list_${isExpense ? "expense" : "income"}'),
           padding: const EdgeInsets.all(16),
           itemCount: categories.length,
           onReorder: (oldIndex, newIndex) {
@@ -127,7 +128,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
             final isSystem = (category['is_system'] as int?) == 1;
 
             return Container(
-              key: ValueKey(category['id']),
+              key: ValueKey('cat_${category['id']}_$index'),
               child: AppCard(
                 margin: const EdgeInsets.only(bottom: 8),
                 onTap: () => _showEditCategoryDialog(context, category),
@@ -176,14 +177,11 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                     ),
                   ],
                 ),
-              ),
-            )
-                .animate()
-                .fadeIn(
-                  delay: Duration(milliseconds: 50 * index),
-                  duration: 200.ms,
-                )
-                .slideX(begin: 0.05, end: 0);
+              ).animate().fadeIn(
+                delay: Duration(milliseconds: 50 * index),
+                duration: 200.ms,
+              ).slideX(begin: 0.05, end: 0),
+            );
           },
         );
       },

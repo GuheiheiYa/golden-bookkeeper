@@ -56,9 +56,10 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
     final brightness = Theme.of(context).brightness;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('周期记账'),
+        foregroundColor: Colors.white,
+        title: const Text('周期记账', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

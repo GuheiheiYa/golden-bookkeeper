@@ -18,10 +18,13 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _touchedIndex = -1;
+  late DateTime _selectedMonth;
 
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    _selectedMonth = DateTime(now.year, now.month);
     _tabController = TabController(length: 3, vsync: this);
   }
 
@@ -33,26 +36,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         foregroundColor: Colors.white,
         title: const Text('统计报表', style: TextStyle(color: Colors.white)),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Text(
-                  '本月',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white),
-                ),
-                const Icon(Icons.arrow_drop_down, color: Colors.white),
-              ],
-            ),
-          ),
-        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
@@ -80,21 +68,18 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
 
   /// 支出/收入分类统计 - 从数据库读取
   Widget _buildCategoryTab({required bool isExpense}) {
-    // 从数据库读取分类汇总
-    final summaryAsync = ref.watch(categorySummaryProvider(isExpense));
-    final monthlyAsync = ref.watch(monthlySummaryProvider);
+    final params = (isExpense: isExpense, year: _selectedMonth.year, month: _selectedMonth.month);
+    final summaryAsync = ref.watch(categorySummaryByMonthProvider(params));
 
     return summaryAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('加载失败: $e')),
       data: (categoryData) {
-        // 计算总金额
         final total = categoryData.fold<double>(
           0,
           (sum, item) => sum + ((item['total'] as num?)?.toDouble() ?? 0),
         );
 
-        // 转换为显示格式
         final items = categoryData.map((item) {
           final amount = (item['total'] as num?)?.toDouble() ?? 0;
           final color = item['color'] as int? ?? 0xFF6B7280;
@@ -111,37 +96,18 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
         }).toList();
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 总金额卡片
-              AppCard(
-                child: Column(
-                  children: [
-                    Text(
-                      isExpense ? '总支出' : '总收入',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      total > 0 ? CurrencyFormatter.format(total) : '¥ 0.00',
-                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                            color: isExpense ? AppColors.expense : AppColors.income,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ],
-                ),
-              ).animate().fadeIn(duration: 300.ms),
-              const SizedBox(height: 24),
-
-              // 饼图
-              Text(
-                '分类占比',
-                style: Theme.of(context).textTheme.titleMedium,
+              // 月份切换器（无卡片背景，宽度与图表卡片对齐）
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: _buildMonthSwitcher(),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
+
+              // 总金额 + 饼图合并卡片
               AppCard(
                 child: items.isEmpty
                     ? Padding(
@@ -152,6 +118,23 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
                       )
                     : Column(
                         children: [
+                          // 顶部总金额
+                          Text(
+                            isExpense ? '总支出' : '总收入',
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: AppColors.lightOnSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            total > 0 ? CurrencyFormatter.format(total) : '¥ 0.00',
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              color: isExpense ? AppColors.expense : AppColors.income,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          // 饼图
                           SizedBox(
                             height: 200,
                             child: PieChart(
@@ -299,6 +282,51 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
     );
   }
 
+  /// 月份切换器（箭头撑满宽度，与图表卡片对齐）
+  Widget _buildMonthSwitcher() {
+    final monthText = '${_selectedMonth.year}年${_selectedMonth.month}月';
+    return Row(
+      children: [
+        Expanded(
+          child: IconButton(
+            onPressed: () {
+              setState(() {
+                _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+                _touchedIndex = -1;
+              });
+            },
+            icon: const Icon(Icons.chevron_left_rounded, size: 28),
+            color: AppColors.lightOnBackground,
+            splashRadius: 20,
+          ),
+        ),
+        Text(
+          monthText,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.lightOnBackground,
+          ),
+        ),
+        Expanded(
+          child: IconButton(
+            onPressed: () {
+              final now = DateTime.now();
+              final nextMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+              if (nextMonth.isAfter(DateTime(now.year, now.month))) return;
+              setState(() {
+                _selectedMonth = nextMonth;
+                _touchedIndex = -1;
+              });
+            },
+            icon: const Icon(Icons.chevron_right_rounded, size: 28),
+            color: AppColors.lightOnBackground,
+            splashRadius: 20,
+          ),
+        ),
+      ],
+    );
+  }
+
   /// 收支对比 - 从数据库读取
   Widget _buildComparisonTab() {
     final summaryAsync = ref.watch(monthlySummaryProvider);
@@ -326,7 +354,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen>
       error: (e, _) => Center(child: Text('加载失败: $e')),
       data: (recentTxs) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

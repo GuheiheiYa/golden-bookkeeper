@@ -27,10 +27,11 @@ class AppCard extends StatelessWidget {
     final r = borderRadius ?? (isDark ? 24.0 : 20.0);
 
     return Container(
-      margin: margin ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      margin: margin ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: color ?? (isDark ? theme.colorScheme.surface : AppColors.lightCard),
         borderRadius: BorderRadius.circular(r),
+        border: isDark ? null : Border.all(color: AppColors.lightOutline, width: 0.5),
         boxShadow: [
           BoxShadow(
             color: isDark

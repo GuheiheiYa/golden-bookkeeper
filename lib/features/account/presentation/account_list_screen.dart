@@ -31,9 +31,10 @@ class AccountListScreen extends ConsumerWidget {
     final totalBalanceAsync = ref.watch(totalBalanceProvider);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('账户管理'),
+        foregroundColor: Colors.white,
+        title: const Text('账户管理', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

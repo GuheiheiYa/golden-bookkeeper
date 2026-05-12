@@ -275,6 +275,24 @@ class SettingsScreen extends ConsumerWidget {
             style: ButtonStyle(
               visualDensity: VisualDensity.standard,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              backgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return AppColors.lightPrimary.withOpacity(0.15);
+                }
+                return null;
+              }),
+              foregroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return AppColors.lightPrimaryDark;
+                }
+                return null;
+              }),
+              side: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return BorderSide(color: AppColors.lightPrimary.withOpacity(0.4));
+                }
+                return BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.3));
+              }),
             ),
           ),
         ),
@@ -318,9 +336,25 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _navigateTo(BuildContext context, Widget screen) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => screen),
-    );
+    Navigator.of(context).push(PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.bgGradientTop,
+              AppColors.bgGradientMid,
+              AppColors.bgGradientBottom,
+            ],
+          ),
+        ),
+        child: screen,
+      ),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(opacity: animation, child: child);
+      },
+    ));
   }
 
   /// 显示导出对话框，支持选择时间范围和导出格式

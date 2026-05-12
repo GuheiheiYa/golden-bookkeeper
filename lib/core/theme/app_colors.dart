@@ -56,10 +56,10 @@ class AppColors {
   // ═══════════════════════════════════════════════
   static const Color lightBackground = Color(0xFFEDE4F5);
   static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightCard = Color(0xD9FFFFFF); // 白色85%，渐变微微透出
+  static const Color lightCard = Color(0xE8FBF5EF); // 暖米白91%，柔和不刺眼
   static const Color lightSurfaceVariant = Color(0xFFF5F0FA);
   static const Color lightInputFill = Color(0xFFF5F0FA);
-  static const Color lightScaffold = Color(0xFFF0E6F6); // push路由页面浅紫丁香背景
+  static const Color lightScaffold = Color(0xFFFBF5EF); // push路由页面暖米白背景
   static const Color lightOnBackground = Color(0xFF2D2D3F);
   static const Color lightOnSurface = Color(0xFF2D2D3F);
   static const Color lightOnSurfaceVariant = Color(0xFF6B6B80);

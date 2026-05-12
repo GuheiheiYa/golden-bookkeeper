@@ -363,7 +363,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
   Widget _buildSummaryCards(double expense, double income) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
           Expanded(
@@ -419,9 +419,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.85),
+              color: AppColors.lightCard,
               borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: Colors.white.withOpacity(0.7)),
+              border: Border.all(color: AppColors.lightCard),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,7 +485,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       },
       child: ListView.builder(
         controller: _scrollController,
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 120),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 120),
         itemCount: entries.length,
         itemBuilder: (context, groupIndex) {
           final entry = entries[groupIndex];
@@ -701,12 +701,12 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               decoration: BoxDecoration(
                 color: isDark
                     ? Colors.white.withOpacity(0.08)
-                    : Colors.white.withOpacity(0.72),
+                    : AppColors.lightCard,
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
                   color: isDark
                       ? Colors.white.withOpacity(0.08)
-                      : Colors.white.withOpacity(0.6),
+                      : AppColors.lightCard,
                 ),
               ),
               child: Row(

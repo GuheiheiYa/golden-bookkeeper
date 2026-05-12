@@ -95,7 +95,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -274,11 +274,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             : AppColors.lightPrimary.withOpacity(0.3);
 
         return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF1A1A2E), Color(0xFF2D1F4E), Color(0xFF1A1A2E)],
+              colors: [Color(0xFF1B2838), Color(0xFF2A2520), Color(0xFF3D3018)],
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
@@ -462,7 +463,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ];
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: actions.map((action) {
         final accent = action['color'] as Color;
         final icon = action['icon'] as IconData;
@@ -490,10 +491,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: accent.withOpacity(isDark ? 0.25 : 0.20),
+                  color: accent,
                   borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: Icon(icon, color: accent, size: 24),
+                child: Icon(icon, color: Colors.white, size: 24),
               ),
               const SizedBox(height: 8),
               Text(

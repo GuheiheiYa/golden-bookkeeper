@@ -87,6 +87,30 @@ final monthlySummaryProvider = FutureProvider<Map<String, double>>((ref) async {
   };
 });
 
+/// 指定月份的收入/支出/结余
+final monthlySummaryByMonthProvider = FutureProvider.family<Map<String, double>, ({int year, int month})>((ref, params) async {
+  ref.watch(transactionRefreshProvider);
+  final db = ref.watch(appDatabaseProvider);
+  final start = DateTime(params.year, params.month, 1);
+  final end = DateTime(params.year, params.month + 1, 0, 23, 59, 59);
+  final income = await db.getTotalIncome(start, end);
+  final expense = await db.getTotalExpense(start, end);
+  return {
+    'income': income,
+    'expense': expense,
+    'balance': income - expense,
+  };
+});
+
+/// 指定月份的分类汇总
+final categorySummaryByMonthProvider = FutureProvider.family<List<Map<String, dynamic>>, ({bool isExpense, int year, int month})>((ref, params) async {
+  ref.watch(transactionRefreshProvider);
+  final db = ref.watch(appDatabaseProvider);
+  final start = DateTime(params.year, params.month, 1);
+  final end = DateTime(params.year, params.month + 1, 0, 23, 59, 59);
+  return await db.getCategorySummary(start, end, isExpense: params.isExpense);
+});
+
 // ========== 最近交易 Provider ==========
 
 /// 最近 5 笔交易

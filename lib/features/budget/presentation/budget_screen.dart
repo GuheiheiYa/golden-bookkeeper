@@ -85,9 +85,10 @@ class BudgetScreen extends ConsumerWidget {
     final month = ref.watch(currentMonthProvider);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('预算管理'),
+        foregroundColor: Colors.white,
+        title: const Text('预算管理', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

@@ -29,11 +29,14 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
+        foregroundColor: Colors.white,
         title: Text(_activeParser != null
             ? '${_activeParser!.sourceName}账单导入'
-            : '账单导入'),
+            : '账单导入',
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
       body: _isLoading
           ? _buildLoading()
@@ -72,13 +75,15 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
           // 标题区域
           Text(
             '选择账单来源',
-            style: Theme.of(context).textTheme.headlineSmall,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             '请选择你要导入的账单类型，然后选择对应的文件',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: Colors.white.withOpacity(0.7),
                 ),
           ),
           const SizedBox(height: 24),

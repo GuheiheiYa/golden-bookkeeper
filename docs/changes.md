@@ -4,6 +4,56 @@
 
 ---
 
+## 2026-05-12
+
+### 12. 设置子页面渐变背景 + 文字可读性修复
+**时间**: 2026-05-12 18:00:00
+**原因**: 子页面 Scaffold 背景色为暖米白，与主页面渐变背景不一致；改为透明后文字在深色渐变区域不可读
+**文件**:
+- `lib/features/settings/presentation/settings_screen.dart` — 路由改用 FadeTransition + 渐变 Container 包裹
+- `lib/features/account/presentation/account_list_screen.dart` — AppBar 白色
+- `lib/features/category/presentation/category_list_screen.dart` — AppBar 白色 + TabBar 白色
+- `lib/features/tag/presentation/tag_list_screen.dart` — AppBar 白色 + 正文白色
+- `lib/features/import/presentation/import_screen.dart` — AppBar 白色 + 标题白色
+- `lib/features/budget/presentation/budget_screen.dart` — AppBar 白色
+- `lib/features/recurring/presentation/recurring_screen.dart` — AppBar 白色
+**变更**: 6 个子页面 Scaffold 背景改透明，AppBar/标题/TabBar 文字改白色，路由改 FadeTransition
+
+### 11. 卡片宽度统一 + 功能按钮收拢
+**时间**: 2026-05-12 17:30:00
+**原因**: 首页/明细/统计三个页面的卡片左右边距不一致；功能按钮分散过宽
+**文件**:
+- `lib/shared/widgets/app_card.dart` — 默认边距改为 horizontal: 12
+- `lib/features/home/presentation/home_screen.dart` — 滚动区 padding 改为 12
+- `lib/features/statistics/presentation/statistics_screen.dart` — 滚动区 padding 改为 12
+- `lib/features/transaction/presentation/transaction_list_screen.dart` — ListView padding 改为 12
+**变更**: 三页面统一 scroll padding=12 + AppCard margin=12；功能按钮 spaceBetween→spaceEvenly
+
+### 10. 结余卡片渐变 + 卡片描边
+**时间**: 2026-05-12 17:00:00
+**原因**: 结余卡片渐变不够明显；卡片与背景色太近无法区分
+**文件**:
+- `lib/features/home/presentation/home_screen.dart` — 渐变改为蓝→棕→琥珀
+- `lib/shared/widgets/app_card.dart` — 添加 0.5px lightOutline 描边
+- `lib/core/theme/app_colors.dart` — lightCard 改为暖米白 #E8FBF5EF
+**变更**: 结余卡片渐变更明显；卡片增加描边提升层次感
+
+### 9. 统计报表月份切换器 + 图表合并
+**时间**: 2026-05-12 16:00:00
+**原因**: 用户要求统计页增加月份切换，总金额并入图表
+**文件**:
+- `lib/features/statistics/presentation/statistics_screen.dart` — 新增月份切换器、合并图表卡片
+- `lib/app/di/providers.dart` — 新增 monthlySummaryByMonthProvider、categorySummaryByMonthProvider
+**变更**: 支出/收入 tab 新增月份切换；总金额+饼图合并为一卡
+
+### 8. 首页功能按钮纯色化
+**时间**: 2026-05-12 15:00:00
+**原因**: 用户要求功能按钮完全显示，不要透明
+**文件**: `lib/features/home/presentation/home_screen.dart`
+**变更**: 按钮背景改为纯色 accent + 白色图标 + 彩色阴影
+
+---
+
 ## 2026-05-09
 
 ### 8. 新增「霓虹金融科技 · 深色」视觉规范（Neon Fintech Dark + JSON）
