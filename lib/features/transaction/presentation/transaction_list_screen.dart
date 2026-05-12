@@ -70,7 +70,8 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               children: [
                 // ═══ 深紫渐变头部 ═══
                 _buildHeader(context, isDark, filter),
-                // ═══ 摘要卡片（向上偏移覆盖头部底部） ═══
+                // ═══ 摘要卡片（向上偏移覆盖头部底部，搜索时隐藏） ═══
+                if (!filter.hasFilters)
                 Transform.translate(
                   offset: const Offset(0, -56),
                   child: groupedAsync.when(
@@ -264,37 +265,43 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           child: Container(
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: isDark
+                  ? Colors.white.withOpacity(0.12)
+                  : Colors.black.withOpacity(0.06),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                child: TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: InputDecoration(
-                    hintText: '搜索交易备注',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                    border: InputBorder.none,
-                    icon: Padding(
-                      padding: const EdgeInsets.only(left: 12),
-                      child: Icon(Icons.search, color: Colors.white.withOpacity(0.6), size: 20),
-                    ),
-                    contentPadding: const EdgeInsets.only(bottom: 10),
-                  ),
-                  onChanged: (value) {
-                    ref.read(transactionFilterProvider.notifier).state =
-                        ref.read(transactionFilterProvider).copyWith(
-                              keyword: value,
-                              clearKeyword: value.isEmpty,
-                            );
-                  },
-                ),
+            child: TextField(
+              controller: _searchController,
+              autofocus: true,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
+              decoration: InputDecoration(
+                hintText: '搜索备注、商品名、分类...',
+                hintStyle: TextStyle(
+                  color: Colors.white.withOpacity(0.6),
+                  fontSize: 14,
+                ),
+                border: InputBorder.none,
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.only(left: 12, right: 4),
+                  child: Icon(
+                    Icons.search,
+                    color: Colors.white.withOpacity(0.7),
+                    size: 20,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.only(bottom: 10),
+              ),
+              onChanged: (value) {
+                ref.read(transactionFilterProvider.notifier).state =
+                    ref.read(transactionFilterProvider).copyWith(
+                          keyword: value,
+                          clearKeyword: value.isEmpty,
+                        );
+              },
             ),
           ),
         ),
@@ -585,6 +592,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             final txWidget = _buildGlassTransactionCard(
               txId: txId,
               displayName: displayName,
+              categoryName: categoryName,
               accountName: accountName,
               timeStr: timeStr,
               amount: amount,
@@ -647,6 +655,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
   Widget _buildGlassTransactionCard({
     required int txId,
     required String displayName,
+    required String categoryName,
     required String accountName,
     required String timeStr,
     required double amount,
@@ -1638,4 +1647,3 @@ class _ListToastWidgetState extends State<_ListToastWidget> with SingleTickerPro
     );
   }
 }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  

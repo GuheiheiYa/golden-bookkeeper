@@ -84,36 +84,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 12),
-                // 顶部栏：头像 + 设置
-                _buildTopBar(context, isDark),
-                const SizedBox(height: 24),
-                // 问候语
-                _buildGreeting(context, greeting, isDark),
-                const SizedBox(height: 24),
-                // 余额卡片（Hero Card）
-                _buildBalanceCard(context, monthlySummary, isDark),
-                const SizedBox(height: 24),
-                // 快捷操作
-                _buildQuickActions(context, isDark),
-                const SizedBox(height: 24),
-                // 预算进度
-                _buildBudgetProgress(context, isDark),
-                const SizedBox(height: 24),
-                // 最近交易
-                _buildRecentTransactions(context, recentTransactions, isDark),
-                // 底部留白（给浮动导航栏）
-                const SizedBox(height: 100),
-              ],
+        child: Column(
+          children: [
+            // 固定顶部栏（不随滚动）
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: _buildTopBar(context, isDark),
             ),
-          ),
+            // 可滚动内容
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 24),
+                    // 问候语
+                    _buildGreeting(context, greeting, isDark),
+                    const SizedBox(height: 24),
+                    // 余额卡片（Hero Card）
+                    _buildBalanceCard(context, monthlySummary, isDark),
+                    const SizedBox(height: 24),
+                    // 快捷操作
+                    _buildQuickActions(context, isDark),
+                    const SizedBox(height: 24),
+                    // 预算进度
+                    _buildBudgetProgress(context, isDark),
+                    const SizedBox(height: 24),
+                    // 最近交易
+                    _buildRecentTransactions(context, recentTransactions, isDark),
+                    // 底部留白（给浮动导航栏）
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

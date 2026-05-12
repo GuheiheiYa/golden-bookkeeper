@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -102,88 +103,101 @@ class MainScreen extends StatelessWidget {
         ),
         child: navigationShell,
       ),
-      // 浮动胶囊底部导航栏
+      // 浮动胶囊底部导航栏（毛玻璃半透明）
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-        child: Container(
-          height: 68,
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              height: 68,
+              decoration: BoxDecoration(
                 color: isDark
-                    ? Colors.black.withOpacity(0.3)
-                    : AppColors.lightPrimary.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildNavItem(
-                context,
-                icon: Icons.home_outlined,
-                selectedIcon: Icons.home_rounded,
-                label: '首页',
-                index: 0,
-                isSelected: navigationShell.currentIndex == 0,
-              ),
-              _buildNavItem(
-                context,
-                icon: Icons.receipt_long_outlined,
-                selectedIcon: Icons.receipt_long_rounded,
-                label: '明细',
-                index: 1,
-                isSelected: navigationShell.currentIndex == 1,
-              ),
-              // 中间记账按钮
-              GestureDetector(
-                onTap: () => context.push('/add-transaction'),
-                child: Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppColors.warmYellow, AppColors.warmYellowDark],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.warmYellow.withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.add_rounded,
-                    color: AppColors.warmYellowText,
-                    size: 28,
-                  ),
+                    ? Colors.white.withOpacity(0.08)
+                    : Colors.white.withOpacity(0.65),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.08)
+                      : Colors.white.withOpacity(0.5),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.black.withOpacity(0.2)
+                        : AppColors.lightPrimary.withOpacity(0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              _buildNavItem(
-                context,
-                icon: Icons.bar_chart_outlined,
-                selectedIcon: Icons.bar_chart_rounded,
-                label: '统计',
-                index: 2,
-                isSelected: navigationShell.currentIndex == 2,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildNavItem(
+                    context,
+                    icon: Icons.home_outlined,
+                    selectedIcon: Icons.home_rounded,
+                    label: '首页',
+                    index: 0,
+                    isSelected: navigationShell.currentIndex == 0,
+                  ),
+                  _buildNavItem(
+                    context,
+                    icon: Icons.receipt_long_outlined,
+                    selectedIcon: Icons.receipt_long_rounded,
+                    label: '明细',
+                    index: 1,
+                    isSelected: navigationShell.currentIndex == 1,
+                  ),
+                  // 中间记账按钮
+                  GestureDetector(
+                    onTap: () => context.push('/add-transaction'),
+                    child: Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.warmYellow, AppColors.warmYellowDark],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.warmYellow.withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.add_rounded,
+                        color: AppColors.warmYellowText,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                  _buildNavItem(
+                    context,
+                    icon: Icons.bar_chart_outlined,
+                    selectedIcon: Icons.bar_chart_rounded,
+                    label: '统计',
+                    index: 2,
+                    isSelected: navigationShell.currentIndex == 2,
+                  ),
+                  _buildNavItem(
+                    context,
+                    icon: Icons.settings_outlined,
+                    selectedIcon: Icons.settings_rounded,
+                    label: '设置',
+                    index: 3,
+                    isSelected: navigationShell.currentIndex == 3,
+                  ),
+                ],
               ),
-              _buildNavItem(
-                context,
-                icon: Icons.settings_outlined,
-                selectedIcon: Icons.settings_rounded,
-                label: '设置',
-                index: 3,
-                isSelected: navigationShell.currentIndex == 3,
-              ),
-            ],
+            ),
           ),
         ),
       ),

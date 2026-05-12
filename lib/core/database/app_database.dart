@@ -313,9 +313,11 @@ class AppDatabase {
       whereClause += ' AND t.is_expense = ?';
       whereArgs.add(isExpense ? 1 : 0);
     }
-    // 按备注关键字搜索
+    // 按备注/商品名/分类名关键字搜索
     if (keyword != null && keyword.isNotEmpty) {
-      whereClause += ' AND t.note LIKE ?';
+      whereClause += ' AND (t.note LIKE ? OR t.goods LIKE ? OR c.name LIKE ?)';
+      whereArgs.add('%$keyword%');
+      whereArgs.add('%$keyword%');
       whereArgs.add('%$keyword%');
     }
     // 按账户筛选
