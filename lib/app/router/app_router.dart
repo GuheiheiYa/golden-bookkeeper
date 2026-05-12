@@ -93,6 +93,7 @@ class MainScreen extends StatelessWidget {
           ];
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
