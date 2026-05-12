@@ -93,7 +93,6 @@ class MainScreen extends StatelessWidget {
           ];
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -104,28 +103,25 @@ class MainScreen extends StatelessWidget {
         ),
         child: navigationShell,
       ),
-      // 浮动胶囊底部导航栏（全透明底 + 毛玻璃胶囊）
-      bottomNavigationBar: Container(
-        color: Colors.transparent,
+      // 浮动胶囊底部导航栏
+      bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-            child: Container(
-              height: 68,
-              decoration: BoxDecoration(
+        child: Container(
+          height: 68,
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
                 color: isDark
-                    ? Colors.white.withOpacity(0.06)
-                    : Colors.white.withOpacity(0.25),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withOpacity(0.06)
-                      : Colors.white.withOpacity(0.3),
-                ),
+                    ? Colors.black.withOpacity(0.3)
+                    : AppColors.lightPrimary.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
               ),
-              child: Row(
+            ],
+          ),
+          child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildNavItem(
@@ -191,8 +187,6 @@ class MainScreen extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        ),
       ),
     );
   }
