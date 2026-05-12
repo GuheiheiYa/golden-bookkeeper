@@ -56,7 +56,7 @@ class AppColors {
   // ═══════════════════════════════════════════════
   static const Color lightBackground = Color(0xFFEDE4F5);
   static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightCard = Color(0xB3FFFFFF); // 半透明白(70%)，渐变背景透出
+  static const Color lightCard = Color(0xD9FFFFFF); // 白色85%，渐变微微透出
   static const Color lightSurfaceVariant = Color(0xFFF5F0FA);
   static const Color lightInputFill = Color(0xFFF5F0FA);
   static const Color lightScaffold = Color(0xFFF0E6F6); // push路由页面浅紫丁香背景

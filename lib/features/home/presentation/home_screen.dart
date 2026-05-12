@@ -490,7 +490,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: accent.withOpacity(isDark ? 0.2 : 0.12),
+                  color: accent.withOpacity(isDark ? 0.25 : 0.20),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Icon(icon, color: accent, size: 24),
@@ -501,7 +501,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+                  color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnBackground,
                 ),
               ),
             ],

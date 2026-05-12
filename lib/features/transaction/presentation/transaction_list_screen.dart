@@ -419,7 +419,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.55),
+              color: Colors.white.withOpacity(0.85),
               borderRadius: BorderRadius.circular(32),
               border: Border.all(color: Colors.white.withOpacity(0.7)),
             ),
