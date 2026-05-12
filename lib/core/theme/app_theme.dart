@@ -26,7 +26,7 @@ class AppTheme {
         outline: AppColors.lightOutline,
         error: AppColors.error,
       ),
-      scaffoldBackgroundColor: AppColors.bgGradientTop,
+      scaffoldBackgroundColor: AppColors.lightScaffold,
       shadowColor: AppColors.lightShadow,
       textTheme: _buildTextTheme(Brightness.light),
       appBarTheme: AppBarTheme(
@@ -90,6 +90,16 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: AppColors.lightSurface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
       ),
       dividerTheme: DividerThemeData(

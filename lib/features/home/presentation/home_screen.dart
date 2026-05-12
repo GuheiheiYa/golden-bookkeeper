@@ -248,7 +248,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       loading: () => Container(
         height: 180,
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF1A1A2E), Color(0xFF2D1F4E), Color(0xFF1A1A2E)],
+          ),
           borderRadius: BorderRadius.circular(24),
         ),
         child: const Center(child: CircularProgressIndicator(color: Colors.white)),
@@ -271,7 +275,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
         return Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF1A1A2E), Color(0xFF2D1F4E), Color(0xFF1A1A2E)],
+            ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
