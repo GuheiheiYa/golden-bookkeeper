@@ -69,9 +69,9 @@ class AppColors {
   // ═══════════════════════════════════════════════
   // 浅色模式页面背景渐变
   // ═══════════════════════════════════════════════
-  static const Color bgGradientTop = Color(0xFFE8DFF5);
-  static const Color bgGradientMid = Color(0xFFF3EEF8);
-  static const Color bgGradientBottom = Color(0xFFFDE8EF);
+  static const Color bgGradientTop = Color(0xFF1E1B4B);
+  static const Color bgGradientMid = Color(0xFFF5D5C8);
+  static const Color bgGradientBottom = Color(0xFFF0E6F6);
 
   // ═══════════════════════════════════════════════
   // 深色模式表面与文字（温暖暗色调）

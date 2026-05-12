@@ -248,11 +248,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       loading: () => Container(
         height: 180,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppColors.balanceGradientStart, AppColors.balanceGradientEnd],
-          ),
+          color: const Color(0xFF1A1A1A),
           borderRadius: BorderRadius.circular(24),
         ),
         child: const Center(child: CircularProgressIndicator(color: Colors.white)),
@@ -275,11 +271,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
         return Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: gradientColors,
-            ),
+            color: const Color(0xFF1A1A1A),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
@@ -299,47 +291,108 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   Text(
                     '本月结余',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withOpacity(0.6),
                       fontSize: 14,
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       monthLabel,
-                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+                      style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
               Text(
-                CurrencyFormatter.format(balance),
+                '¥${CurrencyFormatter.format(balance).replaceFirst('¥', '')}',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 36,
+                  fontSize: 40,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 20),
               Row(
                 children: [
-                  _buildBalanceItem(
-                    label: '收入',
-                    amount: CurrencyFormatter.format(income),
-                    icon: Icons.arrow_downward_rounded,
-                    color: const Color(0xFF7EC8A0),
+                  // 收入
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF4ADE80),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '收入',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              CurrencyFormatter.format(income),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 24),
-                  _buildBalanceItem(
-                    label: '支出',
-                    amount: CurrencyFormatter.format(expense),
-                    icon: Icons.arrow_upward_rounded,
-                    color: const Color(0xFFFFB8B8),
+                  // 支出
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFBBF24),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '支出',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              CurrencyFormatter.format(expense),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
