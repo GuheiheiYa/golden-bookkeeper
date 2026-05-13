@@ -132,6 +132,916 @@ lib/
 - 动画: flutter_animate 链式调用
 - 设计规范: `docs/design/peekaboo_style_spec.md`
 
+---
+
+## UI 设计强制规范（项目标准）
+
+> **本节为项目硬性规范，所有新增页面、组件、修改必须遵守。**
+> 违反本规范的代码不予合入。
+
+### 一、色彩系统
+
+所有颜色必须通过 `AppColors` 类引用，禁止硬编码色值。
+
+#### 1.1 主色
+
+| 用途 | 常量名 | 色值 | 说明 |
+|------|--------|------|------|
+| 主色 | `AppColors.lightPrimary` / `AppColors.primary` | `#B8A9E8` | 按钮、图标、强调色 |
+| 主色浅 | `AppColors.lightPrimaryLight` | `#D8CEE8` | 浅色背景、hover |
+| 主色深 | `AppColors.lightPrimaryDark` | `#9B8AC4` | 按钮按下态 |
+| 次色 | `AppColors.lightSecondary` / `AppColors.secondary` | `#F5C6D0` | 辅助装饰、标签 |
+| 次色浅 | `AppColors.lightSecondaryLight` | `#FDE8EF` | 背景渐变底部 |
+
+动态获取：`AppColors.primaryOf(brightness)` / `AppColors.secondaryOf(brightness)`
+
+#### 1.2 功能色（柔和版）
+
+| 用途 | 常量名 | 色值 | 使用场景 |
+|------|--------|------|----------|
+| 成功/收入 | `AppColors.success` / `AppColors.income` | `#7EC8A0` | 收入金额、成功提示、进度完成 |
+| 警告 | `AppColors.warning` | `#F0C87A` | 警告提示、预算接近上限 |
+| 错误/支出 | `AppColors.error` / `AppColors.expense` | `#E88B8B` | 支出金额、错误提示、删除操作 |
+| 信息 | `AppColors.info` | `#8BB8E8` | 信息提示、链接 |
+
+#### 1.3 按钮色
+
+| 用途 | 常量名 | 色值 |
+|------|--------|------|
+| 主按钮黄 | `AppColors.warmYellow` | `#FFD93D` |
+| 主按钮黄深 | `AppColors.warmYellowDark` | `#F0C87A` |
+| 主按钮黄字 | `AppColors.warmYellowText` | `#5A4E2A` |
+
+#### 1.4 浅色模式表面色
+
+| 用途 | 常量名 | 色值 |
+|------|--------|------|
+| 页面背景 | `AppColors.lightBackground` | `#EDE4F5` |
+| 卡片背景 | `AppColors.lightCard` | `#E8FBF5EF`（91%暖米白） |
+| Scaffold 背景 | `AppColors.lightScaffold` | `#FBF5EF`（push路由页面） |
+| 输入框填充 | `AppColors.lightInputFill` | `#F5F0FA` |
+| 描边 | `AppColors.lightOutline` | `#E8E0F0` |
+| 主文字 | `AppColors.lightOnBackground` | `#2D2D3F` |
+| 副文字 | `AppColors.lightOnSurfaceVariant` | `#6B6B80` |
+| 辅助文字 | `AppColors.lightTextTertiary` | `#9B9BB0` |
+| 阴影色 | `AppColors.lightShadow` | `#10B8A9E8`（8%主色） |
+
+#### 1.5 深色模式表面色
+
+| 用途 | 常量名 | 色值 |
+|------|--------|------|
+| 页面背景 | `AppColors.darkBackground` | `#1C1618` |
+| 卡片/表面 | `AppColors.darkSurface` | `#2A2225` |
+| 表面变体 | `AppColors.darkSurfaceVariant` | `#332A2D` |
+| 描边 | `AppColors.darkOutline` | `#3D3235` |
+| 主文字 | `AppColors.darkOnBackground` | `#F5EDE8` |
+| 副文字 | `AppColors.darkOnSurfaceVariant` | `#BEB0A8` |
+| 辅助文字 | `AppColors.darkTextTertiary` | `#8A7E78` |
+| 卡片边框 | `AppColors.darkCardBorder` | `#3D3235` |
+| 阴影色 | `AppColors.darkShadow` | `#66000000`（40%黑） |
+
+#### 1.6 页面背景渐变
+
+```dart
+// 浅色模式 - 三色渐变（全局统一）
+[AppColors.bgGradientTop, AppColors.bgGradientMid, AppColors.bgGradientBottom]
+// 即: #1E1B4B → #F5D5C8 → #F0E6F6
+
+// 深色模式 - 三色渐变
+[AppColors.bgGradientTopDark, AppColors.bgGradientMidDark, AppColors.bgGradientBottomDark]
+// 即: #1C1618 → #201A1C → #251E20
+```
+
+渐变方向：`Alignment.topCenter` → `Alignment.bottomCenter`
+
+#### 1.7 余额卡片渐变
+
+```dart
+// 浅色模式
+LinearGradient(colors: [AppColors.balanceGradientStart, AppColors.balanceGradientEnd])
+// 即: #B8A9E8 → #9B8AC4
+
+// 深色模式
+LinearGradient(colors: [AppColors.balanceGradientStartDark, AppColors.balanceGradientEndDark])
+// 即: #2A2225 → #1C1618
+```
+
+#### 1.8 分类颜色
+
+使用 `AppColors.categoryColors` 列表，按索引循环分配：
+```dart
+[#B8A9E8, #8BB8E8, #7EC8A0, #F0C87A, #E88B8B, #F5C6D0,
+ #81D4C8, #C4B5E0, #A8D8EA, #FFD93D, #B5EAD7, #E2B6CF]
+```
+
+---
+
+### 二、字体规范
+
+#### 2.1 字体家族
+
+- 中文：Noto Sans SC（思源黑体）
+- 英文/数字：系统默认（DIN Alternate 或 Roboto）
+
+#### 2.2 字号层级
+
+| 层级 | 字号 | 字重 | 用途 | AppColors 对应 |
+|------|------|------|------|----------------|
+| H1 | 32px | w700 Bold | 余额大数字 | `lightOnBackground` / `darkOnBackground` |
+| H2 | 24px | w600 SemiBold | 问候语、页面大标题 | `lightOnBackground` / `darkOnBackground` |
+| H3 | 20px | w600 SemiBold | 区块标题 | `lightOnBackground` / `darkOnBackground` |
+| H4 | 18px | w600 SemiBold | AppBar 标题 | `lightOnBackground` / `darkOnBackground` |
+| Body L | 16px | w500 Medium | 列表标题、按钮文字 | `lightOnBackground` / `darkOnBackground` |
+| Body | 15px | w400 Normal | 正文内容 | `lightOnBackground` / `darkOnBackground` |
+| Body S | 14px | w400 Normal | 次要内容 | `lightOnSurfaceVariant` / `darkOnSurfaceVariant` |
+| Caption | 13px | w400 Normal | 说明文字 | `lightOnSurfaceVariant` / `darkOnSurfaceVariant` |
+| Tiny | 12px | w500 Medium | 标签、时间戳 | `lightTextTertiary` / `darkTextTertiary` |
+| Micro | 11px | w400 Normal | 最小文字 | `lightTextTertiary` / `darkTextTertiary` |
+| Nano | 10px | w500 Medium | 底部导航文字 | `lightTextTertiary` / `darkTextTertiary` |
+
+#### 2.3 金额文字特殊规则
+
+| 场景 | 字号 | 字重 | 浅色颜色 | 深色颜色 |
+|------|------|------|----------|----------|
+| 余额卡片金额 | 32px | w700 | `#FFFFFF` | `#FFFFFF` |
+| 收入金额 | 15px | w600 | `AppColors.income` | `AppColors.income` |
+| 支出金额 | 15px | w600 | `AppColors.expense` | `AppColors.expense` |
+| 明细页支出 | 20px | w700 | `AppColors.indigo950` | `#FFFFFF` |
+| 明细页收入 | 20px | w700 | `AppColors.amber500` | `AppColors.income` |
+
+---
+
+### 三、间距系统
+
+基础单位：**4px**
+
+| Token | 值 | 用途 |
+|-------|-----|------|
+| `xxs` | 2px | 图标与角标最小间距 |
+| `xs` | 4px | 图标与文字间距、行内极小间距 |
+| `sm` | 8px | 列表项内部小间距、卡片间小间距 |
+| `md` | 12px | 卡片内元素间距、区块内小分组间距 |
+| `lg` | 16px | 卡片外边距（水平）、区块间距 |
+| `xl` | 20px | 卡片内边距（padding） |
+| `xxl` | 24px | 大区块间距（section spacing）、Hero卡片内边距 |
+| `xxxl` | 32px | 页面顶部留白、大区块分隔 |
+
+**具体使用场景：**
+
+| 场景 | 值 |
+|------|-----|
+| 页面水平内边距 | `EdgeInsets.symmetric(horizontal: 12)` 或 `16` |
+| 卡片外部 margin | `EdgeInsets.symmetric(horizontal: 12, vertical: 6)` |
+| 卡片内部 padding | `EdgeInsets.all(20)` |
+| 区块之间间距 | `SizedBox(height: 24)` |
+| 列表项之间间距 | `SizedBox(height: 8)` 或 无（用分割线） |
+| 底部导航栏距屏幕底 | `EdgeInsets.fromLTRB(20, 0, 20, 16)` |
+| 底部内容留白 | `paddingBottom: 100`（浮动导航栏安全区） |
+| AppBar 内边距 | `EdgeInsets.fromLTRB(20, 12, 20, 0)` |
+
+---
+
+### 四、圆角系统
+
+| Token | 值 | 用途 |
+|-------|-----|------|
+| `xs` | 4px | 极小组件（角标圆点等） |
+| `sm` | 8px | 小图标容器、设置导航 leading icon 容器 |
+| `md` | 12px | 标签（Tag）、月份徽章、小卡片 |
+| `lg` | 14px | 交易列表图标容器 |
+| `xl` | 16px | 输入框、成就卡片、快捷操作图标容器（实际用18px） |
+| `xxl` | 18px | 快捷操作图标容器 |
+| `card` | 20px | 浅色模式卡片 |
+| `cardDark` | 24px | 深色模式卡片、Hero 余额卡片、底部 Sheet |
+| `pill` | 28px | 按钮（胶囊形）、底部导航栏、交易列表项（毛玻璃卡片） |
+
+**具体使用场景：**
+
+| 组件 | 圆角值 |
+|------|--------|
+| AppCard（浅色） | `BorderRadius.circular(20)` |
+| AppCard（深色） | `BorderRadius.circular(24)` |
+| Hero 余额卡片 | `BorderRadius.circular(24)` |
+| 底部导航栏 | `BorderRadius.circular(24)` |
+| 底部弹窗（Sheet） | `BorderRadius.vertical(top: Radius.circular(24))` |
+| 主要按钮（黄色） | `BorderRadius.circular(28)` |
+| 次要按钮（白色） | `BorderRadius.circular(24)` |
+| 快捷操作图标 | `BorderRadius.circular(18)` |
+| 交易列表图标 | `BorderRadius.circular(14)` |
+| 输入框 | `BorderRadius.circular(16)` |
+| 标签（Tag） | `BorderRadius.circular(16)` |
+| 设置导航 leading icon | `BorderRadius.circular(8)` |
+| 进度条 | `BorderRadius.circular(6)` |
+| 成就卡片 | `BorderRadius.circular(16)` |
+| 筛选标签 | `BorderRadius.circular(20)` |
+| 底部 Sheet 拖拽手柄 | `BorderRadius.circular(2)` |
+
+---
+
+### 五、阴影系统
+
+#### 5.1 浅色模式阴影
+
+```dart
+// 卡片阴影（淡紫色调 - AppCard）
+BoxShadow(
+  color: AppColors.lightPrimary.withValues(alpha: 0.08),
+  blurRadius: 16,
+  offset: Offset(0, 3),
+)
+
+// Hero 余额卡片阴影
+BoxShadow(
+  color: AppColors.lightPrimary.withValues(alpha: 0.3),
+  blurRadius: 20,
+  offset: Offset(0, 8),
+)
+
+// 快捷操作图标阴影
+BoxShadow(
+  color: accentColor.withValues(alpha: 0.3),
+  blurRadius: 12,
+  offset: Offset(0, 4),
+)
+
+// 底部导航栏阴影（向上）
+BoxShadow(
+  color: AppColors.lightPrimary.withValues(alpha: 0.1),
+  blurRadius: 20,
+  offset: Offset(0, 4),
+)
+```
+
+#### 5.2 深色模式阴影
+
+```dart
+// 卡片阴影
+BoxShadow(
+  color: Colors.black.withValues(alpha: 0.2),
+  blurRadius: 20,
+  offset: Offset(0, 4),
+)
+
+// Hero 余额卡片阴影
+BoxShadow(
+  color: Colors.black.withValues(alpha: 0.4),
+  blurRadius: 20,
+  offset: Offset(0, 8),
+)
+
+// 底部导航栏阴影
+BoxShadow(
+  color: Colors.black.withValues(alpha: 0.3),
+  blurRadius: 20,
+  offset: Offset(0, 4),
+)
+```
+
+**注意：** 所有阴影颜色禁止使用 `withOpacity()`，统一使用 `withValues(alpha: ...)`。
+
+---
+
+### 六、组件规范
+
+#### 6.1 AppCard（通用卡片组件）
+
+```dart
+AppCard(
+  margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),  // 默认
+  padding: EdgeInsets.all(20),  // 默认
+  borderRadius: 20,  // 浅色默认，深色默认 24
+  color: AppColors.lightCard,  // 浅色暖米白 91% 透明
+  // 深色: theme.colorScheme.surface
+  child: ...
+)
+```
+
+| 属性 | 浅色模式 | 深色模式 |
+|------|---------|---------|
+| 背景色 | `AppColors.lightCard` (`#E8FBF5EF`) | `theme.colorScheme.surface` |
+| 圆角 | 20px | 24px |
+| 阴影 | 主色8% / blur 16 / offset(0,3) | 黑色20% / blur 20 / offset(0,4) |
+| 描边 | `AppColors.lightOutline` 0.5px | 无 |
+| 内边距 | 20px all | 20px all |
+| 外边距 | h:12 v:6 | h:12 v:6 |
+
+**强制要求：** 新页面中的卡片必须使用 `AppCard` 组件，禁止自行创建 Container 卡片（特殊情况如 Hero 卡片、毛玻璃卡片除外）。
+
+#### 6.2 主要按钮（黄色胶囊）
+
+```dart
+Container(
+  height: 56,
+  decoration: BoxDecoration(
+    gradient: LinearGradient(
+      colors: [AppColors.warmYellow, AppColors.warmYellowDark],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    borderRadius: BorderRadius.circular(28),
+    boxShadow: [
+      BoxShadow(
+        color: AppColors.warmYellow.withValues(alpha: 0.3),
+        blurRadius: 12,
+        offset: Offset(0, 4),
+      ),
+    ],
+  ),
+  child: Center(
+    child: Text(
+      '按钮文字',
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: AppColors.warmYellowText,  // #5A4E2A
+      ),
+    ),
+  ),
+)
+```
+
+| 属性 | 值 |
+|------|-----|
+| 高度 | 56px |
+| 圆角 | 28px（完全胶囊） |
+| 背景 | `AppColors.warmYellow` → `AppColors.warmYellowDark` 渐变 |
+| 文字色 | `AppColors.warmYellowText` (#5A4E2A) |
+| 文字字号 | 16px, w600 |
+| 阴影 | `warmYellow` 30% / blur 12 / offset(0,4) |
+
+#### 6.3 次要按钮（白色胶囊）
+
+```dart
+Container(
+  height: 48,
+  decoration: BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(24),
+    border: Border.all(color: AppColors.lightOutline, width: 1),
+  ),
+  child: Center(
+    child: Text(
+      '按钮文字',
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: AppColors.lightOnSurfaceVariant,
+      ),
+    ),
+  ),
+)
+```
+
+| 属性 | 浅色模式 | 深色模式 |
+|------|---------|---------|
+| 高度 | 48px | 48px |
+| 圆角 | 24px | 24px |
+| 背景 | `Colors.white` | `AppColors.darkSurface` |
+| 边框 | `AppColors.lightOutline` 1px | `AppColors.darkOutline` 1px |
+| 文字色 | `AppColors.lightOnSurfaceVariant` | `AppColors.darkOnSurfaceVariant` |
+| 文字字号 | 14px, w500 | 14px, w500 |
+
+#### 6.4 文字按钮
+
+```dart
+TextButton(
+  onPressed: () {},
+  child: Text(
+    '按钮文字',
+    style: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      color: AppColors.primaryOf(brightness),
+    ),
+  ),
+)
+```
+
+#### 6.5 OutlineButton（操作按钮）
+
+```dart
+OutlinedButton(
+  onPressed: () {},
+  style: OutlinedButton.styleFrom(
+    minimumSize: Size(0, 40),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+  ),
+  child: Text('操作'),
+)
+```
+
+#### 6.6 FilledButton（主要操作按钮）
+
+```dart
+FilledButton(
+  onPressed: () {},
+  style: FilledButton.styleFrom(
+    backgroundColor: AppColors.lightPrimary,
+    minimumSize: Size(0, 40),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+  ),
+  child: Text('操作'),
+)
+```
+
+#### 6.7 输入框
+
+```dart
+TextField(
+  decoration: InputDecoration(
+    filled: true,
+    fillColor: AppColors.lightInputFill,  // #F5F0FA
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide.none,
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide.none,
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide(color: AppColors.lightPrimary, width: 2),
+    ),
+    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+  ),
+)
+```
+
+| 属性 | 浅色模式 | 深色模式 |
+|------|---------|---------|
+| 高度 | 52px | 52px |
+| 圆角 | 16px | 16px |
+| 填充色 | `AppColors.lightInputFill` | `AppColors.darkSurfaceVariant` |
+| 聚焦边框 | `AppColors.lightPrimary` 2px | `AppColors.primary` 2px |
+| 文字色 | `AppColors.lightOnBackground` | `AppColors.darkOnBackground` |
+| 占位符色 | `AppColors.lightTextTertiary` | `AppColors.darkTextTertiary` |
+
+#### 6.8 AppBar（顶部导航栏）
+
+```dart
+AppBar(
+  backgroundColor: Colors.transparent,  // 透明显示页面渐变
+  elevation: 0,
+  centerTitle: true,
+  title: Text(
+    '页面标题',
+    style: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w600,
+      color: AppColors.lightOnBackground,  // 浅色
+      // 深色: AppColors.darkOnBackground
+    ),
+  ),
+  iconTheme: IconThemeData(
+    color: AppColors.lightOnSurfaceVariant,  // 浅色
+    // 深色: AppColors.darkOnSurfaceVariant
+  ),
+)
+```
+
+| 属性 | 浅色模式 | 深色模式 |
+|------|---------|---------|
+| 背景 | 透明 | 透明 |
+| 标题色 | `lightOnBackground` (#2D2D3F) | `darkOnBackground` (#F5EDE8) |
+| 图标色 | `lightOnSurfaceVariant` (#6B6B80) | `darkOnSurfaceVariant` (#BEB0A8) |
+| elevation | 0 | 0 |
+| 标题对齐 | 居中 | 居中 |
+
+**强制要求：** 所有 push 进入的页面（非 Tab 页面），AppBar 背景必须为透明，让页面渐变背景透出。
+
+#### 6.9 底部导航栏（浮动胶囊）
+
+```dart
+Padding(
+  padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
+  child: Container(
+    height: 68,
+    decoration: BoxDecoration(
+      color: isDark ? AppColors.darkSurface : Colors.white,
+      borderRadius: BorderRadius.circular(24),
+      boxShadow: [
+        BoxShadow(
+          color: isDark
+              ? Colors.black.withValues(alpha: 0.3)
+              : AppColors.lightPrimary.withValues(alpha: 0.1),
+          blurRadius: 20,
+          offset: Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [/* 导航项 + 中间 FAB */],
+    ),
+  ),
+)
+```
+
+| 属性 | 值 |
+|------|-----|
+| 容器高度 | 68px |
+| 圆角 | 24px |
+| 外边距 | `fromLTRB(20, 0, 20, 16)` |
+| 背景（浅色） | `Colors.white` |
+| 背景（深色） | `AppColors.darkSurface` |
+| 中间 FAB 尺寸 | 52×52 圆形 |
+| FAB 渐变 | `AppColors.warmYellow` → `AppColors.warmYellowDark` |
+| 导航项图标大小 | 24px |
+| 导航项文字大小 | 11px |
+| 选中色 | `AppColors.lightPrimary` |
+| 未选中色（浅色） | `AppColors.lightTextTertiary` |
+| 未选中色（深色） | `AppColors.darkOnSurfaceVariant` |
+
+#### 6.10 空状态
+
+```dart
+EmptyState(
+  icon: Icons.receipt_long_rounded,
+  title: '暂无数据',
+  subtitle: '描述文字',
+)
+```
+
+| 属性 | 值 |
+|------|-----|
+| 图标尺寸 | 80px |
+| 图标颜色 | `Theme.of(context).colorScheme.primary` 50% 透明 |
+| 图标与标题间距 | 24px |
+| 标题与副标题间距 | 8px |
+| 外层 padding | 32px all |
+
+#### 6.11 快捷操作按钮（首页）
+
+```dart
+// 图标容器
+Container(
+  width: 56,
+  height: 56,
+  decoration: BoxDecoration(
+    color: actionColor.withValues(alpha: 0.12),
+    borderRadius: BorderRadius.circular(18),
+    boxShadow: [
+      BoxShadow(
+        color: actionColor.withValues(alpha: 0.3),
+        blurRadius: 12,
+        offset: Offset(0, 4),
+      ),
+    ],
+  ),
+  child: Icon(icon, color: Colors.white, size: 24),
+)
+// 标签
+Text(
+  '标签',
+  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+)
+```
+
+| 属性 | 值 |
+|------|-----|
+| 容器尺寸 | 56×56 |
+| 圆角 | 18px |
+| 背景色 | 功能色 12% 透明度 |
+| 图标尺寸 | 24px |
+| 图标颜色 | 白色 |
+| 标签字号 | 12px, w500 |
+| 布局 | `Row` + `MainAxisAlignment.spaceEvenly` |
+
+#### 6.12 交易列表图标
+
+```dart
+Container(
+  width: 44,
+  height: 44,
+  decoration: BoxDecoration(
+    color: categoryColor.withValues(alpha: 0.12),
+    borderRadius: BorderRadius.circular(14),
+  ),
+  child: Icon(icon, color: categoryColor, size: 22),
+)
+```
+
+| 属性 | 值 |
+|------|-----|
+| 尺寸 | 44×44 |
+| 圆角 | 14px |
+| 背景色 | 分类色 12% 透明度 |
+| 图标尺寸 | 22px |
+
+#### 6.13 进度条
+
+```dart
+ClipRRect(
+  borderRadius: BorderRadius.circular(6),
+  child: LinearProgressIndicator(
+    minHeight: 8,
+    backgroundColor: Colors.grey.withValues(alpha: 0.15),
+    valueColor: AlwaysStoppedAnimation(AppColors.success),  // #22C55E
+  ),
+)
+```
+
+#### 6.14 标签（Tag）
+
+```dart
+Container(
+  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+  decoration: BoxDecoration(
+    color: tagColor.withValues(alpha: 0.15),
+    borderRadius: BorderRadius.circular(16),
+  ),
+  child: Text(
+    '标签名',
+    style: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      color: tagColor,
+    ),
+  ),
+)
+```
+
+| 属性 | 值 |
+|------|-----|
+| 高度 | 32px（自适应） |
+| 圆角 | 16px（完全胶囊） |
+| 背景色 | 标签色 15% 透明度 |
+| 文字色 | 标签色 |
+| 内边距 | h:12, v:6 |
+
+#### 6.15 对话框（AlertDialog）
+
+```dart
+AlertDialog(
+  title: Text('标题'),
+  content: Text('内容'),
+  actions: [
+    TextButton(onPressed: () {}, child: Text('取消')),
+    TextButton(
+      onPressed: () {},
+      child: Text('确定', style: TextStyle(color: Colors.red)),
+    ),
+  ],
+)
+```
+
+| 属性 | 值 |
+|------|-----|
+| 圆角 | 28px（系统默认） |
+| 背景色 | 浅色: 白色 / 深色: `AppColors.darkSurface` |
+| 确定按钮色 | 根据语义：危险操作用红色，普通操作用 `AppColors.lightPrimary` |
+
+#### 6.16 SnackBar
+
+```dart
+ScaffoldMessenger.of(context).showSnackBar(
+  SnackBar(content: Text('提示内容')),
+);
+```
+
+使用系统默认 SnackBar 样式，不自定义。
+
+#### 6.17 底部弹窗（Bottom Sheet）
+
+```dart
+showModalBottomSheet(
+  context: context,
+  isScrollControlled: true,
+  backgroundColor: Colors.transparent,
+  builder: (_) => Container(
+    decoration: BoxDecoration(
+      color: isDark ? AppColors.darkSurface : Colors.white,
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 拖拽手柄
+        Container(
+          width: 40, height: 4,
+          margin: EdgeInsets.only(top: 12),
+          decoration: BoxDecoration(
+            color: AppColors.lightOutline,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.all(24),
+          child: ...
+        ),
+      ],
+    ),
+  ),
+)
+```
+
+| 属性 | 值 |
+|------|-----|
+| 顶部圆角 | 24px |
+| 背景色 | 浅色: 白色 / 深色: `AppColors.darkSurface` |
+| 拖拽手柄 | 40×4, borderRadius 2, `AppColors.lightOutline` |
+| 内边距 | 24px all |
+| `backgroundColor` | 必须为 `Colors.transparent`（由内部 Container 设置背景） |
+
+---
+
+### 七、页面布局规范
+
+#### 7.1 标准页面结构（Tab 页面）
+
+```dart
+Scaffold(
+  backgroundColor: Colors.transparent,  // 强制：必须透明
+  appBar: AppBar(
+    backgroundColor: Colors.transparent,
+    ...
+  ),
+  body: ...,
+)
+```
+
+**所有页面 Scaffold 背景必须为透明**，由 `MainScreen` 的渐变 Container 统一提供背景。
+
+#### 7.2 可滚动页面布局
+
+```dart
+SingleChildScrollView(
+  physics: BouncingScrollPhysics(),
+  padding: EdgeInsets.fromLTRB(16, 0, 16, 100),  // 底部留白适配导航栏
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // 各区块之间用 SizedBox(height: 24) 分隔
+    ],
+  ),
+)
+```
+
+#### 7.3 ListView 页面布局
+
+```dart
+ListView.builder(
+  padding: EdgeInsets.symmetric(vertical: 8),
+  itemCount: items.length,
+  itemBuilder: (context, index) => AppCard(
+    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    ...
+  ),
+)
+```
+
+#### 7.4 设置页导航项模式
+
+```dart
+_buildNavigationTile({
+  required IconData icon,
+  required Color iconColor,
+  required String title,
+  required String? subtitle,
+  required VoidCallback onTap,
+}) {
+  return ListTile(
+    leading: Container(
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: iconColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Icon(icon, color: iconColor, size: 20),
+    ),
+    title: Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+    subtitle: subtitle != null ? Text(subtitle, style: TextStyle(fontSize: 12)) : null,
+    trailing: Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.lightTextTertiary),
+    onTap: onTap,
+  );
+}
+```
+
+分割线：`Divider(height: 1, indent: 56)`（对齐 leading icon 右侧）
+
+---
+
+### 八、导航规范
+
+#### 8.1 Tab 页面切换
+
+使用 `StatefulShellRoute.indexedStack`，页面切换无动画（instant），由 `RepaintBoundary` 防止背景重绘闪烁。
+
+#### 8.2 非 Tab 页面导航
+
+**强制使用 `PageRouteBuilder` + `FadeTransition`**，禁止使用 `MaterialPageRoute`。
+
+```dart
+Navigator.of(context).push(
+  PageRouteBuilder(
+    pageBuilder: (_, __, ___) => TargetScreen(),
+    transitionsBuilder: (_, animation, __, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
+  ),
+);
+```
+
+**原因：** `MaterialPageRoute` 在渐变背景页面间切换时会产生视觉闪烁。
+
+#### 8.3 go_router push 导航
+
+```dart
+context.push('/route-path');
+```
+
+用于需要传参的路由（如 `/add-transaction`、`/transaction/edit/:id`）。
+
+---
+
+### 九、动画规范
+
+所有动画使用 `flutter_animate` 库，禁止手写 AnimationController。
+
+#### 9.1 页面入场动画
+
+```dart
+// 基础淡入
+widget.fadeIn(duration: 300.ms)
+
+// 带位移的淡入
+widget.fadeIn(duration: 300.ms).slideY(begin: 0.05, end: 0)
+```
+
+#### 9.2 列表项交错动画
+
+```dart
+item.animate().fadeIn(
+  duration: 300.ms,
+  delay: (index * 50).ms,  // 每项延迟 50ms
+)
+```
+
+#### 9.3 典型延迟梯度
+
+| 组件 | 延迟 |
+|------|------|
+| 第一个区块 | 0ms |
+| 第二个区块 | 100ms |
+| 第三个区块 | 150ms |
+| 第四个区块 | 200ms |
+| 第五个区块 | 250ms |
+| 第六个区块 | 300ms |
+
+#### 9.4 动画参数
+
+| 参数 | 值 |
+|------|-----|
+| 默认持续时间 | 300ms |
+| 曲线 | `Curves.easeOutCubic`（flutter_animate 默认） |
+| 列表项间隔 | 50ms |
+| 页面切换 | FadeTransition（无额外持续时间设置，跟随系统） |
+
+---
+
+### 十、深色/浅色模式对照表
+
+| 元素 | 浅色模式 | 深色模式 |
+|------|---------|---------|
+| 页面背景 | 渐变 `#1E1B4B` → `#F5D5C8` → `#F0E6F6` | 渐变 `#1C1618` → `#201A1C` → `#251E20` |
+| Scaffold 背景 | `Colors.transparent` | `Colors.transparent` |
+| 卡片背景 | `AppColors.lightCard` (`#E8FBF5EF`) | `theme.colorScheme.surface` |
+| 卡片圆角 | 20px | 24px |
+| 卡片描边 | `AppColors.lightOutline` 0.5px | 无 |
+| 主色 | `#B8A9E8` | `#B8A9E8`（保持一致） |
+| 主按钮 | 黄色渐变胶囊 | 黄色渐变胶囊（保持一致） |
+| 文字主色 | `#2D2D3F` | `#F5EDE8` |
+| 文字副色 | `#6B6B80` | `#BEB0A8` |
+| 文字辅助色 | `#9B9BB0` | `#8A7E78` |
+| 输入框填充 | `#F5F0FA` | `AppColors.darkSurfaceVariant` |
+| 描边 | `#E8E0F0` | `#3D3235` |
+| 阴影 | 主色 8% / blur 16 | 黑色 20% / blur 20 |
+| 底部导航栏 | 白色 / 圆角 24 | `darkSurface` / 圆角 24 |
+| 底部导航栏阴影 | 主色 10% / blur 20 | 黑色 30% / blur 20 |
+| AppBar 标题 | `#2D2D3F` | `#F5EDE8` |
+| AppBar 图标 | `#6B6B80` | `#BEB0A8` |
+| 功能色 | 保持一致（柔和版） | 保持一致（柔和版） |
+
+---
+
+### 十一、代码编写强制规则
+
+1. **颜色引用**：所有颜色必须通过 `AppColors.xxx` 引用，禁止硬编码 `Color(0xFF...)`
+2. **透明度方法**：禁止使用 `withOpacity()`，统一使用 `withValues(alpha: ...)`
+3. **Scaffold 背景**：所有页面 `backgroundColor: Colors.transparent`
+4. **AppBar 背景**：所有 push 页面 `backgroundColor: Colors.transparent`
+5. **卡片组件**：优先使用 `AppCard`，特殊卡片（Hero、毛玻璃）可自定义但必须遵循圆角/阴影规范
+6. **页面导航**：Tab 外页面一律使用 `PageRouteBuilder` + `FadeTransition`
+7. **动画**：一律使用 `flutter_animate`，禁止手写 `AnimationController`
+8. **主题判断**：使用 `Theme.of(context).brightness == Brightness.dark` 或 `isDark` 变量
+9. **间距**：区块间距统一 `24px`，卡片间距 `6-8px`，遵循间距系统
+10. **圆角**：遵循圆角系统，不得随意设置非标准圆角值
+
 ## 文档管理
 
 ### 文档位置
