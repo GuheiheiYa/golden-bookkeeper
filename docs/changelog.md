@@ -547,11 +547,75 @@
 
 ---
 
+## [1.9.0] - 2026-05-12
+
+### 智能记账 — 支付通知监听
+
+#### 新增功能
+- **Android 通知监听服务**
+  - `PaymentNotificationListenerService` 监听微信、支付宝、招商/工商/中国/农业/建设/邮储/平安/中信银行通知
+  - `PaymentNotificationParser` 正则解析：金额、商户名、收支方向
+  - 去重机制：10秒内相同通知不重复入库
+  - SharedPreferences 可配置监听应用白名单
+
+- **双通道数据流**
+  - APP 在前台：MethodChannel 实时推送 → 弹出确认弹窗
+  - APP 在后台/已杀死：写入 SQLite → 发送系统通知 → 用户点击打开待确认列表
+
+- **前台确认弹窗 (PaymentConfirmSheet)**
+  - 显示金额（大字，支出红/收入绿）、商户名、来源 APP
+  - 自动匹配分类（复用 ImportScreen 关键词匹配逻辑）
+  - 自动匹配账户（wechat → 微信账户，alipay → 支付宝账户）
+  - 确认 / 忽略操作
+
+- **待确认列表页 (PendingNotificationsScreen)**
+  - 列表展示所有 pending 状态的检测记录
+  - 支持单条确认/忽略
+  - 支持全部确认（自动匹配"其他"分类 + 默认账户）
+  - 支持清空所有
+  - 下拉刷新
+
+- **通知监听设置页 (NotificationSettingsScreen)**
+  - 检测系统通知监听权限状态
+  - 未授权时显示引导文案 + "前往设置"按钮
+  - 已授权时显示各 APP 开关列表
+
+- **个人中心集成**
+  - 待确认数量角标显示在个人中心入口
+  - 设置页新增"智能记账"入口
+
+#### 技术变更
+- 数据库新增 `pending_payments` 表（原生 SQLite，独立于 sqflite）
+- `MainActivity` 新增 MethodChannel 桥接（`com.bookkeeper/payment notifications`）
+- 首页快捷操作恢复为：记账/预算/周期/统计
+- 首页快捷按钮统一使用 `PageRouteBuilder` + `FadeTransition`
+- `RepaintBoundary` 防止 Tab 切换背景重绘闪烁
+- `withOpacity` 废弃警告统一改为 `withValues(alpha: ...)`
+
+#### 新增文件
+- `android/.../PaymentNotificationListenerService.kt`
+- `android/.../PaymentNotificationParser.kt`
+- `lib/core/services/payment_notification_service.dart`
+- `lib/features/notification/presentation/notification_settings_screen.dart`
+- `lib/features/notification/presentation/payment_confirm_sheet.dart`
+- `lib/features/notification/presentation/pending_notifications_screen.dart`
+
+#### 修改文件
+- `android/app/src/main/AndroidManifest.xml` — 通知监听权限 + 服务声明
+- `android/.../MainActivity.kt` — MethodChannel 桥接
+- `lib/app/app.dart` — 生命命周期监听
+- `lib/app/di/providers.dart` — 新增通知相关 Provider
+- `lib/app/router/app_router.dart` — withOpacity → withValues
+- `lib/core/database/app_database.dart` — 新增 getDefaultAccountBySource 方法
+- `lib/features/home/presentation/home_screen.dart` — 快捷操作恢复 + 导航方式修改
+- `lib/features/profile/presentation/profile_screen.dart` — 待确认数量角标
+- `lib/features/settings/presentation/settings_screen.dart` — 智能记账入口
+
+---
+
 ## [未发布] - 开发中
 
 ### 计划功能
-- 无障碍服务监听支付通知
-- 通知栏监听
 - 数据备份/恢复
 - 多语言支持
 - 小组件支持
@@ -582,6 +646,7 @@
 | 版本 | 日期 | 状态 | 描述 |
 |------|------|------|------|
 | 1.0.0 | 2026-05-06 | ✅ 已发布 | 首次发布 |
+| 1.9.0 | 2026-05-12 | ✅ 已发布 | 支付通知监听自动记账（微信/支付宝/银行） |
 | 1.8.0 | 2026-05-12 | ✅ 已发布 | 个人中心 + 贷款管理 + 分类关联贷款还款自动扣减 |
 | 1.1.0 | 2026-05-07 | ✅ 已发布 | 功能完善（标签选择、交易编辑、搜索筛选、周期自动执行、多币种） |
 | 1.2.0 | 2026-05-07 | ✅ 已发布 | UI/UX 优化（计算器、图标库、中文化、文档完善） |
