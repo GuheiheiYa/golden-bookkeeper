@@ -21,7 +21,7 @@ class AppDatabase {
       // Web 平台：使用内存数据库
       return await openDatabase(
         inMemoryDatabasePath,
-        version: 4,
+        version: 5,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
       );
@@ -30,7 +30,7 @@ class AppDatabase {
     final path = p.join(dbFolder.path, 'bookkeeper.db');
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -159,6 +159,24 @@ class AppDatabase {
       )
     ''');
 
+    // 待确认支付通知表
+    await db.execute('''
+      CREATE TABLE pending_payment_notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        amount REAL NOT NULL,
+        is_expense INTEGER NOT NULL,
+        merchant TEXT,
+        source TEXT NOT NULL,
+        raw_text TEXT,
+        package_name TEXT,
+        notification_time INTEGER,
+        status TEXT DEFAULT 'pending',
+        category_id INTEGER,
+        account_id INTEGER,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+
     // 插入默认数据
     await _insertDefaultData(db);
   }
@@ -175,6 +193,25 @@ class AppDatabase {
     if (oldVersion < 4) {
       // v4: transactions 表新增 loan_deducted 字段（标记是否已扣减贷款）
       await db.execute('ALTER TABLE transactions ADD COLUMN loan_deducted INTEGER DEFAULT 0');
+    }
+    if (oldVersion < 5) {
+      // v5: 新增待确认支付通知表
+      await db.execute('''
+        CREATE TABLE pending_payment_notifications (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          amount REAL NOT NULL,
+          is_expense INTEGER NOT NULL,
+          merchant TEXT,
+          source TEXT NOT NULL,
+          raw_text TEXT,
+          package_name TEXT,
+          notification_time INTEGER,
+          status TEXT DEFAULT 'pending',
+          category_id INTEGER,
+          account_id INTEGER,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+      ''');
     }
   }
 
@@ -759,5 +796,60 @@ class AppDatabase {
         'updated_at': DateTime.now().toIso8601String(),
       });
     }
+  }
+
+  // ========== 待确认支付通知操作 ==========
+
+  Future<int> insertPendingNotification(Map<String, dynamic> notification) async {
+    final db = await database;
+    return await db.insert('pending_payment_notifications', notification);
+  }
+
+  Future<List<Map<String, dynamic>>> getPendingNotifications({String status = 'pending'}) async {
+    final db = await database;
+    return await db.query(
+      'pending_payment_notifications',
+      where: 'status = ?',
+      whereArgs: [status],
+      orderBy: 'notification_time DESC',
+    );
+  }
+
+  Future<void> updateNotificationStatus(int id, String status, {int? categoryId, int? accountId}) async {
+    final db = await database;
+    final data = <String, dynamic>{'status': status};
+    if (categoryId != null) data['category_id'] = categoryId;
+    if (accountId != null) data['account_id'] = accountId;
+    await db.update('pending_payment_notifications', data, where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> getPendingNotificationCount() async {
+    final db = await database;
+    final result = await db.rawQuery(
+      "SELECT COUNT(*) as count FROM pending_payment_notifications WHERE status = 'pending'",
+    );
+    return (result.first['count'] as int?) ?? 0;
+  }
+
+  /// 根据来源类型匹配默认账户 ID
+  Future<int?> getDefaultAccountBySource(String source) async {
+    final db = await database;
+    final typeMap = {
+      'wechat': 'wechat',
+      'alipay': 'alipay',
+      'bank': 'bank',
+      'cmb': 'bank',
+      'icbc': 'bank',
+      'boc': 'bank',
+      'abc': 'bank',
+      'ccb': 'bank',
+      'psbc': 'bank',
+      'pingan': 'bank',
+      'citic': 'bank',
+    };
+    final accountType = typeMap[source];
+    if (accountType == null) return null;
+    final results = await db.query('accounts', where: 'type = ?', whereArgs: [accountType], limit: 1);
+    return results.isNotEmpty ? results.first['id'] as int : null;
   }
 }

@@ -6,6 +6,29 @@
 
 ## 2026-05-12
 
+### 13. 设置页改为"我的"个人中心 + 贷款管理 + 还款联动
+**时间**: 2026-05-12 20:00:00
+**原因**: 用户希望将"设置"页改为"我的"个人中心，增加贷款管理，分类关联贷款后记账自动扣减
+**文件**:
+- `lib/features/profile/presentation/profile_provider.dart` (新建) — UserProfile + AssetSummary + loanRefreshProvider
+- `lib/features/profile/presentation/profile_screen.dart` (新建) — 个人中心主页面
+- `lib/features/loan/presentation/loan_list_screen.dart` (新建) — 贷款管理页面
+- `lib/core/database/app_database.dart` — 版本 3 迁移 + getLoans/getCategoryById/getAccountById
+- `lib/app/router/app_router.dart` — 导航切换为 ProfileScreen，图标/person，标签/我的
+- `lib/features/settings/presentation/settings_screen.dart` — ExportDialogContent 改为公开类
+- `lib/features/account/presentation/account_list_screen.dart` — 过滤掉贷款账户
+- `lib/features/category/presentation/category_list_screen.dart` — 新增关联贷款选择器
+- `lib/features/transaction/presentation/add_transaction_screen.dart` — 记账时自动扣减贷款余额
+- `lib/features/transaction/presentation/transaction_list_screen.dart` — 删除时恢复贷款余额
+**变更**: 
+- 个人中心：头像/等级/资产卡片/荣誉室/原有设置功能
+- 贷款管理：CRUD，房贷/车贷/信用贷/网贷/其他，总负债汇总
+- 分类关联贷款：编辑分类时可选关联某个贷款账户
+- 还款自动扣减：记账时分类关联贷款则自动扣减余额，编辑时调差额，删除时恢复
+- 数据库 v2→v3：categories 表新增 loan_id 字段
+
+---
+
 ### 12. 设置子页面渐变背景 + 文字可读性修复
 **时间**: 2026-05-12 18:00:00
 **原因**: 子页面 Scaffold 背景色为暖米白，与主页面渐变背景不一致；改为透明后文字在深色渐变区域不可读

@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app/di/providers.dart';
-import '../../../core/database/app_database.dart';
 
 // ========== 贷款数据刷新触发器 ==========
 
@@ -16,6 +15,7 @@ final accountRefreshProvider = StateProvider<int>((ref) => 0);
 class UserProfile {
   final String name;
   final String subtitle;
+  final String? avatarPath;
   final int level;
   final int xp;
   final int xpTarget;
@@ -23,6 +23,7 @@ class UserProfile {
   const UserProfile({
     this.name = '咯噔',
     this.subtitle = '精打细算的见习镇长',
+    this.avatarPath,
     this.level = 4,
     this.xp = 88,
     this.xpTarget = 100,
@@ -31,6 +32,8 @@ class UserProfile {
   UserProfile copyWith({
     String? name,
     String? subtitle,
+    String? avatarPath,
+    bool clearAvatar = false,
     int? level,
     int? xp,
     int? xpTarget,
@@ -38,6 +41,7 @@ class UserProfile {
     return UserProfile(
       name: name ?? this.name,
       subtitle: subtitle ?? this.subtitle,
+      avatarPath: clearAvatar ? null : (avatarPath ?? this.avatarPath),
       level: level ?? this.level,
       xp: xp ?? this.xp,
       xpTarget: xpTarget ?? this.xpTarget,
@@ -55,6 +59,7 @@ class UserProfileNotifier extends StateNotifier<UserProfile> {
     state = UserProfile(
       name: prefs.getString('profile_name') ?? '咯噔',
       subtitle: prefs.getString('profile_subtitle') ?? '精打细算的见习镇长',
+      avatarPath: prefs.getString('profile_avatarPath'),
       level: prefs.getInt('profile_level') ?? 4,
       xp: prefs.getInt('profile_xp') ?? 88,
       xpTarget: prefs.getInt('profile_xpTarget') ?? 100,
@@ -71,6 +76,18 @@ class UserProfileNotifier extends StateNotifier<UserProfile> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('profile_subtitle', subtitle);
     state = state.copyWith(subtitle: subtitle);
+  }
+
+  Future<void> updateAvatar(String path) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('profile_avatarPath', path);
+    state = state.copyWith(avatarPath: path);
+  }
+
+  Future<void> clearAvatar() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('profile_avatarPath');
+    state = state.copyWith(clearAvatar: true);
   }
 }
 

@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../app/di/providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../shared/widgets/app_card.dart';
+import '../../../core/services/notification_service.dart';
 import '../../account/presentation/account_list_screen.dart';
 import '../../category/presentation/category_list_screen.dart';
 import '../../tag/presentation/tag_list_screen.dart';
@@ -13,6 +17,8 @@ import '../../recurring/presentation/recurring_screen.dart';
 import '../../import/presentation/import_screen.dart';
 import '../../loan/presentation/loan_list_screen.dart';
 import '../../settings/presentation/settings_screen.dart' show ExportDialogContent;
+import '../../notification/presentation/pending_notifications_screen.dart';
+import '../../notification/presentation/notification_settings_screen.dart';
 import 'profile_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -31,11 +37,11 @@ class ProfileScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 48, 16, 120),
         children: [
           // 顶部栏
-          _buildHeaderRow(context),
+          _buildHeaderRow(context, ref),
           const SizedBox(height: 24),
 
           // 头像区
-          _buildAvatarSection(context, profile),
+          _buildAvatarSection(context, ref, profile),
           const SizedBox(height: 20),
 
           // 等级进度条
@@ -135,6 +141,26 @@ class ProfileScreen extends ConsumerWidget {
           ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
           const SizedBox(height: 16),
 
+          // 智能记账
+          _buildSectionHeader(context, '智能记账'),
+          AppCard(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                _buildNavigationTile(
+                  context,
+                  icon: Icons.notifications_active,
+                  iconColor: 0xFF10B981,
+                  title: '支付通知监听',
+                  subtitle: '自动识别微信/支付宝支付通知',
+                  onTap: () => _navigateTo(context, const NotificationSettingsScreen()),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(delay: 250.ms, duration: 300.ms),
+          const SizedBox(height: 16),
+
           // 高级功能
           _buildSectionHeader(context, '高级功能'),
           AppCard(
@@ -228,53 +254,74 @@ class ProfileScreen extends ConsumerWidget {
 
   // ========== 顶部栏 ==========
 
-  Widget _buildHeaderRow(BuildContext context) {
+  Widget _buildHeaderRow(BuildContext context, WidgetRef ref) {
+    final pendingAsync = ref.watch(pendingNotificationCountProvider);
+    final pendingCount = pendingAsync.valueOrNull ?? 0;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
+        // 待确认记账（替代档案中心）
+        GestureDetector(
+          onTap: () => _navigateTo(context, const PendingNotificationsScreen()),
+          child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              Icon(Icons.folder_open, color: Colors.white, size: 18),
-              SizedBox(width: 6),
-              Text(
-                '档案中心',
-                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withOpacity(0.85),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.receipt_long_rounded, color: Colors.white, size: 18),
+                    SizedBox(width: 6),
+                    Text(
+                      '待确认记账',
+                      style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
               ),
+              if (pendingCount > 0)
+                Positioned(
+                  right: -6,
+                  top: -6,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFEF4444),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      '$pendingCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 20),
+        // 通知图标
+        GestureDetector(
+          onTap: () => NotificationService.showNotificationList(context),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              shape: BoxShape.circle,
             ),
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFF6B6B),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ],
+            child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 20),
+          ),
         ),
       ],
     ).animate().fadeIn(duration: 300.ms);
@@ -282,64 +329,109 @@ class ProfileScreen extends ConsumerWidget {
 
   // ========== 头像区 ==========
 
-  Widget _buildAvatarSection(BuildContext context, UserProfile profile) {
+  Widget _buildAvatarSection(BuildContext context, WidgetRef ref, UserProfile profile) {
     return Column(
       children: [
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFD4A574), width: 3),
-              ),
-              child: CircleAvatar(
-                radius: 37,
-                backgroundColor: AppColors.lightPrimary.withOpacity(0.15),
-                child: Icon(
-                  Icons.person_rounded,
-                  size: 40,
-                  color: AppColors.lightPrimary,
-                ),
-              ),
-            ),
-            Positioned(
-              right: -4,
-              bottom: -2,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        GestureDetector(
+          onTap: () => _pickAvatar(ref),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF22C55E),
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF22C55E).withOpacity(0.3),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFD4A574), width: 3),
                 ),
-                child: Text(
-                  'Lv.${profile.level}',
-                  style: const TextStyle(
+                child: CircleAvatar(
+                  radius: 37,
+                  backgroundColor: AppColors.lightPrimary.withOpacity(0.15),
+                  backgroundImage: profile.avatarPath != null
+                      ? FileImage(File(profile.avatarPath!))
+                      : null,
+                  child: profile.avatarPath == null
+                      ? Icon(
+                          Icons.person_rounded,
+                          size: 40,
+                          color: AppColors.lightPrimary,
+                        )
+                      : null,
+                ),
+              ),
+              Positioned(
+                right: -2,
+                top: -2,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
                     color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.camera_alt_rounded,
+                    size: 14,
+                    color: AppColors.lightPrimary,
                   ),
                 ),
               ),
-            ),
-          ],
+              Positioned(
+                right: -4,
+                bottom: -2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF22C55E),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF22C55E).withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    'Lv.${profile.level}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 14),
-        Text(
-          profile.name,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
+        GestureDetector(
+          onTap: () => _showEditNameDialog(context, ref, profile),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                profile.name,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.edit_rounded,
+                size: 16,
+                color: Colors.white.withOpacity(0.6),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 4),
@@ -764,6 +856,63 @@ class ProfileScreen extends ConsumerWidget {
         return FadeTransition(opacity: animation, child: child);
       },
     ));
+  }
+
+  Future<void> _pickAvatar(WidgetRef ref) async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 80,
+    );
+    if (image != null) {
+      ref.read(userProfileProvider.notifier).updateAvatar(image.path);
+    }
+  }
+
+  void _showEditNameDialog(BuildContext context, WidgetRef ref, UserProfile profile) {
+    final controller = TextEditingController(text: profile.name);
+    final messenger = ScaffoldMessenger.of(context);
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('修改昵称'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 12,
+          decoration: const InputDecoration(
+            hintText: '输入新昵称',
+            counterText: '',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final newName = controller.text.trim();
+              if (newName.isEmpty) {
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('昵称不能为空')),
+                );
+                return;
+              }
+              ref.read(userProfileProvider.notifier).updateName(newName);
+              Navigator.pop(dialogContext);
+              messenger.showSnackBar(
+                const SnackBar(content: Text('昵称已更新')),
+              );
+            },
+            child: const Text('确认'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showExportDialog(BuildContext context, WidgetRef ref) {

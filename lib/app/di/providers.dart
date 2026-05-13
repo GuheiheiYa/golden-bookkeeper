@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/database/app_database.dart';
+import '../../core/services/payment_notification_service.dart';
 
 // 数据库 Provider
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
@@ -228,6 +229,16 @@ final categorySummaryProvider = FutureProvider.family<List<Map<String, dynamic>>
   final start = DateTime(now.year, now.month, 1);
   final end = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
   return await db.getCategorySummary(start, end, isExpense: isExpense);
+});
+
+// ========== 待确认支付通知 Provider ==========
+
+/// 待确认支付通知数量（从原生 DB 读取）
+final pendingNotificationCountProvider = FutureProvider<int>((ref) async {
+  ref.watch(transactionRefreshProvider);
+  final service = PaymentNotificationService();
+  final pending = await service.getPendingPayments();
+  return pending.length;
 });
 
 // ========== 图标映射工具 ==========

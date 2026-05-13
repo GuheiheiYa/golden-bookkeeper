@@ -92,17 +92,18 @@ class MainScreen extends StatelessWidget {
             AppColors.bgGradientBottom,
           ];
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: gradientColors,
+    return RepaintBoundary(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: gradientColors,
+          ),
         ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: navigationShell,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: navigationShell,
       // 浮动胶囊底部导航栏
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
@@ -114,8 +115,8 @@ class MainScreen extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.black.withOpacity(0.3)
-                    : AppColors.lightPrimary.withOpacity(0.1),
+                    ? Colors.black.withValues(alpha: 0.3)
+                    : AppColors.lightPrimary.withValues(alpha: 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -155,7 +156,7 @@ class MainScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.warmYellow.withOpacity(0.3),
+                            color: AppColors.warmYellow.withValues(alpha: 0.3),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -188,6 +189,7 @@ class MainScreen extends StatelessWidget {
               ),
             ),
       ),
+    ),
     ),
     );
   }

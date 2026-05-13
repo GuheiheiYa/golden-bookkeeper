@@ -12,6 +12,7 @@ import '../../tag/presentation/tag_list_screen.dart';
 import '../../budget/presentation/budget_screen.dart';
 import '../../recurring/presentation/recurring_screen.dart';
 import '../../import/presentation/import_screen.dart';
+import '../../notification/presentation/notification_settings_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -103,6 +104,26 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
+          const SizedBox(height: 16),
+
+          // 智能记账
+          _buildSectionHeader(context, '智能记账'),
+          AppCard(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                _buildNavigationTile(
+                  context,
+                  icon: Icons.notifications_active,
+                  iconColor: 0xFF10B981,
+                  title: '支付通知监听',
+                  subtitle: '自动识别微信/支付宝支付通知',
+                  onTap: () => _navigateTo(context, const NotificationSettingsScreen()),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(delay: 250.ms, duration: 300.ms),
           const SizedBox(height: 16),
 
           // 高级功能

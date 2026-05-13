@@ -10,6 +10,7 @@ import '../../../app/di/providers.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../budget/presentation/budget_screen.dart';
 import '../../recurring/presentation/recurring_screen.dart';
+import '../../statistics/presentation/statistics_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -440,9 +441,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildQuickActions(BuildContext context, bool isDark) {
     final actions = [
       {'icon': Icons.edit_rounded, 'label': '记账', 'color': AppColors.lightPrimary},
-      {'icon': Icons.pie_chart_outline_rounded, 'label': '统计', 'color': AppColors.info},
       {'icon': Icons.savings_outlined, 'label': '预算', 'color': AppColors.warning},
       {'icon': Icons.repeat_rounded, 'label': '周期', 'color': AppColors.success},
+      {'icon': Icons.bar_chart_outlined, 'label': '统计', 'color': AppColors.info},
     ];
 
     return Row(
@@ -456,8 +457,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           onTap: () {
             if (label == '记账') {
               context.push('/add-transaction');
-            } else if (label == '统计') {
-              GoRouter.of(context).go('/statistics');
             } else if (label == '预算') {
               Navigator.of(context).push(
                 PageRouteBuilder(
@@ -471,6 +470,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Navigator.of(context).push(
                 PageRouteBuilder(
                   pageBuilder: (_, __, ___) => const RecurringScreen(),
+                  transitionsBuilder: (_, animation, __, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              );
+            } else if (label == '统计') {
+              Navigator.of(context).push(
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) => const StatisticsScreen(),
                   transitionsBuilder: (_, animation, __, child) {
                     return FadeTransition(opacity: animation, child: child);
                   },
