@@ -4,7 +4,25 @@ import '../../../app/di/providers.dart';
 import '../../../core/services/payment_notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 
+/// 前台付款确认底部弹窗
+///
+/// 当 APP 处于前台且检测到支付通知时，由 [PaymentNotificationService.onPaymentDetected]
+/// 回调触发，以 `showModalBottomSheet` 方式弹出。
+///
+/// ## 功能
+/// - 展示检测到的金额、商户名、来源 APP
+/// - 用户可选择分类和账户（支持左右滑动选择）
+/// - 自动匹配：根据 source 匹配账户（wechat → 微信账户），根据关键词匹配"其他"分类
+///
+/// ## 数据来源
+/// `data` 参数由 Android 端 PaymentNotificationListenerService 通过 MethodChannel 推送，
+/// 包含字段：id, amount, isExpense, merchant, source, rawText, packageName, timestamp
+///
+/// ## 返回值
+/// - `'confirmed'` — 用户确认记账
+/// - `'ignore'` — 用户选择忽略
 class PaymentConfirmSheet extends ConsumerStatefulWidget {
+  /// 从 Android 端推送过来的支付检测数据
   final Map<String, dynamic> data;
   const PaymentConfirmSheet({super.key, required this.data});
 
@@ -25,7 +43,7 @@ class _PaymentConfirmSheetState extends ConsumerState<PaymentConfirmSheet> {
   void initState() {
     super.initState();
     _amount = (widget.data['amount'] as num?)?.toDouble() ?? 0;
-    // 兼容 bool / int / double 多种格式
+    // 兼容 Android 端可能传来的 bool / int / double 多种格式
     final rawExpense = widget.data['isExpense'] ?? widget.data['is_expense'] ?? 0;
     if (rawExpense is bool) {
       _isExpense = rawExpense;
@@ -211,11 +229,16 @@ class _PaymentConfirmSheetState extends ConsumerState<PaymentConfirmSheet> {
     );
   }
 
+  /// 自动匹配默认分类和账户
+  ///
+  /// 匹配策略：
+  /// - 账户：根据 source 字段匹配（wechat → 微信账户，alipay → 支付宝账户）
+  /// - 分类：默认选中"其他"分类（兜底策略，用户可手动切换）
   Future<void> _initDefaults() async {
     _initialized = true;
     final db = ref.read(appDatabaseProvider);
 
-    // 根据来源自动匹配账户
+    // 根据来源自动匹配账户（wechat → 微信，alipay → 支付宝，cmb → 招商银行...）
     if (_selectedAccountId == null) {
       final accountId = await db.getDefaultAccountBySource(_source);
       if (accountId != null && mounted) {
@@ -223,7 +246,7 @@ class _PaymentConfirmSheetState extends ConsumerState<PaymentConfirmSheet> {
       }
     }
 
-    // 自动选中"其他"分类
+    // 自动选中"其他"分类（兜底，用户可手动修改）
     if (_selectedCategoryId == null) {
       final categories = _isExpense
           ? await db.getCategories(isExpense: true)
@@ -238,13 +261,20 @@ class _PaymentConfirmSheetState extends ConsumerState<PaymentConfirmSheet> {
     }
   }
 
+  /// 确认记账 — 创建交易记录并更新余额
+  ///
+  /// 流程：
+  /// 1. 调用 db.insertTransaction() 写入交易记录
+  /// 2. 调用 markPaymentProcessed() 将原生端 pending_payments 记录标记为已处理
+  /// 3. 更新对应账户余额（支出 -amount，收入 +amount）
+  /// 4. 通过 transactionRefreshProvider 刷新首页/明细页数据
   Future<void> _confirm(BuildContext context) async {
     if (_selectedCategoryId == null || _selectedAccountId == null) return;
 
     final db = ref.read(appDatabaseProvider);
     final pendingId = widget.data['id'] as int?;
 
-    // 创建交易记录
+    // 1. 创建交易记录到 Flutter 端数据库（sqflite）
     await db.insertTransaction({
       'amount': _amount,
       'is_expense': _isExpense ? 1 : 0,
@@ -256,12 +286,12 @@ class _PaymentConfirmSheetState extends ConsumerState<PaymentConfirmSheet> {
       'exchange_rate': 1.0,
     });
 
-    // 标记原生 DB 中的通知为已处理
+    // 2. 标记原生端 pending_payments 记录为已处理（不再显示在待确认列表）
     if (pendingId != null) {
       await PaymentNotificationService().markPaymentProcessed(pendingId);
     }
 
-    // 更新账户余额
+    // 3. 更新账户余额
     final account = await db.getAccountById(_selectedAccountId!);
     if (account != null) {
       final balance = (account['balance'] as num?)?.toDouble() ?? 0;
@@ -269,7 +299,7 @@ class _PaymentConfirmSheetState extends ConsumerState<PaymentConfirmSheet> {
       await db.updateAccount(_selectedAccountId!, {'balance': newBalance});
     }
 
-    // 刷新数据
+    // 4. 通知首页/明细页刷新数据
     ref.read(transactionRefreshProvider.notifier).state++;
 
     if (context.mounted) {

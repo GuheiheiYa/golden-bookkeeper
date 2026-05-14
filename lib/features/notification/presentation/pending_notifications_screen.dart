@@ -10,6 +10,23 @@ import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/empty_state.dart';
 import 'payment_confirm_sheet.dart';
 
+/// 待确认记账列表页
+///
+/// 展示所有由 PaymentNotificationListenerService 检测到、但用户尚未确认的支付记录。
+///
+/// ## 数据来源
+/// 调用 [PaymentNotificationService.getPendingPayments] 从 Android 原生 SQLite
+/// 的 pending_payments 表读取 status='pending' 的记录。
+///
+/// ## 用户操作
+/// - **确认记账**：弹出 [PaymentConfirmSheet] 让用户选择分类和账户，确认后创建交易记录
+/// - **忽略**：将记录标记为已处理，不再显示
+/// - **全部确认**：自动为所有记录创建交易（使用"其他"分类 + 匹配账户）
+/// - **清空**：删除所有待确认记录
+///
+/// ## 进入方式
+/// 1. 首页 → 个人中心 → "待确认记账"按钮（带角标）
+/// 2. 用户点击支付检测系统通知 → 自动跳转到此页面
 class PendingNotificationsScreen extends ConsumerStatefulWidget {
   const PendingNotificationsScreen({super.key});
 
@@ -21,6 +38,7 @@ class PendingNotificationsScreen extends ConsumerStatefulWidget {
 class _PendingNotificationsScreenState
     extends ConsumerState<PendingNotificationsScreen>
     with WidgetsBindingObserver {
+  /// 待确认的支付记录列表，每条包含：id/amount/isExpense/merchant/source/rawText/timestamp
   List<Map<String, dynamic>> _notifications = [];
   bool _loading = true;
 
@@ -37,6 +55,7 @@ class _PendingNotificationsScreenState
     super.dispose();
   }
 
+  /// APP 从后台恢复时自动刷新列表（用户可能在系统通知中点击了其他 APP 后返回）
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -44,6 +63,7 @@ class _PendingNotificationsScreenState
     }
   }
 
+  /// 从 Android 原生 SQLite 加载待确认记录
   Future<void> _loadNotifications() async {
     final service = PaymentNotificationService();
     final notifications = await service.getPendingPayments();
@@ -52,6 +72,7 @@ class _PendingNotificationsScreenState
         _notifications = notifications;
         _loading = false;
       });
+      // 刷新首页/明细页数据（记录被处理后余额会变化）
       ref.read(transactionRefreshProvider.notifier).state++;
     }
   }
