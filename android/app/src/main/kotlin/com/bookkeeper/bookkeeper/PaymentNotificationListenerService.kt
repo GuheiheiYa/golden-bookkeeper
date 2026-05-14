@@ -218,7 +218,7 @@ class PaymentNotificationListenerService : NotificationListenerService() {
     /**
      * 从通知 extras Bundle 中安全提取文本
      *
-     * 直接通过 getCharSequence 读取通知文本。
+     * 通过 getCharSequence 读取通知文本，并输出诊断日志。
      * 部分银行 APP 的通知文本可能存在编码问题，但金额数字（ASCII）不受影响。
      */
     private fun extractTextFromBundle(extras: android.os.Bundle, key: String): String {
@@ -226,6 +226,11 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         if (charSeq != null) {
             val text = charSeq.toString()
             if (text.isNotBlank()) {
+                // 诊断：输出文本前 20 字符的 hex 字节
+                val hex = text.take(20).toByteArray(Charsets.UTF_8).joinToString(" ") {
+                    "%02X".format(it)
+                }
+                Log.d(TAG, "EXTRACT [$key] hex=$hex len=${text.length}")
                 return text
             }
         }
