@@ -257,9 +257,7 @@ LinearGradient(colors: [AppColors.balanceGradientStartDark, AppColors.balanceGra
 |------|------|------|----------|----------|
 | 余额卡片金额 | 32px | w700 | `#FFFFFF` | `#FFFFFF` |
 | 收入金额 | 15px | w600 | `AppColors.income` | `AppColors.income` |
-| 支出金额 | 15px | w600 | `AppColors.expense` | `AppColors.expense` |
-| 明细页支出 | 20px | w700 | `AppColors.indigo950` | `#FFFFFF` |
-| 明细页收入 | 20px | w700 | `AppColors.amber500` | `AppColors.income` |
+| 支出金额 | 15px~32px | w700~w800 | `AppColors.expense` | `AppColors.expense` |
 
 ---
 
