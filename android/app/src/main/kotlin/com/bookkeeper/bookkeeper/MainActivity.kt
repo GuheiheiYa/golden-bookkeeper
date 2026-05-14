@@ -174,7 +174,7 @@ class MainActivity : FlutterActivity() {
                 try {
                     channel.invokeMethod("openPendingNotifications", null)
                 } catch (e: Exception) {
-                    Log.e("MainActivity", "Failed to notify Flutter: ${e.message}")
+                    Log.e("MainActivity", "通知 Flutter 失败: ${e.message}")
                 }
             }, 1000)
         }

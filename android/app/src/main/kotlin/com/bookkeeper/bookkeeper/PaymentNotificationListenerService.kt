@@ -117,7 +117,7 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         super.onCreate()
         dbHelper = PendingPaymentDbHelper(this)
         createNotificationChannel()
-        Log.d(TAG, "PaymentNotificationListenerService created")
+        Log.d(TAG, "支付通知监听服务已创建")
     }
 
     /** 创建系统通知渠道（Android 8.0+ 必须） */
@@ -140,7 +140,7 @@ class PaymentNotificationListenerService : NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
-        Log.d(TAG, "NotificationListener connected")
+        Log.d(TAG, "通知监听器已连接")
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -152,7 +152,7 @@ class PaymentNotificationListenerService : NotificationListenerService() {
      *
      * 处理流程：
      * 1. 包名白名单过滤 → 不在监听列表中直接返回
-     * 2. 提取通知文本（title + bigText + text）
+     * 2. 提取通知文本（title + bigText + text，含编码修复）
      * 3. 调用 [PaymentNotificationParser.parse] 解析支付信息
      * 4. 写入 SQLite 待确认表（去重）
      * 5. 根据 APP 前台状态选择推送通道
@@ -163,10 +163,9 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         val packageName = sbn.packageName
 
         // ── 步骤 1：包名白名单过滤 ──
-        // 不在监听列表中的 APP 通知直接忽略，避免处理无关通知
         val watchedPackages = getWatchedPackages()
         if (packageName !in watchedPackages) {
-            Log.d(TAG, "Ignoring notification from unwatched package: $packageName")
+            Log.d(TAG, "忽略未监听的应用通知: $packageName")
             return
         }
 
@@ -174,13 +173,14 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         val notification = sbn.notification ?: return
         val extras = notification.extras ?: return
 
-        // Android 通知文本存储在 extras 的不同 key 中：
-        // - "android.title"  → 通知标题（如 "微信支付"）
-        // - "android.text"   → 通知正文（如 "微信支付收款¥50.00"）
-        // - "android.bigText" → 展开后的完整文本（微信消息类通知通常在此）
-        val title = extras.getCharSequence("android.title")?.toString() ?: ""
-        val text = extras.getCharSequence("android.text")?.toString() ?: ""
-        val bigText = extras.getCharSequence("android.bigText")?.toString() ?: ""
+        // 优先从 messages Bundle 提取（聊天类通知最可靠，无编码问题）
+        val title = extractTextFromBundle(extras, "android.title")
+        val text = extractTextFromBundle(extras, "android.text")
+        val bigText = extractTextFromBundle(extras, "android.bigText")
+
+        Log.d(TAG, "通知标题 [$packageName]: $title")
+        Log.d(TAG, "通知正文 [$packageName]: $text")
+        Log.d(TAG, "通知完整 [$packageName]: $bigText")
 
         // 拼接完整文本：优先用 bigText（更完整），其次用 text
         val fullText = buildString {
@@ -189,33 +189,92 @@ class PaymentNotificationListenerService : NotificationListenerService() {
             else if (text.isNotBlank()) append(text)
         }.trim()
 
-        Log.d(TAG, "Notification from $packageName: $fullText")
+        Log.d(TAG, "拼接后文本 [$packageName]: $fullText")
 
         if (fullText.isBlank()) return
 
         // ── 步骤 3：解析支付信息 ──
-        // 非付款/收款通知（如普通聊天消息）会返回 null，直接忽略
         val parsed = PaymentNotificationParser.parse(fullText, packageName)
         if (parsed == null) {
-            Log.d(TAG, "Not a payment notification, ignored")
+            Log.d(TAG, "非支付通知，已忽略 [$packageName]")
             return
         }
 
-        Log.d(TAG, "Parsed payment: ¥${parsed.amount} ${if (parsed.isExpense) "expense" else "income"} from ${parsed.source}")
+        Log.d(TAG, "解析成功: ¥${parsed.amount} ${if (parsed.isExpense) "支出" else "收入"} 来源=${parsed.source} 商户=${parsed.merchant ?: "无"}")
 
         // ── 步骤 4：写入 SQLite 待确认表 ──
-        // 返回值 > 0 表示成功插入，-1 表示去重跳过
         val id = saveToDatabase(parsed)
-        Log.d(TAG, "Saved to database, id=$id")
+        Log.d(TAG, "已保存到数据库, id=$id")
 
-        // ── 步骤 5：根据 APP 前状态选择推送通道 ──
+        // ── 步骤 5：根据 APP 前台状态选择推送通道 ──
         if (isAppInForeground && id > 0) {
-            // APP 在前台 → 通过 MethodChannel 实时推送到 Flutter → 弹出确认弹窗
+            Log.d(TAG, "APP 在前台，通过 MethodChannel 推送到 Flutter")
             pushToFlutter(parsed, id)
         } else if (id > 0) {
-            // APP 不在前台 → 发送系统通知 → 用户点击后打开 APP 查看待确认列表
+            Log.d(TAG, "APP 不在前台，发送系统通知")
             showSystemNotification(parsed, id)
         }
+    }
+
+    /**
+     * 从通知 extras Bundle 中安全提取文本
+     *
+     * 处理编码问题：部分银行 APP（如招商银行）的通知文本通过
+     * getCharSequence() 读取时会出现乱码。此方法尝试多种提取方式：
+     * 1. getCharSequence().toString()（常规方式）
+     * 2. 直接 getString()（部分 APP 用 String 而非 CharSequence 存储）
+     * 3. 从 messages MessagingStyle 消息中提取
+     */
+    private fun extractTextFromBundle(extras: android.os.Bundle, key: String): String {
+        // 方式 1：常规 CharSequence 提取
+        val charSeq = extras.getCharSequence(key)
+        if (charSeq != null) {
+            val text = charSeq.toString()
+            // 检查是否包含乱码特征（连续 3 个以上非 CJK 且非 ASCII 的字符）
+            if (text.isNotBlank() && !isGarbled(text)) {
+                return text
+            }
+            // 如果疑似乱码，尝试直接从 Bundle 取 String
+            val direct = extras.getString(key)
+            if (!direct.isNullOrBlank() && !isGarbled(direct)) {
+                return direct
+            }
+            // 都有乱码时返回原文（至少金额数字能被解析）
+            return text
+        }
+
+        // 方式 2：直接 getString
+        val str = extras.getString(key)
+        if (!str.isNullOrBlank()) return str
+
+        // 方式 3：从 MessagingStyle messages 中提取
+        if (key == "android.text") {
+            val messages = extras.getParcelableArray("android.messages")
+            if (messages != null && messages.isNotEmpty()) {
+                try {
+                    val msgBundle = messages[0] as? android.os.Bundle
+                    val msgText = msgBundle?.getCharSequence("text")?.toString()
+                    if (!msgText.isNullOrBlank()) return msgText
+                } catch (_: Exception) {}
+            }
+        }
+
+        return ""
+    }
+
+    /**
+     * 简单判断文本是否为乱码
+     *
+     * 特征：出现连续的 Unicode 乱码字符（如 锛€ 鍙 等 GBK 被当 UTF-8 解码的典型乱码）
+     */
+    private fun isGarbled(text: String): Boolean {
+        // 乱码特征：包含连续的特殊 Unicode 区间字符（0x4E00-0x9FFF 以外的罕见组合）
+        val garbledPattern = Regex("""[一-鿿]?[-ÿ]{2,}""")
+        val matches = garbledPattern.findAll(text).toList()
+        // 如果乱码片段占比超过 30%，认为整体是乱码
+        if (matches.isEmpty()) return false
+        val garbledLength = matches.sumOf { it.value.length }
+        return garbledLength.toFloat() / text.length > 0.3f
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
@@ -266,7 +325,7 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         val exists = cursor.moveToFirst()
         cursor.close()
         if (exists) {
-            Log.d(TAG, "Duplicate notification ignored (same source+amount+merchant within 120s)")
+            Log.d(TAG, "重复通知已忽略（120秒内相同来源+金额+商户）")
             return -1
         }
 
@@ -309,7 +368,7 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         try {
             channel.invokeMethod("onPaymentDetected", data)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to push to Flutter: ${e.message}")
+            Log.e(TAG, "推送到 Flutter 失败: ${e.message}")
         }
     }
 
@@ -348,7 +407,7 @@ class PaymentNotificationListenerService : NotificationListenerService() {
 
         val manager = getSystemService(NotificationManager::class.java)
         manager.notify(NOTIFICATION_ID + dbId.toInt(), notification)
-        Log.d(TAG, "System notification sent for payment id=$dbId")
+        Log.d(TAG, "系统通知已发送, 支付id=$dbId")
     }
 }
 
