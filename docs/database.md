@@ -210,9 +210,8 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
 | created_at | TEXT | 创建时间 |
 
 **数据流**:
-- APP 后台时：NotificationListenerService → 写入此表 → 发送系统通知
-- APP 前台时：MethodChannel 实时推送 → 弹出确认弹窗（不写入此表）
-- 用户点击系统通知 → 打开待确认列表页
+- NotificationListenerService 检测到支付通知 → 写入此表（status='pending'）
+- 用户打开待确认列表页 → 读取此表 → 确认后标记为 'confirmed'
 
 ---
 

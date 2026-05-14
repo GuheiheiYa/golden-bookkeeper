@@ -233,9 +233,20 @@ final categorySummaryProvider = FutureProvider.family<List<Map<String, dynamic>>
 
 // ========== 待确认支付通知 Provider ==========
 
+/// 待确认支付通知刷新触发器
+///
+/// 当 APP 从后台恢复到前台时递增，触发 [pendingNotificationCountProvider] 重新查询。
+/// 解决问题：Android 端静默写入新通知后，角标数量不会自动更新。
+final pendingRefreshProvider = StateProvider<int>((ref) => 0);
+
 /// 待确认支付通知数量（从原生 DB 读取）
+///
+/// 监听两个触发器：
+/// - [transactionRefreshProvider]：用户确认/忽略记账后刷新
+/// - [pendingRefreshProvider]：APP 从后台恢复时刷新（检测新通知）
 final pendingNotificationCountProvider = FutureProvider<int>((ref) async {
   ref.watch(transactionRefreshProvider);
+  ref.watch(pendingRefreshProvider);
   final service = PaymentNotificationService();
   final pending = await service.getPendingPayments();
   return pending.length;

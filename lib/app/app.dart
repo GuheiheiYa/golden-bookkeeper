@@ -3,11 +3,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/services/payment_notification_service.dart';
 import '../core/theme/app_theme.dart';
-import '../features/notification/presentation/pending_notifications_screen.dart';
-import '../features/notification/presentation/payment_confirm_sheet.dart';
 import 'router/app_router.dart';
 import 'di/providers.dart';
-import 'dart:async';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -18,55 +15,31 @@ class BookkeeperApp extends ConsumerStatefulWidget {
   ConsumerState<BookkeeperApp> createState() => _BookkeeperAppState();
 }
 
-class _BookkeeperAppState extends ConsumerState<BookkeeperApp> {
+class _BookkeeperAppState extends ConsumerState<BookkeeperApp>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    _initPaymentNotificationListener();
+    WidgetsBinding.instance.addObserver(this);
+    // 初始化支付通知 MethodChannel，使 Android 端可以推送数据到 Flutter
+    PaymentNotificationService().initialize();
   }
 
-  void _initPaymentNotificationListener() {
-    final service = PaymentNotificationService();
-    service.initialize();
-    service.onPaymentDetected = (data) {
-      if (!mounted) return;
-      final ctx = navigatorKey.currentContext;
-      if (ctx == null) return;
-      showModalBottomSheet<String>(
-        context: ctx,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => PaymentConfirmSheet(data: data),
-      );
-    };
-    service.onOpenPendingNotifications = () {
-      if (!mounted) return;
-      final ctx = navigatorKey.currentContext;
-      if (ctx == null) return;
-      Navigator.of(ctx).push(
-        MaterialPageRoute(builder: (_) => const PendingNotificationsScreen()),
-      );
-    };
-    // APP 启动时检查待处理的支付通知
-    _checkPendingPayments();
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
-  void _checkPendingPayments() {
-    // 延迟检查，等 Flutter 完全初始化
-    Future.delayed(const Duration(seconds: 2), () async {
-      if (!mounted) return;
-      final service = PaymentNotificationService();
-      final pending = await service.getPendingPayments();
-      if (!mounted || pending.isEmpty) return;
-      final ctx = navigatorKey.currentContext;
-      if (ctx == null) return;
-      showModalBottomSheet<String>(
-        context: ctx,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => PaymentConfirmSheet(data: pending.first),
-      );
-    });
+  /// APP 从后台恢复到前台时，刷新待确认通知数量角标
+  ///
+  /// 原因：Android 通知监听服务在 APP 后台时仍会静默写入新通知到数据库，
+  /// 但 Flutter 端无法感知。通过在 resume 时重新查询来保持角标同步。
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(pendingRefreshProvider.notifier).state++;
+    }
   }
 
   @override

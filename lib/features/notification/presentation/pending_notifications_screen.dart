@@ -5,10 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/di/providers.dart';
 import '../../../core/services/payment_notification_service.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/currency_formatter.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/empty_state.dart';
-import 'payment_confirm_sheet.dart';
+import 'pending_confirm_sheet.dart';
 
 /// 待确认记账列表页
 ///
@@ -19,14 +18,13 @@ import 'payment_confirm_sheet.dart';
 /// 的 pending_payments 表读取 status='pending' 的记录。
 ///
 /// ## 用户操作
-/// - **确认记账**：弹出 [PaymentConfirmSheet] 让用户选择分类和账户，确认后创建交易记录
+/// - **确认记账**：弹出 [PendingConfirmSheet]，可编辑分类、商品、备注后确认
 /// - **忽略**：将记录标记为已处理，不再显示
-/// - **全部确认**：自动为所有记录创建交易（使用"其他"分类 + 匹配账户）
+/// - **全部确认**：自动为所有记录创建交易（"其他"分类 + 匹配账户）
 /// - **清空**：删除所有待确认记录
 ///
 /// ## 进入方式
-/// 1. 首页 → 个人中心 → "待确认记账"按钮（带角标）
-/// 2. 用户点击支付检测系统通知 → 自动跳转到此页面
+/// 首页 → 个人中心 → "待确认记账"按钮（带角标）
 class PendingNotificationsScreen extends ConsumerStatefulWidget {
   const PendingNotificationsScreen({super.key});
 
@@ -38,7 +36,6 @@ class PendingNotificationsScreen extends ConsumerStatefulWidget {
 class _PendingNotificationsScreenState
     extends ConsumerState<PendingNotificationsScreen>
     with WidgetsBindingObserver {
-  /// 待确认的支付记录列表，每条包含：id/amount/isExpense/merchant/source/rawText/timestamp
   List<Map<String, dynamic>> _notifications = [];
   bool _loading = true;
 
@@ -55,7 +52,6 @@ class _PendingNotificationsScreenState
     super.dispose();
   }
 
-  /// APP 从后台恢复时自动刷新列表（用户可能在系统通知中点击了其他 APP 后返回）
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -63,7 +59,6 @@ class _PendingNotificationsScreenState
     }
   }
 
-  /// 从 Android 原生 SQLite 加载待确认记录
   Future<void> _loadNotifications() async {
     final service = PaymentNotificationService();
     final notifications = await service.getPendingPayments();
@@ -72,18 +67,44 @@ class _PendingNotificationsScreenState
         _notifications = notifications;
         _loading = false;
       });
-      // 刷新首页/明细页数据（记录被处理后余额会变化）
       ref.read(transactionRefreshProvider.notifier).state++;
     }
   }
 
-  String _timeAgo(int? millis) {
+  /// 格式化时间：相对时间 + 具体时刻
+  String _formatTime(int? millis) {
     if (millis == null) return '';
+    final dt = DateTime.fromMillisecondsSinceEpoch(millis);
     final diff = DateTime.now().millisecondsSinceEpoch - millis;
-    if (diff < 60000) return '刚刚';
-    if (diff < 3600000) return '${(diff / 60000).floor()}分钟前';
-    if (diff < 86400000) return '${(diff / 3600000).floor()}小时前';
-    return '${(diff / 86400000).floor()}天前';
+
+    String relative;
+    if (diff < 60000) {
+      relative = '刚刚';
+    } else if (diff < 3600000) {
+      relative = '${(diff / 60000).floor()}分钟前';
+    } else if (diff < 86400000) {
+      relative = '${(diff / 3600000).floor()}小时前';
+    } else {
+      relative = '${(diff / 86400000).floor()}天前';
+    }
+
+    final hh = dt.hour.toString().padLeft(2, '0');
+    final mm = dt.minute.toString().padLeft(2, '0');
+    return '$relative $hh:$mm';
+  }
+
+  /// 格式化通知日期（今天显示时间，其他日期显示月日+时间）
+  String _formatDate(int? millis) {
+    if (millis == null) return '';
+    final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+    final now = DateTime.now();
+    final hh = dt.hour.toString().padLeft(2, '0');
+    final mm = dt.minute.toString().padLeft(2, '0');
+
+    if (dt.year == now.year && dt.month == now.month && dt.day == now.day) {
+      return '今天 $hh:$mm';
+    }
+    return '${dt.month}/${dt.day} $hh:$mm';
   }
 
   IconData _sourceIcon(String source) {
@@ -150,7 +171,7 @@ class _PendingNotificationsScreenState
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _notifications.isEmpty
-              ? EmptyState(
+              ? const EmptyState(
                   icon: Icons.receipt_long_rounded,
                   title: '暂无待确认记账',
                   subtitle: '检测到支付后会自动出现在这里',
@@ -169,13 +190,13 @@ class _PendingNotificationsScreenState
 
   Widget _buildCard(Map<String, dynamic> notification, bool isDark) {
     final amount = (notification['amount'] as num?)?.toDouble() ?? 0;
-    // 原生 DB 返回 isExpense (bool)，兼容 is_expense (int)
     final rawExpense = notification['isExpense'] ?? notification['is_expense'];
     final isExpense = rawExpense == true || rawExpense == 1;
     final merchant = notification['merchant'] as String? ?? '';
     final source = notification['source'] as String? ?? '';
-    final rawText = notification['raw_text'] as String? ?? '';
-    final time = notification['notification_time'] as int?;
+    final rawText = notification['rawText'] as String? ?? notification['raw_text'] as String? ?? '';
+    final time = notification['timestamp'] as int? ?? notification['notification_time'] as int?;
+    final title = notification['title'] as String? ?? '';
 
     return AppCard(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -183,21 +204,17 @@ class _PendingNotificationsScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 头部：来源 + 时间
+          // 头部：来源图标 + 来源名/商户 + 日期
           Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
                   color: _sourceColor(source).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  _sourceIcon(source),
-                  size: 18,
-                  color: _sourceColor(source),
-                ),
+                child: Icon(_sourceIcon(source), size: 20, color: _sourceColor(source)),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -209,9 +226,7 @@ class _PendingNotificationsScreenState
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? AppColors.darkOnBackground
-                            : AppColors.lightOnBackground,
+                        color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
                       ),
                     ),
                     if (merchant.isNotEmpty)
@@ -219,48 +234,69 @@ class _PendingNotificationsScreenState
                         merchant,
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark
-                              ? AppColors.darkOnSurfaceVariant
-                              : AppColors.lightTextTertiary,
+                          color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                   ],
                 ),
               ),
-              Text(
-                _timeAgo(time),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDark
-                      ? AppColors.darkTextTertiary
-                      : AppColors.lightTextTertiary,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    _formatDate(time),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+                    ),
+                  ),
+                  Text(
+                    _formatTime(time),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
+
           // 金额
           Text(
             '${isExpense ? '-' : '+'}¥${amount.toStringAsFixed(2)}',
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w700,
-              color: isExpense
-                  ? AppColors.expense
-                  : AppColors.income,
+              color: isExpense ? AppColors.expense : AppColors.income,
             ),
           ),
+
+          // 通知标题（如果有且和商户不同）
+          if (title.isNotEmpty && title != merchant) ...[
+            const SizedBox(height: 6),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+
           // 原始通知文本
           if (rawText.isNotEmpty) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.darkSurface
-                    : AppColors.lightBackground,
+                color: isDark ? AppColors.darkSurface : AppColors.lightBackground,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -268,9 +304,7 @@ class _PendingNotificationsScreenState
                 style: TextStyle(
                   fontSize: 12,
                   height: 1.5,
-                  color: isDark
-                      ? AppColors.darkOnSurfaceVariant
-                      : AppColors.lightTextTertiary,
+                  color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightTextTertiary,
                 ),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
@@ -278,6 +312,7 @@ class _PendingNotificationsScreenState
             ),
           ],
           const SizedBox(height: 14),
+
           // 操作按钮
           Row(
             children: [
@@ -286,9 +321,7 @@ class _PendingNotificationsScreenState
                   onPressed: () => _ignore(notification['id'] as int),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 40),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text('忽略'),
                 ),
@@ -301,9 +334,7 @@ class _PendingNotificationsScreenState
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.lightPrimary,
                     minimumSize: const Size(0, 40),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text('确认记账'),
                 ),
@@ -315,12 +346,13 @@ class _PendingNotificationsScreenState
     ).animate().fadeIn(duration: 200.ms);
   }
 
+  /// 打开确认弹窗，允许用户编辑分类、商品、备注后确认记账
   Future<void> _confirmOne(Map<String, dynamic> notification) async {
     final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => PaymentConfirmSheet(data: notification),
+      builder: (_) => PendingConfirmSheet(data: notification),
     );
     if (result == 'confirmed' || result == 'ignore') {
       _loadNotifications();
@@ -338,7 +370,7 @@ class _PendingNotificationsScreenState
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('清空所有'),
-        content: const Text('确定要清空所有待确认的记账吗？'),
+        content: const Text('确定要清空所有待确认的记账吗？此操作不可恢复。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -368,7 +400,8 @@ class _PendingNotificationsScreenState
       final rawExp = notification['isExpense'] ?? notification['is_expense'];
       final isExpense = rawExp == true || rawExp == 1;
       final source = notification['source'] as String? ?? '';
-      final merchant = notification['merchant'] as String?;
+      final merchant = notification['merchant'] as String? ?? '';
+      final rawText = notification['rawText'] as String? ?? notification['raw_text'] as String? ?? '';
 
       final accountId = await db.getDefaultAccountBySource(source);
       if (accountId == null) continue;
@@ -385,7 +418,8 @@ class _PendingNotificationsScreenState
       await db.insertTransaction({
         'amount': amount,
         'is_expense': isExpense ? 1 : 0,
-        'note': merchant,
+        'goods': merchant,
+        'note': rawText,
         'date': DateTime.now().toIso8601String(),
         'category_id': categoryId,
         'account_id': accountId,

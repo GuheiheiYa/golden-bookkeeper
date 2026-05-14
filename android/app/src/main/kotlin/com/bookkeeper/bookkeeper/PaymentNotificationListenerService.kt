@@ -158,7 +158,6 @@ class PaymentNotificationListenerService : NotificationListenerService() {
             bigText = bigText,
             category = notification.category ?: "",
             channelId = notification.channelId ?: "",
-            groupKey = notification.groupKey ?: "",
             priority = notification.priority,
             postTime = sbn.postTime,
             tickerText = notification.tickerText?.toString() ?: ""
@@ -247,7 +246,6 @@ class PaymentNotificationListenerService : NotificationListenerService() {
             put("big_text", parsed.bigText)
             put("category", parsed.category)
             put("channel_id", parsed.channelId)
-            put("group_key", parsed.groupKey)
             put("priority", parsed.priority)
             put("post_time", parsed.postTime)
             put("ticker_text", parsed.tickerText)
@@ -294,7 +292,6 @@ class PendingPaymentDbHelper(context: Context) : SQLiteOpenHelper(context, DB_NA
                 big_text TEXT,
                 category TEXT,
                 channel_id TEXT,
-                group_key TEXT,
                 priority INTEGER,
                 post_time INTEGER,
                 ticker_text TEXT,
@@ -311,7 +308,6 @@ class PendingPaymentDbHelper(context: Context) : SQLiteOpenHelper(context, DB_NA
             db.execSQL("ALTER TABLE pending_payments ADD COLUMN big_text TEXT")
             db.execSQL("ALTER TABLE pending_payments ADD COLUMN category TEXT")
             db.execSQL("ALTER TABLE pending_payments ADD COLUMN channel_id TEXT")
-            db.execSQL("ALTER TABLE pending_payments ADD COLUMN group_key TEXT")
             db.execSQL("ALTER TABLE pending_payments ADD COLUMN priority INTEGER")
             db.execSQL("ALTER TABLE pending_payments ADD COLUMN post_time INTEGER")
             db.execSQL("ALTER TABLE pending_payments ADD COLUMN ticker_text TEXT")
@@ -326,7 +322,7 @@ class PendingPaymentDbHelper(context: Context) : SQLiteOpenHelper(context, DB_NA
         val cursor = db.rawQuery(
             """SELECT id, notification_id, amount, is_expense, merchant, source, raw_text,
                       package_name, notification_time, title, text, big_text,
-                      category, channel_id, group_key, priority, post_time, ticker_text
+                      category, channel_id, priority, post_time, ticker_text
                FROM pending_payments WHERE status = 'pending'
                ORDER BY notification_time ASC""",
             null
@@ -348,10 +344,9 @@ class PendingPaymentDbHelper(context: Context) : SQLiteOpenHelper(context, DB_NA
                 "bigText" to (cursor.getString(11) ?: ""),
                 "category" to (cursor.getString(12) ?: ""),
                 "channelId" to (cursor.getString(13) ?: ""),
-                "groupKey" to (cursor.getString(14) ?: ""),
-                "priority" to cursor.getInt(15),
-                "postTime" to cursor.getLong(16),
-                "tickerText" to (cursor.getString(17) ?: "")
+                "priority" to cursor.getInt(14),
+                "postTime" to cursor.getLong(15),
+                "tickerText" to (cursor.getString(16) ?: "")
             ))
         }
         cursor.close()

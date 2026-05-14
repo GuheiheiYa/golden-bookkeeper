@@ -4,6 +4,13 @@ import '../../../core/services/payment_notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_card.dart';
 
+/// 支付通知监听设置页
+///
+/// 功能：
+/// - 显示通知监听权限状态（已开启 / 未开启）
+/// - 引导用户前往系统设置授权
+/// - 提供 10 个支持的支付 APP 开关，控制哪些 APP 的通知需要监听
+/// - 展示使用说明
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
 
@@ -15,8 +22,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   final _service = PaymentNotificationService();
   bool _isPermissionEnabled = false;
   List<String> _watchedPackages = [];
-  bool _loading = true;
 
+  /// 支持的支付 APP 包名与显示名称映射
   static const _allPackages = <String, String>{
     'com.tencent.mm': '微信',
     'com.eg.android.AlipayGphone': '支付宝',
@@ -36,6 +43,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     _loadStatus();
   }
 
+  /// 加载权限状态和监听 APP 列表
   Future<void> _loadStatus() async {
     final enabled = await _service.isPermissionEnabled();
     final packages = await _service.getWatchedPackages();
@@ -43,7 +51,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       setState(() {
         _isPermissionEnabled = enabled;
         _watchedPackages = packages;
-        _loading = false;
       });
     }
   }
@@ -61,7 +68,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // 权限状态
+          // 权限状态卡片
           AppCard(
             margin: const EdgeInsets.only(bottom: 16),
             child: Column(
@@ -73,9 +80,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: (_isPermissionEnabled
-                                ? const Color(0xFF22C55E)
-                                : const Color(0xFFF59E0B))
-                            .withOpacity(0.1),
+                                ? AppColors.success
+                                : AppColors.warning)
+                            .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -83,8 +90,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                             ? Icons.check_circle
                             : Icons.warning_amber_rounded,
                         color: _isPermissionEnabled
-                            ? const Color(0xFF22C55E)
-                            : const Color(0xFFF59E0B),
+                            ? AppColors.success
+                            : AppColors.warning,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -128,7 +135,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             ),
           ).animate().fadeIn(duration: 300.ms),
 
-          // 说明文案
+          // 使用说明
           AppCard(
             margin: const EdgeInsets.only(bottom: 16),
             child: Column(
@@ -142,7 +149,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '开启后，应用将自动监听来自以下支付应用的推送通知，识别付款信息并提示你确认记账。\n\n'
+                  '开启后，应用将自动监听来自以下支付应用的推送通知，识别付款信息并存入待确认列表。\n\n'
                   '• 仅在检测到付款/收款通知时触发\n'
                   '• 需要你确认后才会记入账本\n'
                   '• 所有数据仅存储在本地',
@@ -182,7 +189,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       title: null,
                       value: isEnabled,
                       onChanged: (value) => _togglePackage(entry.key, value),
-                      activeColor: AppColors.lightPrimary,
+                      activeThumbColor: AppColors.lightPrimary,
                     ),
                   ],
                 );
@@ -194,6 +201,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     );
   }
 
+  /// 切换指定 APP 的监听状态
   Future<void> _togglePackage(String packageName, bool enable) async {
     final packages = List<String>.from(_watchedPackages);
     if (enable) {

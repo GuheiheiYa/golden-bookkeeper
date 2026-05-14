@@ -9,6 +9,34 @@
 
 ## [未发布] - 开发中
 
+### 重构 — 支付通知监听功能精简
+
+#### 变更说明
+精简支付通知监听功能架构：移除前台弹窗通知和系统通知，统一为"静默入库 + 待确认列表"模式。
+检测到支付后自动写入待确认表，用户在待确认记账列表中统一处理。
+
+#### 移除功能
+- **前台确认弹窗 (PaymentConfirmSheet)**：检测到付款后不再实时弹窗
+- **系统通知推送**：APP 后台时不再发送 Android 系统通知
+- **启动时弹窗检查**：APP 启动时不再自动弹出待确认记录
+- **调试日志文件写入**：移除 `writeToFile()` 调试代码
+
+#### 保留功能
+- 通知监听服务（PaymentNotificationListenerService）正常运行
+- 待确认记账列表（PendingNotificationsScreen）：单条确认/忽略、全部确认、清空
+- 通知设置页（NotificationSettingsScreen）：权限管理、APP 开关
+- 个人中心角标显示待确认数量
+
+#### 代码变更
+- 删除 `payment_confirm_sheet.dart`
+- 简化 `app.dart`：仅保留 `service.initialize()`
+- 简化 `PaymentNotificationListenerService.kt`：移除 `pushToFlutter`、`showSystemNotification`、`isAppInForeground`
+- 简化 `MainActivity.kt`：移除前台状态管理和通知 Intent 处理
+- 简化 `PaymentNotificationService.dart`：移除回调属性
+- 重构 `PendingNotificationsScreen`：确认记账改为自动匹配（与全部确认逻辑一致）
+- 修复 `NotificationSettingsScreen`：`withOpacity()` → `withValues(alpha:)`
+- 移除 `AndroidManifest.xml` 中 `POST_NOTIFICATIONS` 权限
+
 ### 计划功能
 - 数据备份/恢复
 - 多语言支持

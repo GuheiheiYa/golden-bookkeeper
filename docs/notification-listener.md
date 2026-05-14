@@ -1,17 +1,17 @@
 # 支付通知监听 — 自动记账 技术文档
 
-> 版本：v1.9.0 | 更新日期：2026-05-14
+> 版本：v1.9.0（重构） | 更新日期：2026-05-14
 
 ---
 
 ## 一、功能概述
 
-通过 Android 系统的 `NotificationListenerService` 监听微信、支付宝、各银行 APP 推送到状态栏的通知，自动识别付款/收款信息，经用户确认后创建交易记录。
+通过 Android 系统的 `NotificationListenerService` 监听微信、支付宝、各银行 APP 推送到状态栏的通知，自动识别付款/收款信息，静默写入待确认表，经用户确认后创建交易记录。
 
 **核心特点：**
 - 无需任何敏感权限，仅需用户在系统设置中授权"通知访问权限"
 - 服务由 Android 系统管理，APP 被杀死后仍可运行
-- 前台实时确认，后台系统通知引导
+- 检测到支付后静默入库，用户在待确认列表中统一处理
 
 ---
 
@@ -32,22 +32,23 @@
 │  2. 提取通知文本（title + bigText + text）                   │
 │  3. 调用 PaymentNotificationParser 解析                     │
 │  4. 写入 SQLite（去重：120秒内相同来源+金额+商户不重复）      │
-│  5. 判断 APP 前台状态，选择推送通道                           │
-└────────────┬──────────────────────────────┬─────────────────┘
-             │                              │
-     ┌───────▼────────┐            ┌────────▼─────────┐
-     │ APP 在前台      │            │ APP 不在前台      │
-     │                │            │                  │
-     │ MethodChannel  │            │ 系统通知          │
-     │ 实时推送到Flutter│           │ 用户点击打开APP   │
-     └───────┬────────┘            └────────┬─────────┘
-             │                              │
-             ▼                              ▼
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│              pending_payments.db（Android 原生 SQLite）       │
+│              status = 'pending' 的待确认记录                  │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                Flutter UI 层                                 │
 │                                                             │
-│  前台通道：PaymentConfirmSheet 弹窗（选分类/账户 → 确认）    │
-│  后台通道：PendingNotificationsScreen 待确认列表页           │
+│  PendingNotificationsScreen（待确认列表页）                  │
+│  ├─ 单条确认：自动匹配"其他"分类 + 默认账户 → 创建交易       │
+│  ├─ 忽略：标记为已处理                                       │
+│  ├─ 全部确认：批量创建交易                                   │
+│  └─ 清空：删除所有记录                                       │
 │                                                             │
 │  确认后：                                                   │
 │  ├─ db.insertTransaction() 写入交易记录                     │
@@ -64,17 +65,16 @@
 
 | 文件 | 路径 | 职责 |
 |------|------|------|
-| **PaymentNotificationListenerService.kt** | `android/.../kotlin/.../` | 核心服务：监听系统通知、解析、存储、推送 |
+| **PaymentNotificationListenerService.kt** | `android/.../kotlin/.../` | 核心服务：监听系统通知、解析、存储 |
 | **PaymentNotificationParser.kt** | 同上 | 通知文本解析器：正则提取金额/商户/收支方向 |
-| **MainActivity.kt** | 同上 | MethodChannel 桥接 + 前台状态管理 |
+| **MainActivity.kt** | 同上 | MethodChannel 桥接 |
 
 ### Flutter 层（Dart）
 
 | 文件 | 路径 | 职责 |
 |------|------|------|
 | **payment_notification_service.dart** | `lib/core/services/` | Flutter 端通信服务（单例） |
-| **payment_confirm_sheet.dart** | `lib/features/notification/presentation/` | 前台确认弹窗（选分类/账户/确认） |
-| **pending_notifications_screen.dart** | 同上 | 待确认列表页（单条确认/忽略/全部确认） |
+| **pending_notifications_screen.dart** | `lib/features/notification/presentation/` | 待确认列表页（单条确认/忽略/全部确认） |
 | **notification_settings_screen.dart** | 同上 | 权限设置页（检查权限/引导授权/APP 开关） |
 
 ### 配置文件
@@ -115,42 +115,28 @@ Android 系统
           │     └─ extractMerchant(fullText, source) → 提取商户名
           │     └─ 返回 ParsedPayment（或 null → 不是支付通知）
           │
-          ├─ 4. saveToDatabase(parsed)
-          │     ├─ 去重检查: 120秒内 source+amount+merchant 相同 → 跳过
-          │     └─ insert into pending_payments (status='pending')
-          │
-          └─ 5. 判断 isAppInForeground
-                ├─ true  → pushToFlutter(parsed, id)
-                │     └─ MainActivity.methodChannel.invokeMethod("onPaymentDetected", data)
-                │         └─ PaymentNotificationService._handleMethodCall()
-                │             └─ onPaymentDetected?.call(data)
-                │                 └─ app.dart → showModalBottomSheet(PaymentConfirmSheet)
-                │
-                └─ false → showSystemNotification(parsed, id)
-                      └─ 系统通知 "检测到支出 ¥XX.XX"
-                          └─ 用户点击 → PendingIntent → MainActivity
-                              └─ handlePendingNotificationIntent()
-                                  └─ invokeMethod("openPendingNotifications")
-                                      └─ Flutter 打开 PendingNotificationsScreen
+          └─ 4. saveToDatabase(parsed)
+                ├─ 去重检查: 120秒内 source+amount+merchant 相同 → 跳过
+                └─ insert into pending_payments (status='pending')
 ```
 
 ### 4.2 用户确认记账
 
 ```
-PaymentConfirmSheet._confirm(context)
+PendingNotificationsScreen._confirmOne(notification)
   │
-  ├─ 1. db.insertTransaction({...})
+  ├─ 1. db.getDefaultAccountBySource(source) → 匹配账户
+  ├─ 2. db.getCategories() → 找"其他"分类
+  │
+  ├─ 3. db.insertTransaction({...})
   │     └─ 写入 Flutter sqflite 数据库的 transactions 表
   │
-  ├─ 2. PaymentNotificationService().markPaymentProcessed(pendingId)
+  ├─ 4. PaymentNotificationService().markPaymentProcessed(id)
   │     └─ MethodChannel → MainActivity → PendingPaymentDbHelper.markAsProcessed(id)
   │         └─ UPDATE pending_payments SET status='confirmed' WHERE id=?
   │
-  ├─ 3. db.updateAccount(accountId, {'balance': newBalance})
-  │     └─ 支出: balance - amount | 收入: balance + amount
-  │
-  └─ 4. transactionRefreshProvider.notifier.state++
-        └─ 通知首页/明细页刷新数据
+  └─ 5. db.updateAccount(accountId, {'balance': newBalance})
+        └─ 支出: balance - amount | 收入: balance + amount
 ```
 
 ### 4.3 全部确认（批量）
@@ -224,13 +210,6 @@ NotificationSettingsScreen
 | `getPendingPayments` | 无 | `List<Map>` | 获取所有待确认记录 |
 | `markPaymentProcessed` | `int` (id) | `true` | 标记记录已处理 |
 | `clearPendingPayments` | 无 | `true` | 清空所有待处理记录 |
-
-### Android → Flutter（推送）
-
-| 方法名 | 数据格式 | 触发条件 |
-|--------|----------|----------|
-| `onPaymentDetected` | `Map {id, amount, isExpense, merchant, source, rawText, packageName, timestamp}` | APP 在前台时检测到付款 |
-| `openPendingNotifications` | 无 | 用户点击系统通知打开 APP |
 
 ---
 
