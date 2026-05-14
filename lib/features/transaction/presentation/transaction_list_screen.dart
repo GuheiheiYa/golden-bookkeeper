@@ -371,7 +371,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
             child: _buildGlassSummaryCard(
               label: '支出',
               amount: CurrencyFormatter.format(expense),
-              amountColor: AppColors.indigo950,
+              amountColor: AppColors.expense,
               iconBg: const Color(0xFFFFF1F2),
               iconColor: const Color(0xFFF43F5E),
               icon: Icons.arrow_downward,
@@ -777,7 +777,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: isExpense
-                          ? (isDark ? AppColors.darkOnBackground : AppColors.indigo950)
+                          ? (isDark ? AppColors.expense : AppColors.expense)
                           : (isDark ? AppColors.success : AppColors.emerald600),
                     ),
                   ),
@@ -1075,7 +1075,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -1,
-                    color: isExpense ? AppColors.indigo950 : AppColors.emerald600,
+                    color: isExpense ? AppColors.expense : AppColors.emerald600,
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -1201,7 +1201,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: isExpense ? AppColors.indigo950 : AppColors.emerald600,
+                          color: isExpense ? AppColors.expense : AppColors.emerald600,
                         ),
                       ),
                     ],
