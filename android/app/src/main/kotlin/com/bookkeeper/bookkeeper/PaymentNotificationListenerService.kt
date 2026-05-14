@@ -208,25 +208,33 @@ class PaymentNotificationListenerService : NotificationListenerService() {
     /**
      * 将解析后的支付信息写入 SQLite 待确认表
      *
-     * **去重逻辑**：相同 notification_id + package_name 的通知不重复入库。
-     * 同一通知被系统更新时（如进度变化），sbn.id 不变，直接跳过。
+     * **去重逻辑**：120 秒内相同来源 + 相同金额 + 相同商户的通知不重复入库。
+     *
+     * 不能用 notification_id 去重：微信等 APP 的 sbn.id 对所有通知都是同一个值（通常为 0），
+     * 导致第一条之后的所有微信通知都被误判为重复。
      *
      * @return 成功插入返回新记录的 id（> 0），去重跳过返回 -1
      */
     private fun saveToDatabase(parsed: ParsedPayment): Long {
         val db = dbHelper.writableDatabase
 
-        // 去重查询：相同通知 ID + 包名 → 跳过（通知更新，不是新通知）
+        // 去重查询：120秒内相同 来源+金额+商户 → 跳过（同一条支付通知的重复回调）
         val cursor = db.rawQuery(
             """SELECT id FROM pending_payments
-               WHERE notification_id = ? AND package_name = ?
+               WHERE source = ? AND amount = ? AND merchant = ?
+               AND notification_time > ?
                LIMIT 1""",
-            arrayOf(parsed.notificationId.toString(), parsed.packageName)
+            arrayOf(
+                parsed.source,
+                parsed.amount.toString(),
+                parsed.merchant ?: "",
+                (parsed.timestamp - 120000).toString()
+            )
         )
         val exists = cursor.moveToFirst()
         cursor.close()
         if (exists) {
-            Log.d(TAG, "重复通知已忽略（notificationId=${parsed.notificationId}）")
+            Log.d(TAG, "重复通知已忽略（120秒内相同 来源+金额+商户）")
             return -1
         }
 
