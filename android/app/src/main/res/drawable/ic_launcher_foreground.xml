@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 记事本主体（圆角矩形） -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M33,24 L33,84 Q33,88 37,88 L75,88 Q79,88 79,84 L79,24 Q79,20 75,20 L37,20 Q33,20 33,24 Z" />
+
+    <!-- 左侧装订线 -->
+    <path
+        android:fillColor="#7C3AED"
+        android:pathData="M37,20 L37,88 L40,88 L40,20 Z" />
+
+    <!-- 顶部横线 -->
+    <path
+        android:fillColor="#E8E0F0"
+        android:pathData="M46,32 L70,32 L70,34 L46,34 Z" />
+
+    <!-- 中部横线 -->
+    <path
+        android:fillColor="#E8E0F0"
+        android:pathData="M46,41 L70,41 L70,43 L46,43 Z" />
+
+    <!-- ¥ 符号竖笔画 -->
+    <path
+        android:fillColor="#7C3AED"
+        android:pathData="M57,48 L57,80"
+        android:strokeWidth="3"
+        android:strokeColor="#7C3AED" />
+
+    <!-- ¥ 符号左侧斜笔画 -->
+    <path
+        android:fillColor="#7C3AED"
+        android:pathData="M46,52 L57,64"
+        android:strokeWidth="3.5"
+        android:strokeColor="#7C3AED"
+        android:strokeLineCap="round" />
+
+    <!-- ¥ 符号右侧斜笔画 -->
+    <path
+        android:fillColor="#7C3AED"
+        android:pathData="M68,52 L57,64"
+        android:strokeWidth="3.5"
+        android:strokeColor="#7C3AED"
+        android:strokeLineCap="round" />
+
+    <!-- ¥ 符号上横线 -->
+    <path
+        android:fillColor="#7C3AED"
+        android:pathData="M47,52 L67,52"
+        android:strokeWidth="2.8"
+        android:strokeColor="#7C3AED"
+        android:strokeLineCap="round" />
+
+    <!-- ¥ 符号下横线 -->
+    <path
+        android:fillColor="#7C3AED"
+        android:pathData="M49,60 L65,60"
+        android:strokeWidth="2.8"
+        android:strokeColor="#7C3AED"
+        android:strokeLineCap="round" />
+</vector>

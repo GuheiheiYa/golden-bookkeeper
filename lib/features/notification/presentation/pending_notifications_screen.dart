@@ -141,6 +141,8 @@ class _PendingNotificationsScreenState
       'psbc': '邮储银行',
       'pingan': '平安银行',
       'citic': '中信银行',
+      'cmbc': '民生银行',
+      'xm': '厦门银行',
     };
     return names[source] ?? source;
   }
@@ -221,13 +223,25 @@ class _PendingNotificationsScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _sourceName(source),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          _sourceName(source),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'nid:${notification['notificationId'] ?? ''}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                          ),
+                        ),
+                      ],
                     ),
                     if (merchant.isNotEmpty)
                       Text(

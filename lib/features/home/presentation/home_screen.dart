@@ -788,6 +788,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         title: Text(
                           note.isNotEmpty ? note : categoryName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
@@ -835,6 +837,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final amount = (tx['amount'] as num).toDouble();
     final categoryName = tx['category_name'] as String? ?? '未分类';
     final accountName = tx['account_name'] as String? ?? '未知账户';
+    final goods = tx['goods'] as String? ?? '';
     final txDate = DateTime.parse(tx['date'] as String);
     final note = tx['note'] as String? ?? '';
 
@@ -879,14 +882,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              _buildDetailRow(context, '分类', categoryName),
-              _buildDetailRow(context, '账户', accountName),
-              _buildDetailRow(
-                context,
-                '日期',
-                '${txDate.year}-${txDate.month.toString().padLeft(2, '0')}-${txDate.day.toString().padLeft(2, '0')} ${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}',
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildDetailRow(context, '分类', categoryName),
+                      _buildDetailRow(context, '账户', accountName),
+                      _buildDetailRow(
+                        context,
+                        '日期',
+                        '${txDate.year}-${txDate.month.toString().padLeft(2, '0')}-${txDate.day.toString().padLeft(2, '0')} ${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}',
+                      ),
+                      if (goods.isNotEmpty) _buildDetailRow(context, '商品', goods),
+                      _buildDetailRow(context, '备注', note.isNotEmpty ? note : '无'),
+                    ],
+                  ),
+                ),
               ),
-              _buildDetailRow(context, '备注', note.isNotEmpty ? note : '无'),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
@@ -909,7 +922,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
@@ -918,11 +930,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
             ),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+              ),
             ),
           ),
         ],

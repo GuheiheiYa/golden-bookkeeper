@@ -34,7 +34,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     'com.ccb.start': '建设银行',
     'com.yitong.mbank.psbc': '邮储银行',
     'com.pingan.pacemaker': '平安银行',
-    'com.citiccard.mobilebank': '中信银行',
+    'com.ecitic.bank.mobile': '中信银行',
+    'com.citiccard.mobilebank': '中信信用卡',
+    'cn.com.cmbc.newmbank': '民生银行',
+    'com.csii.xm': '厦门银行',
   };
 
   @override

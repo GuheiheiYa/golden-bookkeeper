@@ -74,10 +74,8 @@ class MainActivity : FlutterActivity() {
                 // ── 获取当前监听的 APP 包名列表 ──
                 "getWatchedPackages" -> {
                     val prefs = getSharedPreferences("payment_notifications", MODE_PRIVATE)
-                    val packages = prefs.getStringSet(
-                        "watched_packages",
-                        PaymentNotificationListenerService.DEFAULT_WATCHED_PACKAGES
-                    ) ?: PaymentNotificationListenerService.DEFAULT_WATCHED_PACKAGES
+                    val removed = prefs.getStringSet("removed_packages", null) ?: emptySet()
+                    val packages = PaymentNotificationListenerService.DEFAULT_WATCHED_PACKAGES - removed
                     result.success(packages.toList())
                 }
 
@@ -85,9 +83,11 @@ class MainActivity : FlutterActivity() {
                 "setWatchedPackages" -> {
                     @Suppress("UNCHECKED_CAST")
                     val packages = call.arguments as? List<String> ?: emptyList()
+                    // 计算用户移除了哪些默认包名，存入 removed_packages
+                    val removed = PaymentNotificationListenerService.DEFAULT_WATCHED_PACKAGES - packages.toSet()
                     getSharedPreferences("payment_notifications", MODE_PRIVATE)
                         .edit()
-                        .putStringSet("watched_packages", packages.toSet())
+                        .putStringSet("removed_packages", removed)
                         .apply()
                     result.success(true)
                 }

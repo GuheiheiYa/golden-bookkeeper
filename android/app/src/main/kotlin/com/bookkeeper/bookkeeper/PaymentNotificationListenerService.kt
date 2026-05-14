@@ -76,7 +76,10 @@ class PaymentNotificationListenerService : NotificationListenerService() {
             "com.ccb.start",                   // 建设银行
             "com.yitong.mbank.psbc",           // 邮储银行
             "com.pingan.pacemaker",            // 平安银行
-            "com.citiccard.mobilebank"         // 中信银行
+            "com.ecitic.bank.mobile",          // 中信银行
+            "com.citiccard.mobilebank",        // 中信信用卡
+            "cn.com.cmbc.newmbank",            // 民生银行
+            "com.csii.xm"                     // 厦门银行
         )
     }
 
@@ -118,18 +121,23 @@ class PaymentNotificationListenerService : NotificationListenerService() {
      */
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         sbn ?: return
+        writeToFile("【到达】包名=${sbn.packageName} id=${sbn.id}")
 
+        try {
         val packageName = sbn.packageName
 
         // ── 步骤 1：包名白名单过滤 ──
         val watchedPackages = getWatchedPackages()
         if (packageName !in watchedPackages) {
+            writeToFile("【白名单过滤】$packageName 不在列表中，跳过")
             return
         }
 
         // ── 步骤 2：提取通知文本 ──
-        val notification = sbn.notification ?: return
-        val extras = notification.extras ?: return
+        val notification = sbn.notification
+        if (notification == null) { writeToFile("【notification为空】$packageName"); return }
+        val extras = notification.extras
+        if (extras == null) { writeToFile("【extras为空】$packageName"); return }
 
         val title = extractTextFromBundle(extras, "android.title")
         val text = extractTextFromBundle(extras, "android.text")
@@ -142,12 +150,19 @@ class PaymentNotificationListenerService : NotificationListenerService() {
             else if (text.isNotBlank()) append(text)
         }.trim()
 
-        if (fullText.isBlank()) return
+        if (fullText.isBlank()) {
+            writeToFile("【文本为空】$packageName title=$title text=$text bigText=$bigText")
+            return
+        }
+
+        // 调试：写入文件查看通知内容
+        writeToFile("[$packageName] title=$title | text=$text | bigText=$bigText | full=$fullText")
 
         // ── 步骤 3：解析支付信息 ──
         val parsed = PaymentNotificationParser.parse(fullText, packageName, sbn.id)
         if (parsed == null) {
             Log.d(TAG, "非支付通知，已忽略 [$packageName]")
+            writeToFile("【解析失败】[$packageName] $fullText")
             return
         }
 
@@ -170,6 +185,9 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         if (id > 0) {
             Log.d(TAG, "已保存到待确认表, id=$id")
         }
+        } catch (e: Exception) {
+            writeToFile("【异常】${sbn.packageName}: ${e.message}")
+        }
     }
 
     /**
@@ -190,6 +208,13 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         // 通知从状态栏移除时无需处理
     }
 
+    private fun writeToFile(content: String) {
+        try {
+            val file = java.io.File("/sdcard/Download/notification_log.txt")
+            file.appendText("$content\n---\n")
+        } catch (_: Exception) {}
+    }
+
     // ═══════════════════════════════════════════════════════════
     // 数据库操作
     // ═══════════════════════════════════════════════════════════
@@ -197,12 +222,15 @@ class PaymentNotificationListenerService : NotificationListenerService() {
     /**
      * 从 SharedPreferences 读取用户配置的监听 APP 包名集合
      *
-     * 如果用户从未修改过，返回 [DEFAULT_WATCHED_PACKAGES]。
+     * 以默认列表为基础，减去用户手动关闭的包名。
+     * 用户关闭的包名存储在 "removed_packages" key 中。
      */
     private fun getWatchedPackages(): Set<String> {
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getStringSet(KEY_WATCHED_PACKAGES, DEFAULT_WATCHED_PACKAGES)
-            ?: DEFAULT_WATCHED_PACKAGES
+        val removed = prefs.getStringSet("removed_packages", null) ?: emptySet()
+        val result = DEFAULT_WATCHED_PACKAGES - removed
+        writeToFile("【白名单】default=${DEFAULT_WATCHED_PACKAGES.size} removed=$removed result=${result.size} 包含cmb=${result.contains("cmb.pb")} 包含citic=${result.contains("com.citiccard.mobilebank")}")
+        return result
     }
 
     /**
@@ -216,17 +244,17 @@ class PaymentNotificationListenerService : NotificationListenerService() {
     private fun saveToDatabase(parsed: ParsedPayment): Long {
         val db = dbHelper.writableDatabase
 
-        // 去重查询：相同通知 ID + 包名 → 跳过（通知更新，不是新通知）
+        // 去重：5秒内出现相同金额的通知，视为同一笔交易（支付宝+银行双通知场景）
         val cursor = db.rawQuery(
             """SELECT id FROM pending_payments
-               WHERE notification_id = ? AND package_name = ?
+               WHERE amount = ? AND notification_time > ?
                LIMIT 1""",
-            arrayOf(parsed.notificationId.toString(), parsed.packageName)
+            arrayOf(parsed.amount.toString(), (parsed.timestamp - 5000).toString())
         )
         val exists = cursor.moveToFirst()
         cursor.close()
         if (exists) {
-            Log.d(TAG, "重复通知已忽略（notificationId=${parsed.notificationId}）")
+            Log.d(TAG, "重复通知已忽略（120秒内已有相同金额 ¥${parsed.amount}）")
             return -1
         }
 
@@ -324,7 +352,7 @@ class PendingPaymentDbHelper(context: Context) : SQLiteOpenHelper(context, DB_NA
                       package_name, notification_time, title, text, big_text,
                       category, channel_id, priority, post_time, ticker_text
                FROM pending_payments WHERE status = 'pending'
-               ORDER BY notification_time ASC""",
+               ORDER BY notification_time DESC""",
             null
         )
         val list = mutableListOf<Map<String, Any?>>()

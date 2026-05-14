@@ -49,7 +49,7 @@ class _BookkeeperAppState extends ConsumerState<BookkeeperApp>
 
     return MaterialApp.router(
       key: navigatorKey,
-      title: '记账本',
+      title: '咯噔记账',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

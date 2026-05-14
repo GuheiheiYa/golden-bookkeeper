@@ -257,6 +257,7 @@ class _PendingConfirmSheetState extends ConsumerState<PendingConfirmSheet> {
       'wechat': '微信', 'alipay': '支付宝', 'cmb': '招商银行',
       'icbc': '工商银行', 'boc': '中国银行', 'abc': '农业银行',
       'ccb': '建设银行', 'psbc': '邮储银行', 'pingan': '平安银行', 'citic': '中信银行',
+      'cmbc': '民生银行', 'xm': '厦门银行',
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

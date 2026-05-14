@@ -131,7 +131,10 @@ object PaymentNotificationParser {
         "com.ccb.start" to "ccb",                       // 建设银行
         "com.yitong.mbank.psbc" to "psbc",             // 邮储银行
         "com.pingan.pacemaker" to "pingan",             // 平安银行
-        "com.citiccard.mobilebank" to "citic"           // 中信银行
+        "com.ecitic.bank.mobile" to "citic",             // 中信银行
+        "com.citiccard.mobilebank" to "citic",         // 中信信用卡
+        "cn.com.cmbc.newmbank" to "cmbc",             // 民生银行
+        "com.csii.xm" to "xm"                         // 厦门银行
     )
 
     /**
