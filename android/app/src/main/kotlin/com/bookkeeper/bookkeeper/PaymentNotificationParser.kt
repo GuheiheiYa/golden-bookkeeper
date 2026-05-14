@@ -21,7 +21,17 @@ data class ParsedPayment(
     val source: String,
     val rawText: String,
     val packageName: String,
-    val timestamp: Long
+    val timestamp: Long,
+    val notificationId: Int = 0,
+    val title: String = "",
+    val text: String = "",
+    val bigText: String = "",
+    val category: String = "",
+    val channelId: String = "",
+    val groupKey: String = "",
+    val priority: Int = 0,
+    val postTime: Long = 0,
+    val tickerText: String = ""
 )
 
 /**
@@ -129,9 +139,10 @@ object PaymentNotificationParser {
      *
      * @param text       通知完整文本（title + bigText/text 拼接）
      * @param packageName 通知来源的 Android 包名
+     * @param notificationId Android 系统通知唯一 ID（sbn.id）
      * @return 解析成功返回 [ParsedPayment]，非支付通知或解析失败返回 null
      */
-    fun parse(text: String, packageName: String): ParsedPayment? {
+    fun parse(text: String, packageName: String, notificationId: Int = 0): ParsedPayment? {
         // 空文本直接跳过
         if (text.isBlank()) return null
 
@@ -161,7 +172,8 @@ object PaymentNotificationParser {
             source = source,
             rawText = text,
             packageName = packageName,
-            timestamp = System.currentTimeMillis()
+            timestamp = System.currentTimeMillis(),
+            notificationId = notificationId
         )
     }
 
