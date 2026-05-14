@@ -217,64 +217,58 @@ class PaymentNotificationListenerService : NotificationListenerService() {
     }
 
     /**
-     * 从通知 extras Bundle 中安全提取文本
+     * 从通知 extras Bundle 中安全提取文本（含编码修复）
      *
-     * 处理编码问题：部分银行 APP（如招商银行）的通知文本通过
-     * getCharSequence() 读取时会出现乱码。此方法尝试多种提取方式：
-     * 1. getCharSequence().toString()（常规方式）
-     * 2. 直接 getString()（部分 APP 用 String 而非 CharSequence 存储）
-     * 3. 从 messages MessagingStyle 消息中提取
+     * 部分银行 APP（如招商银行）的通知文本通过 getCharSequence() 读取时会乱码，
+     * 原因是通知文本在底层以 GBK/GB2312 编码存储，但被当作 UTF-8 解码。
+     *
+     * 处理方式：
+     * 1. 常规 getCharSequence().toString()
+     * 2. 检测乱码 → 将原文 UTF-8 字节重新用 GBK 解码修复
      */
     private fun extractTextFromBundle(extras: android.os.Bundle, key: String): String {
-        // 方式 1：常规 CharSequence 提取
         val charSeq = extras.getCharSequence(key)
         if (charSeq != null) {
             val text = charSeq.toString()
-            // 检查是否包含乱码特征（连续 3 个以上非 CJK 且非 ASCII 的字符）
-            if (text.isNotBlank() && !isGarbled(text)) {
-                return text
-            }
-            // 如果疑似乱码，尝试直接从 Bundle 取 String
-            val direct = extras.getString(key)
-            if (!direct.isNullOrBlank() && !isGarbled(direct)) {
-                return direct
-            }
-            // 都有乱码时返回原文（至少金额数字能被解析）
-            return text
-        }
-
-        // 方式 2：直接 getString
-        val str = extras.getString(key)
-        if (!str.isNullOrBlank()) return str
-
-        // 方式 3：从 MessagingStyle messages 中提取
-        if (key == "android.text") {
-            val messages = extras.getParcelableArray("android.messages")
-            if (messages != null && messages.isNotEmpty()) {
-                try {
-                    val msgBundle = messages[0] as? android.os.Bundle
-                    val msgText = msgBundle?.getCharSequence("text")?.toString()
-                    if (!msgText.isNullOrBlank()) return msgText
-                } catch (_: Exception) {}
+            if (text.isNotBlank()) {
+                return fixEncoding(text)
             }
         }
-
         return ""
     }
 
     /**
-     * 简单判断文本是否为乱码
+     * 修复通知文本编码
      *
-     * 特征：出现连续的 Unicode 乱码字符（如 锛€ 鍙 等 GBK 被当 UTF-8 解码的典型乱码）
+     * 检测乱码特征：中文字符之间夹杂连续的拉丁扩展区字符（如 鍙 鍚 鍙 等），
+     * 这是 GBK 字节被当作 UTF-8 解码的典型表现。
+     *
+     * 修复方式：将乱码文本的 UTF-8 字节还原，再用 GBK 重新解码。
      */
-    private fun isGarbled(text: String): Boolean {
-        // 乱码特征：包含连续的特殊 Unicode 区间字符（0x4E00-0x9FFF 以外的罕见组合）
-        val garbledPattern = Regex("""[一-鿿]?[-ÿ]{2,}""")
-        val matches = garbledPattern.findAll(text).toList()
-        // 如果乱码片段占比超过 30%，认为整体是乱码
-        if (matches.isEmpty()) return false
-        val garbledLength = matches.sumOf { it.value.length }
-        return garbledLength.toFloat() / text.length > 0.3f
+    private fun fixEncoding(text: String): String {
+        if (!looksGarbled(text)) return text
+
+        return try {
+            // 乱码文本的 UTF-8 字节 → 用 GBK 重新解码
+            val fixed = String(text.toByteArray(Charsets.UTF_8), charset("GBK"))
+            // 修复成功（包含正常中文）则返回修复后的文本
+            if (fixed.contains(Regex("[一-鿿]{2,}"))) fixed else text
+        } catch (_: Exception) {
+            text // 解码失败返回原文
+        }
+    }
+
+    /**
+     * 检测文本是否像乱码
+     *
+     * 特征：正常中文（一-鿿）之间夹杂大量拉丁扩展区字符（-ÿ），
+     * 这是 GBK 字节被 UTF-8 解码后的典型乱码样式，如 "鎴戜滑"、"閾惰"。
+     */
+    private fun looksGarbled(text: String): Boolean {
+        val latinExt = Regex("[-ÿ]+")
+        val latinExtCount = latinExt.findAll(text).sumOf { it.value.length }
+        // 拉丁扩展区字符占比超过 15% → 疑似乱码
+        return latinExtCount.toFloat() / text.length.coerceAtLeast(1) > 0.15f
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
