@@ -218,28 +218,35 @@ class PaymentNotificationListenerService : NotificationListenerService() {
     /**
      * 从通知 extras Bundle 中安全提取文本
      *
-     * 部分银行 APP（如招商银行）的通知文本在底层以 GBK 编码存储，
-     * 但 Android 系统按 UTF-8 解码，导致中文变成乱码。
-     * 这个乱码在 getCharSequence() 返回时已经存在，无法完美逆转。
-     *
-     * 策略：直接返回原始文本。金额数字（ASCII）不受编码影响，可正常解析。
-     * 中文乱码不影响核心记账功能（金额 + 收支方向仍可提取）。
+     * 尝试多种提取方式，选择最长/最完整的结果。
+     * 部分银行 APP 的通知文本在底层以 GBK 编码存储，但被按 UTF-8 解码导致乱码。
      */
     private fun extractTextFromBundle(extras: android.os.Bundle, key: String): String {
-        val charSeq = extras.getCharSequence(key)
-        if (charSeq != null) {
-            val text = charSeq.toString()
-            if (text.isNotBlank()) {
-                // 诊断日志：输出前 8 个字符的 Unicode 码点，帮助排查编码问题
-                val codepoints = text.take(8).joinToString(" ") {
-                    val hex = "%04X".format(it.code)
-                    if (it.code > 0x7F) "[$hex:${it}]" else "$hex:${it}"
-                }
-                Log.d(TAG, "文本码点 [$key]: $codepoints")
-                return text
-            }
+        // 方式 1：getCharSequence（标准方式）
+        val charSeqText = extras.getCharSequence(key)?.toString()?.trim() ?: ""
+
+        // 方式 2：直接 getString（部分通知用 String 而非 CharSequence）
+        val directText = extras.getString(key)?.trim() ?: ""
+
+        // 诊断：对比两种方式的结果
+        if (charSeqText != directText) {
+            Log.w(TAG, "提取方式不同 [$key]: charSeq=${charSeqText.take(20)} vs direct=${directText.take(20)}")
         }
-        return ""
+
+        // 选择较长的结果
+        val text = if (charSeqText.length >= directText.length) charSeqText else directText
+        if (text.isBlank()) return ""
+
+        // 诊断日志：输出文本和 hex 字节（前 30 字符）
+        val hexBytes = text.take(30).toByteArray(Charsets.UTF_8).joinToString(" ") {
+            "%02X".format(it)
+        }
+        val codepoints = text.take(8).joinToString(" ") { "U+%04X".format(it.code) }
+        Log.d(TAG, "文本 [$key]: $text")
+        Log.d(TAG, "码点 [$key]: $codepoints")
+        Log.d(TAG, "字节 [$key]: $hexBytes")
+
+        return text
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
