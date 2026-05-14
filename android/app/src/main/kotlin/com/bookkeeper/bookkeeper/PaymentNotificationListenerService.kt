@@ -190,6 +190,9 @@ class PaymentNotificationListenerService : NotificationListenerService() {
 
         Log.d(TAG, "拼接后文本 [$packageName]: $fullText")
 
+        // 写入文件，方便电脑上查看正确的中文内容
+        writeToFile("[$packageName] title=$title | text=$text | bigText=$bigText | full=$fullText")
+
         if (fullText.isBlank()) return
 
         // ── 步骤 3：解析支付信息 ──
@@ -198,6 +201,7 @@ class PaymentNotificationListenerService : NotificationListenerService() {
             Log.d(TAG, "非支付通知，已忽略 [$packageName]")
             return
         }
+
 
         Log.d(TAG, "解析成功: ¥${parsed.amount} ${if (parsed.isExpense) "支出" else "收入"} 来源=${parsed.source} 商户=${parsed.merchant ?: "无"}")
 
@@ -218,7 +222,7 @@ class PaymentNotificationListenerService : NotificationListenerService() {
     /**
      * 从通知 extras Bundle 中安全提取文本
      *
-     * 通过 getCharSequence 读取通知文本，并输出诊断日志。
+     * 通过 getCharSequence 读取通知文本。
      * 部分银行 APP 的通知文本可能存在编码问题，但金额数字（ASCII）不受影响。
      */
     private fun extractTextFromBundle(extras: android.os.Bundle, key: String): String {
@@ -226,15 +230,24 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         if (charSeq != null) {
             val text = charSeq.toString()
             if (text.isNotBlank()) {
-                // 诊断：输出文本前 20 字符的 hex 字节
-                val hex = text.take(20).toByteArray(Charsets.UTF_8).joinToString(" ") {
-                    "%02X".format(it)
-                }
-                Log.d(TAG, "EXTRACT [$key] hex=$hex len=${text.length}")
                 return text
             }
         }
         return ""
+    }
+
+    /**
+     * 将通知内容写入手机存储文件，用于调试查看
+     * 文件路径：/sdcard/Download/notification_log.txt
+     * 电脑上用记事本打开即可看到正确的中文
+     */
+    private fun writeToFile(content: String) {
+        try {
+            val file = java.io.File("/sdcard/Download/notification_log.txt")
+            file.appendText(content + "\n---\n")
+        } catch (_: Exception) {
+            // 写入失败不影响主流程
+        }
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
