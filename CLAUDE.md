@@ -5,59 +5,43 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 **项目名称**: 记账本 (Bookkeeper)
-**版本**: 1.0.0
+**版本**: 1.9.0
 **平台**: Android (Flutter 跨平台)
-**描述**: 一个功能完整、界面美观的记账 APP，采用 Claude 风格设计（紫色/靛蓝主色调）
+**描述**: 一个功能完整、界面美观的记账 APP，采用 Peekaboo 柔和梦幻设计风格（梦幻紫 #B8A9E8 + 暖黄强调 #FFD93D）
 
 ## 技术栈
 
 | 组件 | 选择 | 理由 |
 |------|------|------|
 | 框架 | Flutter | 跨平台，一套代码 |
-| 状态管理 | Riverpod | 编译时安全，与 drift Stream 无缝配合 |
-| 数据库 | drift (SQLite ORM) | 类型安全查询，Stream 响应式 |
+| 状态管理 | Riverpod | 编译时安全，与 Stream 无缝配合 |
+| 数据库 | sqflite (SQLite) | 原生查询，无 ORM 开销 |
 | 路由 | go_router | 声明式路由，支持嵌套导航 |
 | 图表 | fl_chart | 饼图/折线图/柱状图全支持 |
 | 动画 | flutter_animate | 声明式链式动画 |
+| 通知监听 | Android NotificationListenerService | 原生系统服务 |
 
 ## 开发命令
 
 ### 环境准备
 ```bash
-# 检查 Flutter 环境
 flutter doctor
-
-# 获取依赖
 flutter pub get
-
-# 生成代码 (drift 和 riverpod)
 dart run build_runner build --delete-conflicting-outputs
-
-# 监听代码变化并自动生成
-dart run build_runner watch
+dart run build_runner watch  # 监听模式
 ```
 
 ### 运行和调试
 ```bash
-# 运行应用
 flutter run
-
-# 运行测试
 flutter test
-
-# 运行单个测试
 flutter test test/path/to/test.dart
-
-# 构建 APK
 flutter build apk --release
 ```
 
 ### 代码质量
 ```bash
-# 代码分析
 flutter analyze
-
-# 格式化代码
 dart format lib/
 ```
 
@@ -65,21 +49,25 @@ dart format lib/
 
 ```
 lib/
-├── main.dart                          # 应用入口
+├── main.dart
 ├── app/
 │   ├── app.dart                       # MaterialApp 配置
-│   ├── router/app_router.dart         # go_router 路由定义
+│   ├── router/app_router.dart         # go_router 路由 + 底部导航栏
 │   └── di/providers.dart              # Riverpod Provider 注册
 ├── core/
-│   ├── database/                      # drift 数据库
-│   │   ├── app_database.dart          # 数据库定义
+│   ├── database/
+│   │   ├── app_database.dart          # 数据库定义 + 迁移
 │   │   ├── tables/                    # 表定义
-│   │   └── daos/                      # 数据访问对象
-│   ├── theme/                         # 主题系统
-│   ├── constants/                     # 常量定义
-│   ├── utils/                         # 工具类
-│   └── services/                      # 服务层
-├── features/                          # 功能模块
+│   │   └── daos/                      # 数据访问
+│   ├── theme/
+│   │   ├── app_colors.dart            # 色彩系统（AppColors）
+│   │   └── app_theme.dart             # ThemeData 配置
+│   ├── constants/
+│   ├── utils/
+│   └── services/
+│       ├── notification_service.dart  # 消息通知服务（v1.4.0）
+│       └── payment_notification_service.dart  # 支付通知服务（v1.9.0）
+├── features/
 │   ├── home/                          # 首页
 │   ├── transaction/                   # 记账核心
 │   ├── category/                      # 分类管理
@@ -89,52 +77,57 @@ lib/
 │   ├── account/                       # 账户管理
 │   ├── tag/                           # 标签管理
 │   ├── import/                        # 账单导入
+│   ├── profile/                       # 个人中心（v1.8.0）
+│   ├── loan/                          # 贷款管理（v1.8.0）
+│   ├── notification/                  # 智能记账通知（v1.9.0）
 │   └── settings/                      # 设置
-└── shared/                            # 共享组件
-    ├── widgets/                       # 通用组件
-    └── mixins/                        # 混入
+└── shared/
+    ├── widgets/
+    │   └── app_card.dart              # 通用卡片组件
+    └── mixins/
 ```
 
 ## 数据库表结构
 
-| 表名 | 描述 |
-|------|------|
-| accounts | 账户表（现金、银行卡、支付宝、微信） |
-| categories | 分类表（支持二级分类） |
-| transactions | 交易记录表（核心表） |
-| tags | 标签表 |
-| transaction_tags | 交易-标签关联表 |
-| budgets | 预算表 |
-| recurring_rules | 周期记账规则表 |
-| exchange_rates | 汇率缓存表 |
-| import_records | 导入记录表 |
-| import_duplicates | 重复记录检测表 |
+| 表名 | 描述 | 引入版本 |
+|------|------|----------|
+| accounts | 账户表（现金/银行卡/支付宝/微信/贷款） | v1.0.0 |
+| categories | 分类表（含 loan_id 关联贷款） | v1.0.0 (v3) |
+| transactions | 交易记录表（核心表，含 goods 字段） | v1.0.0 (v2) |
+| tags | 标签表 | v1.0.0 |
+| transaction_tags | 交易-标签关联表 | v1.0.0 |
+| budgets | 预算表 | v1.0.0 |
+| recurring_rules | 周期记账规则表 | v1.0.0 |
+| exchange_rates | 汇率缓存表 | v1.0.0 |
+| pending_payments | 待确认支付表（支付通知监听） | v1.9.0 |
+
+详见 `docs/database.md`
 
 ## 双主题 UI 设计（Peekaboo 柔和梦幻风格）
 
 ### 浅色模式
-- **背景**: 紫粉渐变 `#E8DFF5` → `#F3EEF8` → `#FDE8EF`
-- **卡片**: 半透明白色 `#F0FFFFFF`（毛玻璃效果），渐变背景微透出
+- **背景**: 紫粉渐变 `#1E1B4B` → `#F5D5C8` → `#F0E6F6`（三色 bgGradient）
+- **卡片**: 暖米白 `#E8FBF5EF`（91%透明），毛玻璃效果，0.5px 淡紫描边
 - **强调色**: 暖黄 `#FFD93D`（FAB、按钮）
-- **文字**: `#1A1A1A` / `#666666` / `#999999`
+- **文字**: `#2D2D3F` / `#6B6B80` / `#9B9BB0`
 - **导航**: 浮动胶囊底部栏，圆角 24px
 
 ### 深色模式
-- **背景**: 深紫渐变 `#1A1525` → `#1F1A2D` → `#251F30`
+- **背景**: 深紫渐变 `#1C1618` → `#201A1C` → `#251E20`
 - **卡片**: 半透明深色，毛玻璃描边
 - **强调色**: 暖黄 `#FFD93D`
-- **发光**: `AppColors.primaryDark.withOpacity(0.15~0.30)`
+- **文字**: `#F5EDE8` / `#BEB0A8` / `#8A7E78`
 
 ### 主题感知
 - 使用 `AppColors.primaryOf(brightness)` 获取当前主题主色
 - 使用 `AppColors.secondaryOf(brightness)` 获取当前主题次色
-- 字体: Noto Sans SC (中文)
+- 字体: Noto Sans SC（中文）
 - 动画: flutter_animate 链式调用
 - 设计规范: `docs/design/peekaboo_style_spec.md`
 
 ---
 
-## UI 设计强制规范（项目标准）
+## UI 设计强制规范
 
 > **本节为项目硬性规范，所有新增页面、组件、修改必须遵守。**
 > 违反本规范的代码不予合入。
@@ -239,14 +232,13 @@ LinearGradient(colors: [AppColors.balanceGradientStartDark, AppColors.balanceGra
 ### 二、字体规范
 
 #### 2.1 字体家族
-
 - 中文：Noto Sans SC（思源黑体）
 - 英文/数字：系统默认（DIN Alternate 或 Roboto）
 
 #### 2.2 字号层级
 
-| 层级 | 字号 | 字重 | 用途 | AppColors 对应 |
-|------|------|------|------|----------------|
+| 层级 | 字号 | 字重 | 用途 | 颜色绑定 |
+|------|------|------|------|----------|
 | H1 | 32px | w700 Bold | 余额大数字 | `lightOnBackground` / `darkOnBackground` |
 | H2 | 24px | w600 SemiBold | 问候语、页面大标题 | `lightOnBackground` / `darkOnBackground` |
 | H3 | 20px | w600 SemiBold | 区块标题 | `lightOnBackground` / `darkOnBackground` |
@@ -741,7 +733,7 @@ ClipRRect(
   child: LinearProgressIndicator(
     minHeight: 8,
     backgroundColor: Colors.grey.withValues(alpha: 0.15),
-    valueColor: AlwaysStoppedAnimation(AppColors.success),  // #22C55E
+    valueColor: AlwaysStoppedAnimation(AppColors.success),
   ),
 )
 ```
@@ -1029,7 +1021,7 @@ item.animate().fadeIn(
 
 ---
 
-### 十一、代码编写强制规则
+### 十一、代码编写强制规则（11 条）
 
 1. **颜色引用**：所有颜色必须通过 `AppColors.xxx` 引用，禁止硬编码 `Color(0xFF...)`
 2. **透明度方法**：禁止使用 `withOpacity()`，统一使用 `withValues(alpha: ...)`
@@ -1041,32 +1033,35 @@ item.animate().fadeIn(
 8. **主题判断**：使用 `Theme.of(context).brightness == Brightness.dark` 或 `isDark` 变量
 9. **间距**：区块间距统一 `24px`，卡片间距 `6-8px`，遵循间距系统
 10. **圆角**：遵循圆角系统，不得随意设置非标准圆角值
+11. **文件路径**：安装/导出/生成文件优先使用 D 盘（`D:/` 或 `D:/project/`），禁止默认输出到 C 盘
+
+---
 
 ## 文档管理
 
-### 文档位置
-- 需求文档: `docs/requirements.md`
-- 功能文档: `docs/features.md`
-- 版本日志: `docs/changelog.md`
+### 文档索引
+| 文档 | 路径 | 说明 |
+|------|------|------|
+| 文档中心 | `docs/README.md` | 统一入口，含所有文档链接和开发速查 |
+| 需求文档 | `docs/requirements.md` | 项目需求、非功能需求、里程碑 |
+| 功能文档 | `docs/features.md` | 功能模块详情（含数据模型、UI 说明） |
+| 版本日志 | `docs/changelog.md` | 按时间倒序的完整版本记录 |
+| 数据库说明 | `docs/database.md` | 表结构、版本迁移、备份恢复 |
+| Bug 追踪 | `docs/bugs.md` | Bug 记录和修复状态 |
+| 设计规范 | `docs/design/peekaboo_style_spec.md` | Peekaboo 风格完整视觉规范 |
+| UI 参考 | `docs/design/ui-style-reference.md` | UI 风格参考与设计对照 |
+| 历史主题 | `docs/design/theme-*.md` | 霓虹深色 / 自然浅色（归档） |
 
-### 更新文档
-使用 `/update-docs` skill 自动更新文档：
+### 使用 `/update-docs` skill 更新文档
 ```
 /update-docs features 新增了标签筛选功能
-/update-docs changelog v1.1.0 新增标签筛选
+/update-docs changelog v1.2.0 新增标签筛选
 /update-docs all 完成了预算管理模块
 ```
 
-## 开发规范
+---
 
-### 文件路径规范（硬性要求）
-- **安装应用、导出文件、生成文件等操作必须优先使用 D 盘**
-- 默认路径：`D:/` 或 `D:/project/`
-- 禁止将文件输出到 C 盘（除非用户明确指定）
-- 示例：
-  - APK 输出：`D:/project/bookkeeper/build/`
-  - 导出文件：`D:/exports/`
-  - 临时文件：`D:/temp/`
+## 开发规范
 
 ### Git 提交规范（硬性要求）
 - **每次完成一个功能或修复后，必须立即提交 git**
@@ -1074,178 +1069,21 @@ item.animate().fadeIn(
   1. `git add` 添加相关文件
   2. `git commit` 提交（使用规范的 commit message）
   3. `git push` 推送到远程仓库
-- 触发时机：
-  - 新功能开发完成后
-  - Bug 修复完成后
-  - 文档更新完成后
-  - 代码重构完成后
 - 禁止积压多个功能后一次性提交
 
 ### 文档更新规范（硬性要求）
-- **每次完成一个功能或修复后，必须在 Git 提交之前同步更新文档**
-- 文档更新流程（先文档，后提交，一次 commit 包含代码 + 文档）：
+- **每次完成功能或修复后，必须同步更新文档**
+- 流程（先文档，后提交，一次 commit）：
   1. 更新 `docs/changelog.md`：在 `[未发布]` 之前插入新版本条目
-  2. 更新 `docs/features.md`：在版本历史区插入新版本条目
-  3. 如果涉及新功能模块，更新 features.md 的功能描述部分
-  4. 如果涉及数据库变更，更新 `docs/database.md`
-  5. 将文档和代码一起 `git add` + `git commit`
-- 禁止"先提交代码、再补文档"的做法——文档和代码必须在同一个 commit 中
-- 触发时机（与 Git 提交规范一致）：
-  - 新功能开发完成后
-  - Bug 修复完成后
-  - UI/UX 重构完成后
-  - 代码重构完成后
-  - 数据库表结构变更后
-- changelog.md 版本条目格式：
-  - 标题：`## [版本号] - YYYY-MM-DD`
-  - 分区：新增功能 / 改进优化 / 问题修复 / 技术变更
-  - 同步更新底部版本历史表格
-
-[//]: # (### 测试规范（硬性要求）)
-
-[//]: # (- **每次功能开发或修改完成后，必须启动子 agent 作为资深测试工程师进行测试**)
-
-[//]: # (- 测试流程：)
-
-[//]: # (  1. 功能开发完成)
-
-[//]: # (  2. 启动子 agent 进行测试)
-
-[//]: # (  3. 测试通过后提交代码)
-
-[//]: # (  4. 测试失败则修复后重新测试)
-
-[//]: # (- 测试内容：)
-
-[//]: # (  - 功能正常性测试（核心流程）)
-
-[//]: # (  - 边界条件测试)
-
-[//]: # (  - UI/UX 测试（布局、样式、交互）)
-
-[//]: # (  - 兼容性测试（深色/浅色模式）)
-
-[//]: # (- 子 agent 职责：)
-
-[//]: # (  - 阅读相关代码，理解功能逻辑)
-
-[//]: # (  - 检查潜在的 bug 和问题)
-
-[//]: # (  - 验证 UI 布局和样式)
-
-[//]: # (  - 提出改进建议)
-
-[//]: # (  - 生成测试文档（见下方格式）)
-
-[//]: # ()
-[//]: # (### 测试文档规范)
-
-[//]: # (- **每次测试必须生成测试文档，保存到 `docs/testing/` 目录**)
-
-[//]: # (- 文件命名：`YYYY-MM-DD_功能名称.md`)
-
-[//]: # (- 文档格式：)
-
-[//]: # (```markdown)
-
-[//]: # (# 测试报告：功能名称)
-
-[//]: # ()
-[//]: # (## 测试信息)
-
-[//]: # (- **测试时间**: YYYY-MM-DD HH:mm:ss)
-
-[//]: # (- **测试版本**: v1.x.x)
-
-[//]: # (- **测试人员**: Claude &#40;AI 测试工程师&#41;)
-
-[//]: # (- **测试结果**: ✅ 通过 / ❌ 失败)
-
-[//]: # ()
-[//]: # (## 测试范围)
-
-[//]: # (- 修改的文件列表)
-
-[//]: # (- 影响的功能模块)
-
-[//]: # ()
-[//]: # (## 测试用例)
-
-[//]: # ()
-[//]: # (### 功能测试)
-
-[//]: # (| 编号 | 测试项 | 测试步骤 | 预期结果 | 实际结果 | 状态 |)
-
-[//]: # (|------|--------|----------|----------|----------|------|)
-
-[//]: # (| TC001 | xxx | 1. xxx | xxx | xxx | ✅/❌ |)
-
-[//]: # ()
-[//]: # (### 边界测试)
-
-[//]: # (| 编号 | 测试项 | 测试步骤 | 预期结果 | 实际结果 | 状态 |)
-
-[//]: # (|------|--------|----------|----------|----------|------|)
-
-[//]: # ()
-[//]: # (### UI/UX 测试)
-
-[//]: # (| 编号 | 测试项 | 测试步骤 | 预期结果 | 实际结果 | 状态 |)
-
-[//]: # (|------|--------|----------|----------|----------|------|)
-
-[//]: # ()
-[//]: # (## 发现的问题)
-
-[//]: # (| 编号 | 问题描述 | 严重程度 | 状态 |)
-
-[//]: # (|------|----------|----------|------|)
-
-[//]: # (| BUG001 | xxx | 高/中/低 | 已修复/待修复 |)
-
-[//]: # ()
-[//]: # (## 测试结论)
-
-[//]: # (- 测试总结)
-
-[//]: # (- 遗留问题)
-
-[//]: # (- 改进建议)
-
-[//]: # (```)
-
-### 并行开发规范（可选）
-- **当功能可以拆分为多个独立子任务时，可以使用子 agent 并行执行**
-- 适用场景：
-  - 多个独立的 UI 组件开发
-  - 多个独立的 API 接口实现
-  - 多个独立的 bug 修复
-  - 文档更新与代码开发并行
-- 使用方式：
-  - 使用 Agent 工具启动多个子 agent
-  - 每个子 agent 负责一个独立任务
-  - 主 agent 负责协调和合并结果
-- 注意事项：
-  - 确保子任务之间没有依赖关系
-  - 子任务完成后由主 agent 统一提交
-  - 避免多个子 agent 修改同一文件
-
-### 上下文管理（可选）
-- **当对话上下文过长时，可以执行 `/compact` 压缩上下文**
-- 触发时机：
-  - 进行了大量代码修改后
-  - 上下文包含过多工具调用结果时
-  - 感觉响应变慢或质量下降时
-- 使用方式：直接输入 `/compact` 命令
-- 注意事项：
-  - 压缩后会保留关键信息和摘要
-  - 不会影响代码修改和文件状态
-  - 可以在任何时候执行
+  2. 更新 `docs/features.md`：更新对应功能列表
+  3. 如涉及数据库变更 → 更新 `docs/database.md`
+  4. 如涉及 UI 规范变更 → 更新 `CLAUDE.md`
+  5. 代码 + 文档一起 `git add` + `git commit`
 
 ### 代码规范
 - 使用 Dart 官方代码风格
 - 使用 Riverpod 进行状态管理
-- 使用 drift 进行数据库操作
+- 使用 sqflite 进行数据库操作
 - 使用 go_router 进行路由管理
 
 ### 命名规范
@@ -1254,47 +1092,44 @@ item.animate().fadeIn(
 - 变量/函数: camelCase
 - 常量: camelCase (Dart 推荐)
 
-### 提交规范
-- feat: 新功能
-- fix: 修复问题
-- docs: 文档更新
-- style: 代码格式调整
-- refactor: 代码重构
-- test: 测试相关
-- chore: 构建/工具相关
+### 提交前缀
+| 前缀 | 用途 |
+|------|------|
+| `feat:` | 新功能 |
+| `fix:` | 修复问题 |
+| `docs:` | 文档更新 |
+| `style:` | 代码格式调整 |
+| `refactor:` | 代码重构 |
+| `test:` | 测试相关 |
+| `chore:` | 构建/工具相关 |
+
+---
 
 ## 重要说明
 
 ### 代码生成
-- drift 和 riverpod 需要代码生成
 - 修改表定义后必须运行 `dart run build_runner build`
 - `.g.dart` 文件是自动生成的，不要手动修改
 
 ### 数据库迁移
 - 修改表结构需要更新 schemaVersion
 - 在 migration 中添加迁移逻辑
-- 测试迁移脚本的正确性
+- 当前版本：v3（categories 含 loan_id）
 
 ### 主题切换
 - 使用 Riverpod 管理主题状态
 - 支持深色/浅色/跟随系统三种模式
 - 主题持久化到 SharedPreferences
 
-## 常见问题
+### 并行开发规范
+- 独立子任务可使用子 agent 并行执行
+- 确保子任务之间无依赖，避免修改同一文件
 
-### Q: 如何添加新的数据库表？
-A: 在 `core/database/tables/` 中创建表定义，然后在 `app_database.dart` 中注册，最后运行代码生成。
-
-### Q: 如何添加新的功能模块？
-A: 在 `features/` 中创建新的模块目录，包含 `presentation/`、`domain/`、`providers/` 子目录。
-
-### Q: 如何更新文档？
-A: 使用 `/update-docs` skill，指定文档类型和更新内容。
+---
 
 ## 相关资源
 
 - [Flutter 官方文档](https://flutter.dev)
-- [drift 文档](https://drift.simonbinder.eu)
 - [Riverpod 文档](https://riverpod.dev)
 - [go_router 文档](https://pub.dev/packages/go_router)
 - [fl_chart 文档](https://pub.dev/packages/fl_chart)
