@@ -27,7 +27,7 @@ import androidx.core.app.NotificationCompat
  *   → 包名白名单过滤（getWatchedPackages）
  *   → 提取通知文本（title + bigText + text）
  *   → PaymentNotificationParser.parse() 解析金额/商户/收支方向
- *   → saveToDatabase() 写入本地 SQLite（去重：10秒内相同通知不重复入库）
+ *   → saveToDatabase() 写入本地 SQLite（去重：120秒内相同通知不重复入库）
  *   → 判断 APP 是否在前台：
  *       ├─ 在前台 → pushToFlutter() 通过 MethodChannel 推送 → Flutter 弹出确认弹窗
  *       └─ 不在前台 → showSystemNotification() 发送系统通知 → 用户点击打开待确认列表
@@ -152,7 +152,7 @@ class PaymentNotificationListenerService : NotificationListenerService() {
      *
      * 处理流程：
      * 1. 包名白名单过滤 → 不在监听列表中直接返回
-     * 2. 提取通知文本（title + bigText + text，含编码修复）
+     * 2. 提取通知文本（title + bigText + text）
      * 3. 调用 [PaymentNotificationParser.parse] 解析支付信息
      * 4. 写入 SQLite 待确认表（去重）
      * 5. 根据 APP 前台状态选择推送通道
@@ -173,7 +173,6 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         val notification = sbn.notification ?: return
         val extras = notification.extras ?: return
 
-        // 优先从 messages Bundle 提取（聊天类通知最可靠，无编码问题）
         val title = extractTextFromBundle(extras, "android.title")
         val text = extractTextFromBundle(extras, "android.text")
         val bigText = extractTextFromBundle(extras, "android.bigText")
@@ -217,58 +216,30 @@ class PaymentNotificationListenerService : NotificationListenerService() {
     }
 
     /**
-     * 从通知 extras Bundle 中安全提取文本（含编码修复）
+     * 从通知 extras Bundle 中安全提取文本
      *
-     * 部分银行 APP（如招商银行）的通知文本通过 getCharSequence() 读取时会乱码，
-     * 原因是通知文本在底层以 GBK/GB2312 编码存储，但被当作 UTF-8 解码。
+     * 部分银行 APP（如招商银行）的通知文本在底层以 GBK 编码存储，
+     * 但 Android 系统按 UTF-8 解码，导致中文变成乱码。
+     * 这个乱码在 getCharSequence() 返回时已经存在，无法完美逆转。
      *
-     * 处理方式：
-     * 1. 常规 getCharSequence().toString()
-     * 2. 检测乱码 → 将原文 UTF-8 字节重新用 GBK 解码修复
+     * 策略：直接返回原始文本。金额数字（ASCII）不受编码影响，可正常解析。
+     * 中文乱码不影响核心记账功能（金额 + 收支方向仍可提取）。
      */
     private fun extractTextFromBundle(extras: android.os.Bundle, key: String): String {
         val charSeq = extras.getCharSequence(key)
         if (charSeq != null) {
             val text = charSeq.toString()
             if (text.isNotBlank()) {
-                return fixEncoding(text)
+                // 诊断日志：输出前 8 个字符的 Unicode 码点，帮助排查编码问题
+                val codepoints = text.take(8).joinToString(" ") {
+                    val hex = "%04X".format(it.code)
+                    if (it.code > 0x7F) "[$hex:${it}]" else "$hex:${it}"
+                }
+                Log.d(TAG, "文本码点 [$key]: $codepoints")
+                return text
             }
         }
         return ""
-    }
-
-    /**
-     * 修复通知文本编码
-     *
-     * 检测乱码特征：中文字符之间夹杂连续的拉丁扩展区字符（如 鍙 鍚 鍙 等），
-     * 这是 GBK 字节被当作 UTF-8 解码的典型表现。
-     *
-     * 修复方式：将乱码文本的 UTF-8 字节还原，再用 GBK 重新解码。
-     */
-    private fun fixEncoding(text: String): String {
-        if (!looksGarbled(text)) return text
-
-        return try {
-            // 乱码文本的 UTF-8 字节 → 用 GBK 重新解码
-            val fixed = String(text.toByteArray(Charsets.UTF_8), charset("GBK"))
-            // 修复成功（包含正常中文）则返回修复后的文本
-            if (fixed.contains(Regex("[一-鿿]{2,}"))) fixed else text
-        } catch (_: Exception) {
-            text // 解码失败返回原文
-        }
-    }
-
-    /**
-     * 检测文本是否像乱码
-     *
-     * 特征：正常中文（一-鿿）之间夹杂大量拉丁扩展区字符（-ÿ），
-     * 这是 GBK 字节被 UTF-8 解码后的典型乱码样式，如 "鎴戜滑"、"閾惰"。
-     */
-    private fun looksGarbled(text: String): Boolean {
-        val latinExt = Regex("[-ÿ]+")
-        val latinExtCount = latinExt.findAll(text).sumOf { it.value.length }
-        // 拉丁扩展区字符占比超过 15% → 疑似乱码
-        return latinExtCount.toFloat() / text.length.coerceAtLeast(1) > 0.15f
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
