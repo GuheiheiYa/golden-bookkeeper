@@ -64,10 +64,10 @@ object PaymentNotificationParser {
     // ═══════════════════════════════════════════════════════════
 
     /**
-     * 需要跳过的数字上下文模式
+     * 需要跳过的数字上下文模式（前后各 10 字符范围内检查）
      *
-     * 当通用金额正则（优先级4）匹配到数字时，会检查其前后 10 个字符的上下文。
-     * 如果上下文命中以下任一模式，则认为该数字不是金额，跳过不采用。
+     * 当通用金额正则（优先级4）匹配到数字时，会检查其上下文。
+     * 命中任一模式 → 认为不是金额，跳过。
      */
     private val skipPatterns = listOf(
         Regex("""账户\s*\d+"""),           // 如 "账户3832" 中的 3832
@@ -75,6 +75,18 @@ object PaymentNotificationParser {
         Regex("""\d{1,2}月\d{1,2}日"""),   // 如 "05月13日" 中的数字
         Regex("""\d{1,2}:\d{2}"""),        // 如 "11:26" 中的时间
         Regex("""尾号\d+"""),               // 如 "尾号3832" 中的卡号后四位
+        Regex("""[A-Za-z一-鿿]\d[\d.]*"""),  // 字母/汉字后紧跟数字，如 "v7.11"、"XX7.11"、"微信7.11"
+    )
+
+    /**
+     * 优先级 4 的额外严格校验：
+     * 上下文中必须出现支付相关关键词，否则认为是普通数字而非金额。
+     * （优先级 1~3 已有明确的货币标记，不需要此检查）
+     */
+    private val paymentContextKeywords = listOf(
+        "消费", "付款", "支出", "扣款", "转出", "支付", "已扣",
+        "收款", "收入", "到账", "转入", "收到", "红包", "已入账", "退款",
+        "余额", "可用", "账户", "扣费", "充值", "缴费"
     )
 
     // ═══════════════════════════════════════════════════════════
@@ -185,11 +197,16 @@ object PaymentNotificationParser {
 
         // 优先级 4: "50.00" 通用小数格式（仅当前三种均无匹配时启用）
         if (candidates.isEmpty()) {
-            for (match in genericAmountPattern.findAll(text)) {
-                // 跳过账户号、日期、时间等干扰数字
-                if (isInSkippedContext(text, match.range)) continue
-                val amount = parseAmountGroup(match.groupValues[1])
-                if (amount != null) candidates.add(amount to 4)
+            // 必须上下文中有支付相关关键词，否则不认为是金额
+            // （防止联系人备注中的生日数字如 "XX7.11" 被误识别）
+            val hasPaymentContext = paymentContextKeywords.any { text.contains(it) }
+            if (hasPaymentContext) {
+                for (match in genericAmountPattern.findAll(text)) {
+                    // 跳过账户号、日期、时间、字母/汉字后紧跟数字等干扰
+                    if (isInSkippedContext(text, match.range)) continue
+                    val amount = parseAmountGroup(match.groupValues[1])
+                    if (amount != null) candidates.add(amount to 4)
+                }
             }
         }
 
