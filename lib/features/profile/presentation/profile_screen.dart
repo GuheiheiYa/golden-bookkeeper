@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../app/di/providers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/theme_mode_toggle.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../core/services/notification_service.dart';
@@ -748,54 +749,9 @@ class ProfileScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: SegmentedButton<ThemeMode>(
-            showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(
-                value: ThemeMode.system,
-                icon: Icon(Icons.phone_android, size: 18),
-                label: Text('跟随系统'),
-              ),
-              ButtonSegment(
-                value: ThemeMode.light,
-                icon: Icon(Icons.light_mode, size: 18),
-                label: Text('浅色'),
-              ),
-              ButtonSegment(
-                value: ThemeMode.dark,
-                icon: Icon(Icons.dark_mode, size: 18),
-                label: Text('深色'),
-              ),
-            ],
-            selected: {themeMode},
-            onSelectionChanged: (modes) {
-              ref.read(themeModeProvider.notifier).setTheme(modes.first);
-            },
-            style: ButtonStyle(
-              visualDensity: VisualDensity.standard,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              backgroundColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) {
-                  return AppColors.lightPrimary.withOpacity(0.15);
-                }
-                return null;
-              }),
-              foregroundColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) {
-                  return AppColors.lightPrimaryDark;
-                }
-                return null;
-              }),
-              side: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) {
-                  return BorderSide(color: AppColors.lightPrimary.withOpacity(0.4));
-                }
-                return BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.3));
-              }),
-            ),
-          ),
+        ThemeModeToggle(
+          selected: themeMode,
+          onChanged: (mode) => ref.read(themeModeProvider.notifier).setTheme(mode),
         ),
       ],
     );

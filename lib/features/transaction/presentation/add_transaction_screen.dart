@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/currency_formatter.dart';
 import '../../../core/constants/currency_list.dart';
 import '../../../app/di/providers.dart';
 import '../../../core/database/app_database.dart';
@@ -159,6 +158,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
           // 分类选择（从数据库读取）
           Expanded(
             child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 20),
               child: Column(
                 children: [
                   _buildCategoryGrid(categoriesAsync),
@@ -178,18 +178,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   Widget _buildAmountDisplay() {
     final brightness = Theme.of(context).brightness;
     final currencySymbol = getCurrencySymbol(_selectedCurrency);
-    // 构建显示表达式
-    String displayText = _amount;
-    if (_pendingOperator != null && _firstOperand != null) {
-      final firstStr = _firstOperand!.toStringAsFixed(
-        _firstOperand!.truncateToDouble() == _firstOperand! ? 0 : 2,
-      );
-      if (_waitingForSecondOperand) {
-        displayText = '$firstStr${_pendingOperator!}';
-      } else {
-        displayText = '$firstStr${_pendingOperator!}$_amount';
-      }
-    }
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
@@ -203,7 +191,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 '${_firstOperand!.toStringAsFixed(_firstOperand!.truncateToDouble() == _firstOperand! ? 0 : 2)} ${_pendingOperator == '+' ? '+' : '-'}',
                 style: TextStyle(
                   fontSize: 16,
-                  color: AppColors.primaryOf(brightness).withOpacity(0.7),
+                  color: AppColors.primaryOf(brightness).withValues(alpha: 0.7),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -218,7 +206,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryOf(brightness).withOpacity(0.1),
+                    color: AppColors.primaryOf(brightness).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -303,7 +291,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                       onTap: () => _showAllCategories(categories),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -453,7 +441,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     );
   }
 
-  /// 附加选项 - 账户从数据库读取
+  /// 附加选项 - 账户、日期、商品、备注
   Widget _buildAdditionalOptions(AsyncValue<List<Map<String, dynamic>>> accountsAsync) {
     final accountName = accountsAsync.when(
       loading: () => '加载中...',
@@ -465,32 +453,40 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       },
     );
 
-    return Container(
-      padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Column(
         children: [
-          _buildOptionTile(
-            icon: Icons.account_balance_wallet,
+          _buildOptionRow(
+            icon: Icons.account_balance_wallet_rounded,
+            iconColor: const Color(0xFF3B82F6),
             label: '账户',
             value: accountName,
+            valueEmpty: accountName == '请选择',
             onTap: () => _showAccountPicker(accountsAsync),
           ),
-          _buildOptionTile(
-            icon: Icons.calendar_today,
+          _buildOptionRow(
+            icon: Icons.calendar_today_rounded,
+            iconColor: const Color(0xFFF59E0B),
             label: '日期',
             value: '${_selectedDate.month}月${_selectedDate.day}日',
+            valueEmpty: false,
             onTap: _selectDate,
           ),
-          _buildOptionTile(
-            icon: Icons.shopping_bag_outlined,
+          _buildOptionRow(
+            icon: Icons.shopping_bag_rounded,
+            iconColor: const Color(0xFF10B981),
             label: '商品',
             value: _goods.isEmpty ? '点击添加' : _goods,
+            valueEmpty: _goods.isEmpty,
             onTap: _showGoodsDialog,
           ),
-          _buildOptionTile(
-            icon: Icons.note,
+          _buildOptionRow(
+            icon: Icons.edit_note_rounded,
+            iconColor: const Color(0xFF8B5CF6),
             label: '备注',
             value: _note.isEmpty ? '点击添加' : _note,
+            valueEmpty: _note.isEmpty,
             onTap: _showNoteDialog,
           ),
         ],
@@ -498,33 +494,64 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     ).animate().fadeIn(delay: 200.ms, duration: 300.ms);
   }
 
-  Widget _buildOptionTile({
+  Widget _buildOptionRow({
     required IconData icon,
+    required Color iconColor,
     required String label,
     required String value,
+    required bool valueEmpty,
     required VoidCallback onTap,
   }) {
-    final brightness = Theme.of(context).brightness;
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primaryOf(brightness)),
-      title: Text(label),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 1),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 21),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+                    ),
+                  ),
+                ),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: valueEmpty
+                        ? (isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary)
+                        : (isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Icon(Icons.chevron_right_rounded, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
+              ],
             ),
           ),
-          const SizedBox(width: 4),
-          Icon(
-            Icons.chevron_right,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ],
+        ),
       ),
-      onTap: onTap,
     );
   }
 
@@ -554,7 +581,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 children: tags.map((tag) {
                   final tagId = tag['id'] as int;
                   final tagName = tag['name'] as String;
-                  final tagColor = tag['color'] as int? ?? AppColors.primary.value;
+                  final tagColor = tag['color'] as int? ?? 0xFFB8A9E8;
                   final isSelected = _selectedTagIds.contains(tagId);
 
                   return GestureDetector(
@@ -611,8 +638,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         boxShadow: [
           BoxShadow(
             color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.primaryDark.withOpacity(0.15)
-                : Colors.black.withOpacity(0.05),
+                ? AppColors.primaryDark.withValues(alpha: 0.15)
+                : Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -669,7 +696,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
           color: isConfirm
               ? AppColors.primaryOf(brightness)
               : isAction
-                  ? Theme.of(context).colorScheme.surfaceVariant
+                  ? Colors.transparent
                   : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
@@ -1426,8 +1453,8 @@ class _ToastWidgetState extends State<_ToastWidget>
               boxShadow: [
                 BoxShadow(
                   color: isDark
-                      ? AppColors.primaryDark.withOpacity(0.15)
-                      : Colors.black.withOpacity(0.15),
+                      ? AppColors.primaryDark.withValues(alpha: 0.15)
+                      : Colors.black.withValues(alpha: 0.15),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -1440,8 +1467,8 @@ class _ToastWidgetState extends State<_ToastWidget>
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: widget.isError
-                        ? Colors.red.withOpacity(0.1)
-                        : AppColors.success.withOpacity(0.1),
+                        ? Colors.red.withValues(alpha: 0.1)
+                        : AppColors.success.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

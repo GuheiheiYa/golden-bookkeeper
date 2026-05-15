@@ -31,6 +31,35 @@
 - CLAUDE.md 颜色系统、按钮规范、输入框规范、底部导航栏规范同步更新
 - 新增强制规则第 12、13 条（弹窗输入框中性灰 + 弹窗列表图标灰色）
 
+#### 记一笔页面优化
+- **选项组件优化**：账户/日期/商品/备注 4 个选项改为简洁行内布局，图标统一灰、15px 标签 + 14px 值文字，右侧箭头引导，去除过重卡片边界和花哨配色
+- **键盘优化**：加减/删除操作键背景改为透明，仅保留"完成"按钮主色背景
+- **底部间距优化**：`SingleChildScrollView` 新增 `bottom: 20` padding
+
+#### 首页最近交易优化
+- **独立卡片化**：每条交易独立为圆角卡片，使用 `AppColors.lightCard` 暖米白背景 + 0.5px 淡紫描边，与页面其他 AppCard 视觉统一，宽度对齐
+- **预算使用提示**：滚动到底部显示预算使用率提示卡片，按 6 个档位匹配不同文案和颜色（<30% 绿色 / 30-50% 蓝色 / 50-75% 蓝色 / 75-90% 橙色 / 90-100% 橙色 / >100% 红色）
+- **详情弹窗标准化**：交易详情弹窗统一为 28px 顶部圆角 + 拖拽手柄 + 固定底部黄色按钮样式
+
+#### 代码质量
+- **全局废弃 API 迁移**：全站 `withOpacity()` → `withValues(alpha: ...)`，`surfaceVariant` → `surfaceContainerHighest`，`Color.value` → 硬编码色值
+- 移除未使用的 `_buildBalanceItem` 方法和 `currency_formatter.dart` 无用 import
+- 移除未使用的 `displayText` 局部变量
+
+#### Material 默认组件全面替换
+- **`SegmentedButton` 全站清除**：6 处全部替换为自定义 pill 风格组件
+  - 筛选弹窗收支类型 → `_buildTypeChip`（透明未选中 / 紫色 12% 背景选中，12px 圆角）
+  - 主题模式切换 → `ThemeModeToggle` 共享组件（带图标 pill：跟随系统/浅色/深色），settings 和 profile 共用
+  - 周期记账收支类型 → `ExpenseTypeToggle` 共享组件（支出红色 / 收入绿色 pill）
+- **`FilterChip` 全面替换**：分类/账户筛选从 Material 白字彩底改为透明未选中+彩色背景选中自定义芯片，与确认记账弹窗风格统一
+- **日期选择按钮重设计**：`OutlinedButton.icon` → 自定义输入框风格容器（`#F3F4F6` 填充、12px 圆角、日历图标+文字）
+- **周期记账弹窗选项行统一**：5×2=10 个灰色 `ListTile` → `_buildSheetOptionRow`（38×38 彩色图标背景+10%透明度+右侧箭头），与记一笔页面完全一致
+- **筛选弹窗底部按钮栏标准化**：阴影容器 → 分隔线 + "重置"描边按钮 + "应用筛选"梦幻紫渐变胶囊
+
+#### 新增共享组件
+- `lib/shared/widgets/theme_mode_toggle.dart` — 主题模式切换 pill 组件
+- `lib/shared/widgets/expense_type_toggle.dart` — 收支类型切换 pill 组件
+
 ---
 
 ## [未发布] - 开发中

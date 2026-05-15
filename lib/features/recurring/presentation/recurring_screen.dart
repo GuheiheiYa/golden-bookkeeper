@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_card.dart';
+import '../../../shared/widgets/expense_type_toggle.dart';
 import '../../../shared/utils/icon_utils.dart';
 
 // ========== 周期记账数据 Provider ==========
@@ -379,25 +380,20 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          SegmentedButton<bool>(
-                            segments: const [
-                              ButtonSegment(value: true, label: Text('支出')),
-                              ButtonSegment(value: false, label: Text('收入')),
-                            ],
-                            selected: {isExpense},
-                            onSelectionChanged: (values) {
-                              setModalState(() => isExpense = values.first);
-                            },
+                          ExpenseTypeToggle(
+                            isExpense: isExpense,
+                            onChanged: (v) => setModalState(() => isExpense = v),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       // 选择分类
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Icon(Icons.category, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
-                        title: Text(selectedCategoryName ?? '选择分类', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
-                        trailing: Icon(Icons.chevron_right, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
+                      _buildSheetOptionRow(
+                        icon: Icons.category_rounded,
+                        iconColor: AppColors.lightPrimary,
+                        label: '选择分类',
+                        value: selectedCategoryName ?? '未选择',
+                        isDark: isDark,
                         onTap: () async {
                           final result = await _showCategoryPicker(context, isExpense);
                           if (result != null) {
@@ -409,11 +405,12 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                         },
                       ),
                       // 选择账户
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Icon(Icons.account_balance_wallet, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
-                        title: Text(selectedAccountName ?? '选择账户', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
-                        trailing: Icon(Icons.chevron_right, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
+                      _buildSheetOptionRow(
+                        icon: Icons.account_balance_wallet_rounded,
+                        iconColor: const Color(0xFF3B82F6),
+                        label: '选择账户',
+                        value: selectedAccountName ?? '未选择',
+                        isDark: isDark,
                         onTap: () async {
                           final result = await _showAccountPicker(context);
                           if (result != null) {
@@ -425,17 +422,12 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                         },
                       ),
                       // 频率
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Icon(Icons.repeat, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
-                        title: Text('频率', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(_getFrequencyText(selectedFrequency), style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant)),
-                            Icon(Icons.chevron_right, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
-                          ],
-                        ),
+                      _buildSheetOptionRow(
+                        icon: Icons.repeat_rounded,
+                        iconColor: const Color(0xFFF59E0B),
+                        label: '频率',
+                        value: _getFrequencyText(selectedFrequency),
+                        isDark: isDark,
                         onTap: () {
                           _showFrequencyPicker(context, selectedFrequency, (value) {
                             setModalState(() => selectedFrequency = value);
@@ -444,17 +436,12 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       ),
                       // 每月几号（仅月频率时显示）
                       if (selectedFrequency == 'monthly')
-                        ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: Icon(Icons.calendar_today, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
-                          title: Text('每月几号', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('${selectedDayOfMonth ?? 1}日', style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant)),
-                              Icon(Icons.chevron_right, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
-                            ],
-                          ),
+                        _buildSheetOptionRow(
+                          icon: Icons.calendar_today_rounded,
+                          iconColor: const Color(0xFF10B981),
+                          label: '每月几号',
+                          value: '${selectedDayOfMonth ?? 1}日',
+                          isDark: isDark,
                           onTap: () {
                             _showDayPicker(context, selectedDayOfMonth ?? 1,
                                 (day) {
@@ -463,17 +450,12 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                           },
                         ),
                       // 开始日期
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Icon(Icons.event, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
-                        title: Text('开始日期', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}', style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant)),
-                            Icon(Icons.chevron_right, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
-                          ],
-                        ),
+                      _buildSheetOptionRow(
+                        icon: Icons.event_rounded,
+                        iconColor: const Color(0xFFF59E0B),
+                        label: '开始日期',
+                        value: '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}',
+                        isDark: isDark,
                         onTap: () async {
                           final picked = await showDatePicker(
                             context: context,
@@ -654,25 +636,20 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          SegmentedButton<bool>(
-                            segments: const [
-                              ButtonSegment(value: true, label: Text('支出')),
-                              ButtonSegment(value: false, label: Text('收入')),
-                            ],
-                            selected: {isExpense},
-                            onSelectionChanged: (values) {
-                              setModalState(() => isExpense = values.first);
-                            },
+                          ExpenseTypeToggle(
+                            isExpense: isExpense,
+                            onChanged: (v) => setModalState(() => isExpense = v),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       // 选择分类
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Icon(Icons.category, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
-                        title: Text(selectedCategoryName ?? '选择分类', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
-                        trailing: Icon(Icons.chevron_right, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
+                      _buildSheetOptionRow(
+                        icon: Icons.category_rounded,
+                        iconColor: AppColors.lightPrimary,
+                        label: '选择分类',
+                        value: selectedCategoryName ?? '未选择',
+                        isDark: isDark,
                         onTap: () async {
                           final result = await _showCategoryPicker(context, isExpense);
                           if (result != null) {
@@ -684,11 +661,12 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                         },
                       ),
                       // 选择账户
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Icon(Icons.account_balance_wallet, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
-                        title: Text(selectedAccountName ?? '选择账户', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
-                        trailing: Icon(Icons.chevron_right, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
+                      _buildSheetOptionRow(
+                        icon: Icons.account_balance_wallet_rounded,
+                        iconColor: const Color(0xFF3B82F6),
+                        label: '选择账户',
+                        value: selectedAccountName ?? '未选择',
+                        isDark: isDark,
                         onTap: () async {
                           final result = await _showAccountPicker(context);
                           if (result != null) {
@@ -700,36 +678,26 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                         },
                       ),
                       // 频率
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Icon(Icons.repeat, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
-                        title: Text('频率', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(_getFrequencyText(selectedFrequency), style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant)),
-                            Icon(Icons.chevron_right, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
-                          ],
-                        ),
+                      _buildSheetOptionRow(
+                        icon: Icons.repeat_rounded,
+                        iconColor: const Color(0xFFF59E0B),
+                        label: '频率',
+                        value: _getFrequencyText(selectedFrequency),
+                        isDark: isDark,
                         onTap: () {
                           _showFrequencyPicker(context, selectedFrequency, (value) {
                             setModalState(() => selectedFrequency = value);
                           });
                         },
                       ),
-                      // 每月几号
+                      // 每月几号（仅月频率时显示）
                       if (selectedFrequency == 'monthly')
-                        ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: Icon(Icons.calendar_today, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
-                          title: Text('每月几号', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('${selectedDayOfMonth ?? 1}日', style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant)),
-                              Icon(Icons.chevron_right, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
-                            ],
-                          ),
+                        _buildSheetOptionRow(
+                          icon: Icons.calendar_today_rounded,
+                          iconColor: const Color(0xFF10B981),
+                          label: '每月几号',
+                          value: '${selectedDayOfMonth ?? 1}日',
+                          isDark: isDark,
                           onTap: () {
                             _showDayPicker(context, selectedDayOfMonth ?? 1,
                                 (day) {
@@ -942,6 +910,61 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
   );
   },
 );
+  }
+
+  // ═══════════════════════════════════════════
+  // 弹窗选项行（与记一笔页面风格统一）
+  // ═══════════════════════════════════════════
+
+  Widget _buildSheetOptionRow({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String value,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 1),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 21),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground),
+                  ),
+                ),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
+                ),
+                const SizedBox(width: 2),
+                Icon(Icons.chevron_right_rounded, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   // ========== 频率选择器 ==========

@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 **项目名称**: 记账本 (Bookkeeper)
-**版本**: 1.9.0
+**版本**: 1.10.0
 **平台**: Android (Flutter 跨平台)
 **描述**: 一个功能完整、界面美观的记账 APP，采用 Peekaboo 柔和梦幻设计风格（梦幻紫 #B8A9E8 + 暖黄强调 #FFD93D）
 
@@ -1127,7 +1127,7 @@ item.animate().fadeIn(
 
 ---
 
-### 十一、代码编写强制规则（13 条）
+### 十一、代码编写强制规则（17 条）
 
 1. **颜色引用**：所有颜色必须通过 `AppColors.xxx` 引用，禁止硬编码 `Color(0xFF...)`
 2. **透明度方法**：禁止使用 `withOpacity()`，统一使用 `withValues(alpha: ...)`
@@ -1141,7 +1141,11 @@ item.animate().fadeIn(
 10. **圆角**：遵循圆角系统，不得随意设置非标准圆角值
 11. **文件路径**：安装/导出/生成文件优先使用 D 盘（`D:/` 或 `D:/project/`），禁止默认输出到 C 盘
 12. **弹窗输入框**：填充色必须用 `Color(0xFFF3F4F6)` 中性灰，禁止用 `AppColors.lightInputFill`（淡紫），避免弹窗内大面积紫色
-13. **弹窗列表图标**：ListTile 的 leading icon 颜色使用 `AppColors.lightOnSurfaceVariant`（灰色），禁止使用 `AppColors.primaryOf(brightness)`（紫色），避免紫色疲劳
+13. **设置页导航图标**：设置页/列表页的 `ListTile` leading icon 使用 `AppColors.lightOnSurfaceVariant`（灰色），禁止紫色；此规则不适用于弹窗内的选项选择行
+14. **禁止 `SegmentedButton`**：全站禁止使用 Material 原生 `SegmentedButton`，必须改用自定义 pill 风格组件（参考 `ThemeModeToggle`、`ExpenseTypeToggle`、`_buildTypeChip` 实现）
+15. **禁止 `FilterChip`**：弹窗内分类/账户多选禁止使用 Material `FilterChip`（白字彩底极丑），必须改用自定义芯片：透明未选中 + 选中时对应颜色 12% 背景 + 图标保留原色、文字变粗体
+16. **弹窗选项行强制规范**：弹窗内选择分类/账户/日期/频率等选项行，必须使用带彩色图标背景的选项行（38×38 图标容器、10% 颜色透明度背景、12px 圆角、15px 标签 + 14px 值文字 + 右侧箭头），参考 `_buildSheetOptionRow` 和记一笔页面的 `_buildOptionRow`。禁止使用灰色 `ListTile`
+17. **日期选择触发器**：弹窗内触发日期选择的按钮禁止使用 `OutlinedButton.icon`，必须使用自定义输入框风格容器（`#F3F4F6` 填充、12px 圆角、日历图标+文字），参考 `_buildDatePickerButton`
 
 ---
 

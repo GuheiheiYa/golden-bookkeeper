@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -86,7 +87,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   Widget build(BuildContext context) {
     final monthlySummary = ref.watch(monthlySummaryProvider);
     final recentTransactions = ref.watch(recentTransactionsProvider);
-    ref.watch(budgetUsageProvider);
+    final budgetUsage = ref.watch(budgetUsageProvider);
 
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
@@ -138,9 +139,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
                     _buildBudgetProgress(context, isDark),
                     const SizedBox(height: 24),
                     // 最近交易
-                    _buildRecentTransactions(context, recentTransactions, isDark),
+                    _buildRecentTransactions(context, recentTransactions, budgetUsage, isDark),
                     // 底部留白（给浮动导航栏）
-                    const SizedBox(height: 100),
+                    const SizedBox(height: 56),
                   ],
                 ),
               ),
@@ -201,7 +202,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 20),
@@ -282,13 +283,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
         final income = data['income'] ?? 0;
         final expense = data['expense'] ?? 0;
 
-        // 深色模式使用深色卡片渐变（如设计图所示）
-        final gradientColors = isDark
-            ? [AppColors.balanceGradientStartDark, AppColors.balanceGradientEndDark]
-            : [AppColors.balanceGradientStart, AppColors.balanceGradientEnd];
         final shadowColor = isDark
-            ? Colors.black.withOpacity(0.4)
-            : AppColors.lightPrimary.withOpacity(0.3);
+            ? Colors.black.withValues(alpha: 0.4)
+            : AppColors.lightPrimary.withValues(alpha: 0.3);
 
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 12),
@@ -317,19 +314,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
                   Text(
                     '本月结余',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       fontSize: 14,
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.12),
+                      color: Colors.white.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       monthLabel,
-                      style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.w500),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ],
@@ -365,7 +362,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
                             Text(
                               '收入',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
+                                color: Colors.white.withValues(alpha: 0.5),
                                 fontSize: 12,
                               ),
                             ),
@@ -402,7 +399,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
                             Text(
                               '支出',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
+                                color: Colors.white.withValues(alpha: 0.5),
                                 fontSize: 12,
                               ),
                             ),
@@ -426,47 +423,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
           ),
         ).animate().fadeIn(delay: 100.ms, duration: 400.ms).slideY(begin: 0.05, end: 0, delay: 100.ms, duration: 400.ms);
       },
-    );
-  }
-
-  Widget _buildBalanceItem({
-    required String label,
-    required String amount,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: color, size: 14),
-        ),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 12,
-              ),
-            ),
-            Text(
-              amount,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 
@@ -628,7 +584,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.lightPrimary.withOpacity(0.12),
+                    color: AppColors.lightPrimary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(Icons.savings_outlined, color: AppColors.lightPrimary, size: 24),
@@ -755,6 +711,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   Widget _buildRecentTransactions(
     BuildContext context,
     AsyncValue<List<Map<String, dynamic>>> recentTx,
+    AsyncValue<List<Map<String, dynamic>>> budgetUsage,
     bool isDark,
   ) {
     return Column(
@@ -797,113 +754,266 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
           error: (e, _) => AppCard(child: Center(child: Text('加载失败: $e'))),
           data: (transactions) {
             if (transactions.isEmpty) {
-              return AppCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.receipt_long_outlined,
-                          size: 48,
-                          color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          '暂无交易记录',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '点击下方 + 开始记账',
-                          style: TextStyle(
-                            fontSize: 12,
+              return Column(children: [
+                AppCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.receipt_long_outlined,
+                            size: 48,
                             color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          Text(
+                            '暂无交易记录',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '点击下方 + 开始记账',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              );
+                _buildBudgetHint(budgetUsage, isDark),
+              ]);
             }
-            return AppCard(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Column(
-                children: List.generate(transactions.length, (index) {
-                  final tx = transactions[index];
-                  final isExpense = (tx['is_expense'] as int) == 1;
-                  final amount = (tx['amount'] as num).toDouble();
-                  final categoryName = tx['category_name'] as String? ?? '未分类';
-                  final categoryColor = tx['category_color'] as int? ?? 0xFFB8A9E8;
-                  final categoryIcon = tx['category_icon'] as String?;
-                  final txDate = DateTime.parse(tx['date'] as String);
-                  final timeStr = '${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}';
-                  final note = tx['note'] as String? ?? categoryName;
+            return Column(children: [
+              ...List.generate(transactions.length, (index) {
+                final tx = transactions[index];
+                final isExpense = (tx['is_expense'] as int) == 1;
+                final amount = (tx['amount'] as num).toDouble();
+                final categoryName = tx['category_name'] as String? ?? '未分类';
+                final categoryColor = tx['category_color'] as int? ?? 0xFFB8A9E8;
+                final categoryIcon = tx['category_icon'] as String?;
+                final accountName = tx['account_name'] as String? ?? '';
+                final txDate = DateTime.parse(tx['date'] as String);
+                final timeStr = '${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}';
+                final goods = tx['goods'] as String? ?? '';
+                final note = tx['note'] as String? ?? '';
 
-                  return Column(
-                    children: [
-                      ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                        leading: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: Color(categoryColor).withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Icon(
-                            mapIconName(categoryIcon),
-                            color: Color(categoryColor),
-                            size: 20,
-                          ),
-                        ),
-                        title: Text(
-                          note.isNotEmpty ? note : categoryName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
-                          ),
-                        ),
-                        subtitle: Text(
-                          '$categoryName · $timeStr',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
-                          ),
-                        ),
-                        trailing: Text(
-                          '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: isExpense ? AppColors.expense : AppColors.income,
-                          ),
-                        ),
-                        onTap: () => _showTransactionDetail(context, tx),
-                      ),
-                      if (index < transactions.length - 1)
-                        Divider(
-                          height: 1,
-                          indent: 68,
-                          endIndent: 16,
-                          color: isDark ? AppColors.darkOutline : AppColors.lightOutline,
-                        ),
-                    ],
-                  );
-                }),
-              ),
-            );
+                return _buildTransactionCard(
+                  context: context,
+                  tx: tx,
+                  displayName: goods.isNotEmpty ? goods : (note.isNotEmpty ? note : categoryName),
+                  categoryName: categoryName,
+                  accountName: accountName,
+                  categoryColor: categoryColor,
+                  categoryIcon: categoryIcon,
+                  timeStr: timeStr,
+                  amount: amount,
+                  isExpense: isExpense,
+                  isDark: isDark,
+                );
+              }),
+              _buildBudgetHint(budgetUsage, isDark),
+            ]);
           },
         ),
       ],
     ).animate().fadeIn(delay: 250.ms, duration: 300.ms);
+  }
+
+  /// 单条交易卡片（与明细页风格统一）
+  Widget _buildTransactionCard({
+    required BuildContext context,
+    required Map<String, dynamic> tx,
+    required String displayName,
+    required String categoryName,
+    required String accountName,
+    required int categoryColor,
+    required String? categoryIcon,
+    required String timeStr,
+    required double amount,
+    required bool isExpense,
+    required bool isDark,
+  }) {
+    final catColor = Color(categoryColor);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+      child: GestureDetector(
+        onTap: () => _showTransactionDetail(context, tx),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF8B5CF6).withValues(alpha: 0.12),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.lightCard,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.lightCard,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: catColor.withValues(alpha: 0.20),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(mapIconName(categoryIcon), color: catColor, size: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? AppColors.darkOnBackground : AppColors.indigo950,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            '$categoryName · $timeStr · $accountName',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? AppColors.darkOnSurfaceVariant.withValues(alpha: 0.8)
+                                  : AppColors.indigo400_80,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: isExpense
+                            ? AppColors.expense
+                            : (isDark ? AppColors.success : AppColors.emerald600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 预算使用提示
+  Widget _buildBudgetHint(AsyncValue<List<Map<String, dynamic>>> budgetUsage, bool isDark) {
+    return budgetUsage.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (budgets) {
+        if (budgets.isEmpty) return const SizedBox.shrink();
+
+        double totalBudget = 0;
+        double totalSpent = 0;
+        for (final b in budgets) {
+          totalBudget += b['amount'] as double;
+          totalSpent += b['spent'] as double;
+        }
+        if (totalBudget <= 0) return const SizedBox.shrink();
+
+        final percentage = (totalSpent / totalBudget * 100).clamp(0, double.infinity);
+
+        String hint;
+        Color hintColor;
+        if (percentage < 30) {
+          hint = '当月预算才用了 ${percentage.toStringAsFixed(0)}%，继续保持节流好习惯哦～';
+          hintColor = AppColors.success;
+        } else if (percentage < 50) {
+          hint = '当月预算已使用 ${percentage.toStringAsFixed(0)}%，节奏稳稳的，继续加油！';
+          hintColor = AppColors.info;
+        } else if (percentage < 75) {
+          hint = '当月预算已使用 ${percentage.toStringAsFixed(0)}%，已经过半了呦，注意控制支出～';
+          hintColor = AppColors.info;
+        } else if (percentage < 90) {
+          hint = '当月预算已消耗 ${percentage.toStringAsFixed(0)}%，快见底啦，省着点花！';
+          hintColor = AppColors.warning;
+        } else if (percentage < 100) {
+          hint = '预算即将耗尽！只剩 ${(100 - percentage).toStringAsFixed(0)}% 可用额度了，谨慎消费～';
+          hintColor = AppColors.warning;
+        } else {
+          hint = '本月预算已超出 ${(percentage - 100).toStringAsFixed(0)}%！该心疼一下钱包了 💰';
+          hintColor = AppColors.expense;
+        }
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: hintColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: hintColor.withValues(alpha: 0.2),
+                width: 0.5,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: Icon(
+                    percentage >= 100 ? Icons.warning_amber_rounded : Icons.lightbulb_outline_rounded,
+                    color: hintColor,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    hint,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   /// 交易详情弹窗
