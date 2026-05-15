@@ -6,9 +6,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/payment_notification_service.dart';
 import '../../../app/di/providers.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../budget/presentation/budget_screen.dart';
+import '../../notification/presentation/pending_notifications_screen.dart';
 import '../../recurring/presentation/recurring_screen.dart';
 import '../../statistics/presentation/statistics_screen.dart';
 
@@ -19,22 +21,42 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObserver {
   final NotificationService _notificationService = NotificationService();
+  Timer? _recurringTimer;
+  int _pendingCount = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndExecuteRecurringRules();
     });
     _startRecurringTimer();
+    _loadPendingCount();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _recurringTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadPendingCount();
+    }
+  }
+
+  Future<void> _loadPendingCount() async {
+    final service = PaymentNotificationService();
+    final payments = await service.getPendingPayments();
+    if (mounted) {
+      setState(() => _pendingCount = payments.length);
+    }
   }
 
   void _startRecurringTimer() {
@@ -42,8 +64,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       _checkAndExecuteRecurringRules();
     });
   }
-
-  Timer? _recurringTimer;
 
   Future<void> _checkAndExecuteRecurringRules() async {
     final db = ref.read(appDatabaseProvider);
@@ -439,85 +459,114 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// 快捷操作
   Widget _buildQuickActions(BuildContext context, bool isDark) {
-    final actions = [
-      {'icon': Icons.edit_rounded, 'label': '记账', 'color': AppColors.lightPrimary},
-      {'icon': Icons.savings_outlined, 'label': '预算', 'color': AppColors.warning},
-      {'icon': Icons.repeat_rounded, 'label': '周期', 'color': AppColors.success},
-      {'icon': Icons.bar_chart_outlined, 'label': '统计', 'color': AppColors.info},
-    ];
+    void navigateTo(Widget screen) {
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => screen,
+          transitionsBuilder: (_, animation, __, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      ).then((_) => _loadPendingCount());
+    }
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: actions.map((action) {
-        final accent = action['color'] as Color;
-        final icon = action['icon'] as IconData;
-        final label = action['label'] as String;
-
-        return GestureDetector(
-          onTap: () {
-            if (label == '记账') {
-              context.push('/add-transaction');
-            } else if (label == '预算') {
-              Navigator.of(context).push(
-                PageRouteBuilder(
-                  pageBuilder: (_, __, ___) => const BudgetScreen(),
-                  transitionsBuilder: (_, animation, __, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                ),
-              );
-            } else if (label == '周期') {
-              Navigator.of(context).push(
-                PageRouteBuilder(
-                  pageBuilder: (_, __, ___) => const RecurringScreen(),
-                  transitionsBuilder: (_, animation, __, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                ),
-              );
-            } else if (label == '统计') {
-              Navigator.of(context).push(
-                PageRouteBuilder(
-                  pageBuilder: (_, __, ___) => const StatisticsScreen(),
-                  transitionsBuilder: (_, animation, __, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                ),
-              );
-            }
-          },
+      children: [
+        // 待确认记账（带角标）
+        GestureDetector(
+          onTap: () => navigateTo(PendingNotificationsScreen()),
           child: Column(
             children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: accent,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: accent.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 56, height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.lightPrimary,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.lightPrimary.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Icon(icon, color: Colors.white, size: 24),
+                    child: const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 24),
+                  ),
+                  if (_pendingCount > 0)
+                    Positioned(
+                      right: -4, top: -4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                        decoration: const BoxDecoration(
+                          color: AppColors.expense,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          _pendingCount > 99 ? '99+' : '$_pendingCount',
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 8),
               Text(
-                label,
+                '待确认',
                 style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 12, fontWeight: FontWeight.w500,
                   color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnBackground,
                 ),
               ),
             ],
           ),
-        );
-      }).toList(),
+        ),
+        // 预算
+        _buildActionItem(Icons.savings_outlined, '预算', AppColors.warning, () => navigateTo(const BudgetScreen()), isDark),
+        // 周期
+        _buildActionItem(Icons.repeat_rounded, '周期', AppColors.success, () => navigateTo(const RecurringScreen()), isDark),
+        // 统计
+        _buildActionItem(Icons.bar_chart_outlined, '统计', AppColors.info, () => navigateTo(const StatisticsScreen()), isDark),
+      ],
     ).animate().fadeIn(delay: 150.ms, duration: 300.ms);
+  }
+
+  Widget _buildActionItem(IconData icon, String label, Color accent, VoidCallback onTap, bool isDark) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 56, height: 56,
+            decoration: BoxDecoration(
+              color: accent,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12, fontWeight: FontWeight.w500,
+              color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnBackground,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   /// 预算进度
