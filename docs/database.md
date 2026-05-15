@@ -39,6 +39,14 @@ adb shell run-as com.bookkeeper.bookkeeper sqlite3 databases/bookkeeper.db
 | 2 | 2026-05-08 | transactions 表新增 `goods` 字段 |
 | 1 | 2026-05-06 | 初始版本，创建所有基础表 |
 
+### Native SQLite 版本（pending_payments.db）
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| 3 | 2026-05-15 | 新增 `goods` 和 `note` 字段（策略解析器提取的精确信息） |
+| 2 | 2026-05-12 | 新增 `notification_id` 及通知元数据字段（title/text/bigText 等） |
+| 1 | 2026-05-12 | 初始版本，创建 `pending_payments` 表 |
+
 ### 迁移脚本
 
 ```dart
@@ -199,19 +207,29 @@ Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | INTEGER PK | 主键 |
+| notification_id | INTEGER | Android 系统通知 ID |
 | amount | REAL | 金额 |
-| merchant | TEXT | 商户名称 |
 | is_expense | INTEGER | 是否支出 |
-| source | TEXT | 来源 APP（wechat/alipay/bank） |
-| category_id | INTEGER | 自动匹配的分类 ID（可为 NULL） |
-| account_id | INTEGER | 自动匹配的账户 ID（可为 NULL） |
+| merchant | TEXT | 商户名称（列表展示用） |
+| goods | TEXT | 商品名称（由策略解析器提取，如 CMB 解析器从【】中拆出） |
+| note | TEXT | 备注（由策略解析器提取，默认为 raw_text） |
+| source | TEXT | 来源 APP（wechat/alipay/cmb/icbc/boc 等） |
+| raw_text | TEXT | 原始通知全文 |
+| package_name | TEXT | 来源包名 |
+| notification_time | INTEGER | 通知时间戳 |
 | status | TEXT | 状态（pending/confirmed/ignored） |
-| detected_at | TEXT | 检测时间 |
-| created_at | TEXT | 创建时间 |
+| category_id | INTEGER | 自动匹配的分类 ID |
+| account_id | INTEGER | 自动匹配的账户 ID |
+| ... | ... | 其他通知元数据字段 |
+
+**goods 和 note 字段**：
+- 默认解析器（DefaultPaymentParser）不设置此字段，Flutter 端 fallback 到 merchant/raw_text
+- 专用解析器（如 CmbPaymentParser）可以从通知文本中提取更精确的信息
+- 例如 CMB 通知 `【财付通-微信支付-厦门市集美区餐点点餐…】` → goods=`厦门市集美区餐点点餐`, note=`财付通-微信支付-厦门市集美区餐点点餐`
 
 **数据流**:
-- NotificationListenerService 检测到支付通知 → 写入此表（status='pending'）
-- 用户打开待确认列表页 → 读取此表 → 确认后标记为 'confirmed'
+- v1.9.0：NotificationListenerService 检测到支付 → 写入此表（status='pending'）→ 用户打开待确认列表处理
+- goods/note 字段在 v1.9.0 的后续优化中加入（PendingPaymentDbHelper 版本 2→3）
 
 ---
 

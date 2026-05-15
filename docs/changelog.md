@@ -11,6 +11,32 @@
 
 ### 通知监听优化 + 应用图标
 
+#### 新增功能
+- **支付通知解析器策略模式**
+  - 新增 `BasePaymentParser` 接口，各平台可独立实现解析逻辑
+  - 新增 `PaymentParserFactory` 工厂，按包名自动路由到对应解析器
+  - 专用解析器失败时自动降级到默认解析器
+
+- **平台专用支付通知解析器**
+  - **招商银行** (`CmbPaymentParser`)：从 `【】` 括号提取 merchant/goods/note，支持 `扣款/支付→支出`、`退款→收入`
+  - **支付宝** (`AlipayPaymentParser`)：营销通知过滤（含"失效/过期"无强交易语义→跳过），`收款`开头→收入，修复"消费"关键词误判收入为支出的 BUG
+  - **中信银行** (`CiticPaymentParser`)：`存入/转入→收入`、`支出/消费/转出→支出`
+  - **微信支付** (`WechatPaymentParser`)：`已支付→支出`、`已收款/退款/向你转账→收入`
+
+- **通知数据模型优化**
+  - `ParsedPayment` 新增 `goods`（商品名）和 `note`（备注）字段
+  - 招商银行解析器从 `【财付通-微信支付-厦门市集美区餐点点餐】` 自动拆分 goods=`厦门市集美区餐点点餐`、note=完整内容
+  - `pending_payments` 表新增 `goods`/`note` 列（DB 版本 2→3）
+
+- **确认弹窗自动匹配分类**
+  - 新增 `category_matcher.dart` 共享关键词映射工具
+  - 确认弹窗打开时，先用 `goods` 关键词匹配分类，再用 `merchant`，最后兜底"其他"
+  - 支持用户自定义分类名直接匹配（如分类名叫"基金"，通知含"基金"字样自动匹配）
+  - 全部确认时同样使用此策略
+
+- **默认解析器修复**
+  - 收入关键词新增 `存入`，修复中信银行等"存入"被误判为支出的 BUG
+
 #### 改进优化
 - **通知监听白名单重构**：从存储完整列表改为仅存储 `removed_packages`，新增银行自动生效
 - **去重策略优化**：从 `notification_id` 改为 `金额 + 5秒时间窗口`，解决微信 id=0 和支付宝+银行双通知问题
@@ -23,6 +49,22 @@
 - **应用名称**：`bookkeeper` → `咯噔记账`
 - **应用图标**：从 Flutter 默认 logo 替换为紫色背景 + 白色记账本 + ¥ 符号矢量图标
 - 使用 Android Adaptive Icon（API 26+），兼容旧设备 PNG fallback
+
+#### 新增文件
+- `android/.../BasePaymentParser.kt` — 解析器接口
+- `android/.../CmbPaymentParser.kt` — 招商银行解析器
+- `android/.../AlipayPaymentParser.kt` — 支付宝解析器
+- `android/.../CiticPaymentParser.kt` — 中信银行解析器
+- `android/.../WechatPaymentParser.kt` — 微信支付解析器
+- `android/.../PaymentParserFactory.kt` — 解析器工厂
+- `lib/features/notification/domain/category_matcher.dart` — 分类匹配工具
+
+#### 修改文件
+- `android/.../DefaultPaymentParser.kt` — 重命名（原 PaymentNotificationParser），实现 BasePaymentParser，新增"存入"关键词
+- `android/.../PaymentNotificationListenerService.kt` — 改用工厂获取解析器，新增 goods/note 字段存储和读取
+- `lib/.../pending_confirm_sheet.dart` — 使用解析器提取的 goods/note，关键词匹配分类
+- `lib/.../pending_notifications_screen.dart` — 全部确认使用关键词匹配分类
+- `docs/database.md` — 补充 pending_payments v3、goods/note 字段说明
 
 ### 计划功能
 - 数据备份/恢复

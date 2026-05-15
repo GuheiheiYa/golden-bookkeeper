@@ -158,8 +158,14 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         // 调试：写入文件查看通知内容
         writeToFile("[$packageName] title=$title | text=$text | bigText=$bigText | full=$fullText")
 
-        // ── 步骤 3：解析支付信息 ──
-        val parsed = PaymentNotificationParser.parse(fullText, packageName, sbn.id)
+        // ── 步骤 3：解析支付信息（策略模式） ──
+        val parser = PaymentParserFactory.getParser(packageName)
+        var parsed = parser.parse(fullText, packageName, sbn.id)
+        // 如果专用解析器无法处理，降级到默认解析器
+        if (parsed == null && parser !is DefaultPaymentParser) {
+            writeToFile("【降级默认解析器】$packageName 专用解析器返回 null，使用默认")
+            parsed = DefaultPaymentParser.parse(fullText, packageName, sbn.id)
+        }
         if (parsed == null) {
             Log.d(TAG, "非支付通知，已忽略 [$packageName]")
             writeToFile("【解析失败】[$packageName] $fullText")
@@ -264,6 +270,8 @@ class PaymentNotificationListenerService : NotificationListenerService() {
             put("amount", parsed.amount)
             put("is_expense", if (parsed.isExpense) 1 else 0)
             put("merchant", parsed.merchant)
+            put("goods", parsed.goods)
+            put("note", parsed.note)
             put("source", parsed.source)
             put("raw_text", parsed.rawText)
             put("package_name", parsed.packageName)
@@ -297,7 +305,7 @@ class PendingPaymentDbHelper(context: Context) : SQLiteOpenHelper(context, DB_NA
 
     companion object {
         private const val DB_NAME = "pending_payments.db"
-        private const val DB_VERSION = 2
+        private const val DB_VERSION = 3
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -308,6 +316,8 @@ class PendingPaymentDbHelper(context: Context) : SQLiteOpenHelper(context, DB_NA
                 amount REAL NOT NULL,
                 is_expense INTEGER NOT NULL,
                 merchant TEXT,
+                goods TEXT,
+                note TEXT,
                 source TEXT NOT NULL,
                 raw_text TEXT,
                 package_name TEXT,
@@ -340,6 +350,10 @@ class PendingPaymentDbHelper(context: Context) : SQLiteOpenHelper(context, DB_NA
             db.execSQL("ALTER TABLE pending_payments ADD COLUMN post_time INTEGER")
             db.execSQL("ALTER TABLE pending_payments ADD COLUMN ticker_text TEXT")
         }
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE pending_payments ADD COLUMN goods TEXT")
+            db.execSQL("ALTER TABLE pending_payments ADD COLUMN note TEXT")
+        }
     }
 
     /**
@@ -348,9 +362,9 @@ class PendingPaymentDbHelper(context: Context) : SQLiteOpenHelper(context, DB_NA
     fun getPendingPayments(): List<Map<String, Any?>> {
         val db = readableDatabase
         val cursor = db.rawQuery(
-            """SELECT id, notification_id, amount, is_expense, merchant, source, raw_text,
-                      package_name, notification_time, title, text, big_text,
-                      category, channel_id, priority, post_time, ticker_text
+            """SELECT id, notification_id, amount, is_expense, merchant, goods, note,
+                      source, raw_text, package_name, notification_time,
+                      title, text, big_text, category, channel_id, priority, post_time, ticker_text
                FROM pending_payments WHERE status = 'pending'
                ORDER BY notification_time DESC""",
             null
@@ -363,18 +377,20 @@ class PendingPaymentDbHelper(context: Context) : SQLiteOpenHelper(context, DB_NA
                 "amount" to cursor.getDouble(2),
                 "isExpense" to (cursor.getInt(3) == 1),
                 "merchant" to (cursor.getString(4) ?: ""),
-                "source" to cursor.getString(5),
-                "rawText" to (cursor.getString(6) ?: ""),
-                "packageName" to (cursor.getString(7) ?: ""),
-                "timestamp" to cursor.getLong(8),
-                "title" to (cursor.getString(9) ?: ""),
-                "text" to (cursor.getString(10) ?: ""),
-                "bigText" to (cursor.getString(11) ?: ""),
-                "category" to (cursor.getString(12) ?: ""),
-                "channelId" to (cursor.getString(13) ?: ""),
-                "priority" to cursor.getInt(14),
-                "postTime" to cursor.getLong(15),
-                "tickerText" to (cursor.getString(16) ?: "")
+                "goods" to (cursor.getString(5) ?: ""),
+                "note" to (cursor.getString(6) ?: ""),
+                "source" to cursor.getString(7),
+                "rawText" to (cursor.getString(8) ?: ""),
+                "packageName" to (cursor.getString(9) ?: ""),
+                "timestamp" to cursor.getLong(10),
+                "title" to (cursor.getString(11) ?: ""),
+                "text" to (cursor.getString(12) ?: ""),
+                "bigText" to (cursor.getString(13) ?: ""),
+                "category" to (cursor.getString(14) ?: ""),
+                "channelId" to (cursor.getString(15) ?: ""),
+                "priority" to cursor.getInt(16),
+                "postTime" to cursor.getLong(17),
+                "tickerText" to (cursor.getString(18) ?: "")
             ))
         }
         cursor.close()

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/di/providers.dart';
 import '../../../core/services/payment_notification_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../domain/category_matcher.dart';
 
 /// 待确认支付 — 确认记账底部弹窗
 ///
@@ -45,8 +46,11 @@ class _PendingConfirmSheetState extends ConsumerState<PendingConfirmSheet> {
     _source = widget.data['source'] as String? ?? '';
     _merchant = widget.data['merchant'] as String? ?? '';
     _rawText = widget.data['rawText'] as String? ?? widget.data['raw_text'] as String? ?? '';
-    _goodsController = TextEditingController(text: _merchant);
-    _noteController = TextEditingController(text: _rawText);
+    // 优先使用解析器提取的精确字段，如 CMB 解析器提取的商品名和备注
+    final parsedGoods = widget.data['goods'] as String? ?? '';
+    final parsedNote = widget.data['note'] as String? ?? '';
+    _goodsController = TextEditingController(text: parsedGoods.isNotEmpty ? parsedGoods : _merchant);
+    _noteController = TextEditingController(text: parsedNote.isNotEmpty ? parsedNote : _rawText);
   }
 
   @override
@@ -283,19 +287,42 @@ class _PendingConfirmSheetState extends ConsumerState<PendingConfirmSheet> {
       }
     }
 
-    // 自动选中"其他"分类
+    // 自动匹配分类
     if (_selectedCategoryId == null) {
       final categories = _isExpense
           ? await db.getCategories(isExpense: true)
           : await db.getCategories(isExpense: false);
       if (categories.isNotEmpty && mounted) {
-        final otherCat = categories.firstWhere(
-          (c) => c['name'] == '其他',
-          orElse: () => categories.last,
-        );
-        setState(() => _selectedCategoryId = otherCat['id'] as int);
+        int? matchedId;
+
+        // 策略 1: 用 goods（解析器提取的精确商品名）进行关键词匹配
+        final goods = _goodsController.text.trim();
+        if (goods.isNotEmpty) {
+          matchedId = _matchCategoryByKeywords(goods, categories);
+        }
+
+        // 策略 2: 用 merchant 进行关键词匹配（goods 为空时的备用）
+        if (matchedId == null && _merchant.isNotEmpty) {
+          matchedId = _matchCategoryByKeywords(_merchant, categories);
+        }
+
+        // 兜底：选中"其他"
+        if (matchedId != null) {
+          setState(() => _selectedCategoryId = matchedId);
+        } else {
+          final otherCat = categories.firstWhere(
+            (c) => c['name'] == '其他',
+            orElse: () => categories.last,
+          );
+          setState(() => _selectedCategoryId = otherCat['id'] as int);
+        }
       }
     }
+  }
+
+  /// 根据关键词匹配分类（使用共享工具）
+  int? _matchCategoryByKeywords(String text, List<Map<String, dynamic>> categories) {
+    return matchCategoryByKeywords(text, categories);
   }
 
   Future<void> _confirm(BuildContext context) async {

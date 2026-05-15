@@ -250,6 +250,25 @@ class Transaction {
 - [x] 去重机制：5秒内相同金额的通知不重复入库
 - [x] SharedPreferences 可配置监听应用白名单（仅存储移除列表，新增银行自动生效）
 
+### 解析器策略模式
+- [x] `BasePaymentParser` 接口 — 所有解析器统一接口
+- [x] `PaymentParserFactory` — 按包名自动路由到对应解析器
+- [x] `DefaultPaymentParser` — 通用解析逻辑（降级备用）
+- [x] `CmbPaymentParser` — 招商银行，支持 `【】` 括号内 goods/note 拆分
+- [x] `AlipayPaymentParser` — 支付宝，含营销通知过滤，收款/支出精准判断
+- [x] `CiticPaymentParser` — 中信银行，存入/转入→收入
+- [x] `WechatPaymentParser` — 微信支付，已支付/已收款判断
+
+### 通知数据模型
+- [x] `ParsedPayment` 新增 `goods`（商品名）和 `note`（备注）字段
+- [x] 专用解析器可提取精确商品名（如 CMB 从 `【财付通-微信支付-XXX】` 拆出 goods）
+- [x] 确认弹窗默认填入解析器提取的商品和备注
+
+### 自动匹配分类
+- [x] 确认弹窗时先用 `goods` 关键词匹配，再用 `merchant`，最后兜底"其他"
+- [x] 共享关键词映射工具（`category_matcher.dart`），覆盖餐饮/交通/购物等 10+ 类目
+- [x] 支持自定义分类名直接匹配（分类名出现在文本中即可匹配）
+
 ### 数据流
 检测到支付 → 静默写入 SQLite `pending_payments` 表（去重 5 秒）→ 用户打开待确认列表处理
 

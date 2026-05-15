@@ -7,6 +7,7 @@ import '../../../core/services/payment_notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../domain/category_matcher.dart';
 import 'pending_confirm_sheet.dart';
 
 /// 待确认记账列表页
@@ -423,17 +424,29 @@ class _PendingNotificationsScreenState
       final categories = isExpense
           ? await db.getCategories(isExpense: true)
           : await db.getCategories(isExpense: false);
+
+      // 优先使用解析器提取的精确字段（如 CMB 解析器拆分的商品名和备注）
+      final parsedGoods = notification['goods'] as String? ?? '';
+      final parsedNote = notification['note'] as String? ?? '';
+
+      // 自动匹配分类：先用 goods 匹配，再用 merchant 匹配，最后兜底"其他"
+      int? matchedCategoryId;
+      if (parsedGoods.isNotEmpty) {
+        matchedCategoryId = matchCategoryByKeywords(parsedGoods, categories);
+      }
+      if (matchedCategoryId == null && merchant.isNotEmpty) {
+        matchedCategoryId = matchCategoryByKeywords(merchant, categories);
+      }
       final otherCat = categories.firstWhere(
         (c) => c['name'] == '其他',
         orElse: () => categories.isNotEmpty ? categories.last : {'id': 1},
       );
-      final categoryId = otherCat['id'] as int;
-
+      final categoryId = matchedCategoryId ?? (otherCat['id'] as int);
       await db.insertTransaction({
         'amount': amount,
         'is_expense': isExpense ? 1 : 0,
-        'goods': merchant,
-        'note': rawText,
+        'goods': parsedGoods.isNotEmpty ? parsedGoods : merchant,
+        'note': parsedNote.isNotEmpty ? parsedNote : rawText,
         'date': DateTime.now().toIso8601String(),
         'category_id': categoryId,
         'account_id': accountId,

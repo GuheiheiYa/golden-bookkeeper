@@ -47,3 +47,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 devtools_options.yaml
+
+# Exported databases (adb pull)
+*.db
+*.db-journal

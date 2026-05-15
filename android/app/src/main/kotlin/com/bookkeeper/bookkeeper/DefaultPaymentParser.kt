@@ -3,16 +3,23 @@ package com.bookkeeper.bookkeeper
 /**
  * 解析后的支付信息数据模型
  *
- * 由 [PaymentNotificationParser.parse] 从原始通知文本中解析得出。
+ * 由各 [BasePaymentParser] 实现类从原始通知文本中解析得出。
  * 包含金额、收支方向、商户名、来源 APP 等信息，供后续记账使用。
+ *
+ * ## 字段说明
+ * - [merchant]：展示用商户名，在待确认列表头部显示
+ * - [goods]：商品名，在确认弹窗中默认填入商品输入框
+ * - [note]：备注，在确认弹窗中默认填入备注输入框
  *
  * @param amount      交易金额（正数，不含符号），如 50.00
  * @param isExpense   true = 支出，false = 收入
- * @param merchant    商户/对方名称，可能为 null（解析失败时）
+ * @param merchant    商户/对方名称（用于列表展示），可能为 null
  * @param source      来源标识，如 "wechat"、"alipay"、"cmb" 等
- * @param rawText     原始通知全文，用于调试和 UI 展示
- * @param packageName 通知来源的 Android 包名，如 "com.tencent.mm"
- * @param timestamp   解析时间戳（毫秒），用于去重和排序
+ * @param rawText     原始通知全文
+ * @param packageName 通知来源的 Android 包名
+ * @param timestamp   解析时间戳（毫秒）
+ * @param goods       商品名称（特定解析器可提取精确商品名）
+ * @param note        备注（特定解析器可提取精确备注）
  */
 data class ParsedPayment(
     val amount: Double,
@@ -22,6 +29,8 @@ data class ParsedPayment(
     val rawText: String,
     val packageName: String,
     val timestamp: Long,
+    val goods: String? = null,
+    val note: String? = null,
     val notificationId: Int = 0,
     val title: String = "",
     val text: String = "",
@@ -51,7 +60,22 @@ data class ParsedPayment(
  * ## 线程安全
  * 所有状态均为不可变常量，对象可安全地在任意线程调用。
  */
-object PaymentNotificationParser {
+/**
+ * 默认支付通知解析器 — 通用逻辑（策略模式的默认实现）
+ *
+ * 作为 [BasePaymentParser] 的默认实现，处理所有未被专用解析器覆盖的支付通知格式。
+ * 职责：从微信、支付宝、各银行 APP 的通知文本中提取交易金额、收支方向、商户名。
+ *
+ * ## 解析流程
+ * 1. 通过 [packageSourceMap] 确定通知来源（不在白名单内 → 返回 null）
+ * 2. 按优先级用正则提取金额（人民币 > ¥符号 > 元后缀 > 通用小数）
+ * 3. 根据关键词判断收支方向（支出关键词优先于收入关键词）
+ * 4. 按来源格式提取商户名（微信括号格式 / 支付宝"向xxx付款"格式 / 银行"商户:"格式）
+ *
+ * ## 线程安全
+ * 所有状态均为不可变常量，对象可安全地在任意线程调用。
+ */
+object DefaultPaymentParser : BasePaymentParser {
 
     // ═══════════════════════════════════════════════════════════
     // 金额提取正则（按优先级从高到低）
@@ -107,7 +131,7 @@ object PaymentNotificationParser {
     private val expenseKeywords = listOf("消费", "付款", "支出", "扣款", "转出", "支付成功", "已扣")
 
     /** 收入关键词 — 通知文本包含任一即判定为收入 */
-    private val incomeKeywords = listOf("收款", "收入", "到账", "转入", "收到", "红包", "已入账", "退款")
+    private val incomeKeywords = listOf("收款", "收入", "到账", "转入", "收到", "红包", "已入账", "退款", "存入")
 
     // ═══════════════════════════════════════════════════════════
     // 包名 → 来源标识映射（白名单）
@@ -145,7 +169,10 @@ object PaymentNotificationParser {
      * @param notificationId Android 系统通知唯一 ID（sbn.id）
      * @return 解析成功返回 [ParsedPayment]，非支付通知或解析失败返回 null
      */
-    fun parse(text: String, packageName: String, notificationId: Int = 0): ParsedPayment? {
+    override fun parse(text: String, packageName: String, notificationId: Int): ParsedPayment? {
+        // 注意：当 notify (notification) 到达时，DefaultPaymentParser 作为 CMB 等专用解析器的降级备用
+        // 专用解析器已处理的通知不会再进入此方法
+        // 包名白名单检查：只有 packageSourceMap 中注册的包名才会被处理
         // 空文本直接跳过
         if (text.isBlank()) return null
 
