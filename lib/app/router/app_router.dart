@@ -104,49 +104,80 @@ class MainScreen extends StatelessWidget {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           body: navigationShell,
-      // 浮动胶囊底部导航栏
+      // 浮动胶囊底部导航栏（中间按钮凸起）
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-        child: Container(
+        child: SizedBox(
           height: 68,
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: isDark
-                    ? Colors.black.withValues(alpha: 0.3)
-                    : AppColors.lightPrimary.withValues(alpha: 0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 4),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // 导航栏背景
+              Container(
+                height: 68,
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.3)
+                          : AppColors.lightPrimary.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildNavItem(
+                      context,
+                      icon: Icons.home_outlined,
+                      selectedIcon: Icons.home_rounded,
+                      label: '首页',
+                      index: 0,
+                      isSelected: navigationShell.currentIndex == 0,
+                    ),
+                    _buildNavItem(
+                      context,
+                      icon: Icons.receipt_long_outlined,
+                      selectedIcon: Icons.receipt_long_rounded,
+                      label: '明细',
+                      index: 1,
+                      isSelected: navigationShell.currentIndex == 1,
+                    ),
+                    const SizedBox(width: 56),
+                    _buildNavItem(
+                      context,
+                      icon: Icons.bar_chart_outlined,
+                      selectedIcon: Icons.bar_chart_rounded,
+                      label: '统计',
+                      index: 2,
+                      isSelected: navigationShell.currentIndex == 2,
+                    ),
+                    _buildNavItem(
+                      context,
+                      icon: Icons.person_outlined,
+                      selectedIcon: Icons.person_rounded,
+                      label: '我的',
+                      index: 3,
+                      isSelected: navigationShell.currentIndex == 3,
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-          child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildNavItem(
-                    context,
-                    icon: Icons.home_outlined,
-                    selectedIcon: Icons.home_rounded,
-                    label: '首页',
-                    index: 0,
-                    isSelected: navigationShell.currentIndex == 0,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: Icons.receipt_long_outlined,
-                    selectedIcon: Icons.receipt_long_rounded,
-                    label: '明细',
-                    index: 1,
-                    isSelected: navigationShell.currentIndex == 1,
-                  ),
-                  // 中间记账按钮
-                  GestureDetector(
+              // 中间凸起记账按钮
+              Positioned(
+                top: -18,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: GestureDetector(
                     onTap: () => context.push('/add-transaction'),
                     child: Container(
-                      width: 52,
-                      height: 52,
+                      width: 56,
+                      height: 56,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [AppColors.warmYellow, AppColors.warmYellowDark],
@@ -156,38 +187,24 @@ class MainScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.warmYellow.withValues(alpha: 0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                            color: AppColors.warmYellow.withValues(alpha: 0.45),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
                           ),
                         ],
                       ),
                       child: const Icon(
                         Icons.add_rounded,
                         color: AppColors.warmYellowText,
-                        size: 28,
+                        size: 30,
                       ),
                     ),
                   ),
-                  _buildNavItem(
-                    context,
-                    icon: Icons.bar_chart_outlined,
-                    selectedIcon: Icons.bar_chart_rounded,
-                    label: '统计',
-                    index: 2,
-                    isSelected: navigationShell.currentIndex == 2,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: Icons.person_outlined,
-                    selectedIcon: Icons.person_rounded,
-                    label: '我的',
-                    index: 3,
-                    isSelected: navigationShell.currentIndex == 3,
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
       ),
     ),
     ),

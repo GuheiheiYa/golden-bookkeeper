@@ -232,167 +232,122 @@ class AccountListScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.72),
               child: Container(
-                padding: const EdgeInsets.all(20),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '添加账户',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 20),
-                      // 账户名称
-                      TextField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: '账户名称',
-                          hintText: '请输入账户名称',
+                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14, bottom: 4),
+                      child: Container(
+                        width: 40, height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.lightOutline,
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      // 初始余额
-                      TextField(
-                        controller: balanceController,
-                        decoration: const InputDecoration(
-                          labelText: '初始余额',
-                          hintText: '0.00',
-                          prefixText: '¥ ',
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 16),
-                      // 账户类型
-                      Text(
-                        '账户类型',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          _buildTypeChip('现金', 'cash', Icons.payments, selectedType, (v) {
-                            setModalState(() {
-                              selectedType = v;
-                              selectedIcon = _getIconForType(v);
-                            });
-                          }),
-                          _buildTypeChip('银行卡', 'bank', Icons.account_balance, selectedType, (v) {
-                            setModalState(() {
-                              selectedType = v;
-                              selectedIcon = _getIconForType(v);
-                            });
-                          }),
-                          _buildTypeChip('支付宝', 'alipay', Icons.account_balance_wallet, selectedType, (v) {
-                            setModalState(() {
-                              selectedType = v;
-                              selectedIcon = _getIconForType(v);
-                            });
-                          }),
-                          _buildTypeChip('微信', 'wechat', Icons.chat, selectedType, (v) {
-                            setModalState(() {
-                              selectedType = v;
-                              selectedIcon = _getIconForType(v);
-                            });
-                          }),
-                          _buildTypeChip('信用卡', 'credit', Icons.credit_card, selectedType, (v) {
-                            setModalState(() {
-                              selectedType = v;
-                              selectedIcon = _getIconForType(v);
-                            });
-                          }),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // 选择颜色
-                      Text(
-                        '选择颜色',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: AppColors.categoryColors.map((color) {
-                          final colorVal = color.value;
-                          final isSelected = selectedColor == colorVal;
-                          return GestureDetector(
-                            onTap: () {
-                              setModalState(() => selectedColor = colorVal);
-                            },
-                            child: Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: color,
-                                shape: BoxShape.circle,
-                                border: isSelected
-                                    ? Border.all(color: Colors.white, width: 3)
-                                    : null,
-                                boxShadow: isSelected
-                                    ? [
-                                        BoxShadow(
-                                          color: color.withOpacity(0.5),
-                                          blurRadius: 8,
-                                          spreadRadius: 2,
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                              child: isSelected
-                                  ? const Icon(Icons.check, color: Colors.white, size: 16)
-                                  : null,
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text('添加账户', style: Theme.of(context).textTheme.titleLarge),
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildRoundedInput(label: '账户名称', hint: '请输入账户名称', controller: nameController),
+                            const SizedBox(height: 14),
+                            _buildRoundedInput(label: '初始余额', hint: '0.00', controller: balanceController, prefix: '¥ ', keyboardType: TextInputType.number),
+                            const SizedBox(height: 16),
+                            Text('账户类型', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightOnSurfaceVariant, letterSpacing: 0.5)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8, runSpacing: 8,
+                              children: [
+                                _buildTypeChip('现金', 'cash', Icons.payments, selectedType, (v) { setModalState(() { selectedType = v; selectedIcon = _getIconForType(v); }); }),
+                                _buildTypeChip('银行卡', 'bank', Icons.account_balance, selectedType, (v) { setModalState(() { selectedType = v; selectedIcon = _getIconForType(v); }); }),
+                                _buildTypeChip('支付宝', 'alipay', Icons.account_balance_wallet, selectedType, (v) { setModalState(() { selectedType = v; selectedIcon = _getIconForType(v); }); }),
+                                _buildTypeChip('微信', 'wechat', Icons.chat, selectedType, (v) { setModalState(() { selectedType = v; selectedIcon = _getIconForType(v); }); }),
+                                _buildTypeChip('信用卡', 'credit', Icons.credit_card, selectedType, (v) { setModalState(() { selectedType = v; selectedIcon = _getIconForType(v); }); }),
+                              ],
                             ),
-                          );
-                        }).toList(),
+                            const SizedBox(height: 16),
+                            Text('选择颜色', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightOnSurfaceVariant, letterSpacing: 0.5)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 12, runSpacing: 12,
+                              children: AppColors.categoryColors.map((color) {
+                                final isSelected = selectedColor == color.value;
+                                return GestureDetector(
+                                  onTap: () => setModalState(() => selectedColor = color.value),
+                                  child: Container(
+                                    width: 36, height: 36,
+                                    decoration: BoxDecoration(
+                                      color: color, shape: BoxShape.circle,
+                                      border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
+                                      boxShadow: isSelected ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 8, spreadRadius: 2)] : null,
+                                    ),
+                                    child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 24),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 20),
-                        child: SizedBox(
-                          width: double.infinity,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface : Colors.white,
+                        border: Border(top: BorderSide(color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5), width: 0.5)),
+                      ),
+                      child: SizedBox(
+                        width: double.infinity, height: 48,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            gradient: LinearGradient(colors: [AppColors.warmYellow, AppColors.warmYellowDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                          ),
                           child: ElevatedButton(
                             onPressed: () async {
                               final name = nameController.text.trim();
-                              if (name.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('请输入账户名称')),
-                                );
-                                return;
-                              }
+                              if (name.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入账户名称'))); return; }
                               final balance = double.tryParse(balanceController.text) ?? 0.0;
                               final db = AppDatabase();
-                              await db.insertAccount({
-                                'name': name,
-                                'type': selectedType,
-                                'balance': balance,
-                                'icon': selectedIcon,
-                                'color': selectedColor,
-                              });
+                              await db.insertAccount({'name': name, 'type': selectedType, 'balance': balance, 'icon': selectedIcon, 'color': selectedColor});
                               Navigator.pop(context);
                               _refreshData(ref);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('账户添加成功')),
-                              );
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('账户添加成功')));
                             },
-                            child: const Text('保存'),
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            child: const Text('保存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.warmYellowText)),
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -415,107 +370,113 @@ class AccountListScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.72),
               child: Container(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '编辑账户',
-                          style: Theme.of(context).textTheme.titleLarge,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14, bottom: 4),
+                      child: Container(
+                        width: 40, height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.lightOutline,
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.red),
-                          onPressed: () {
-                            _showDeleteConfirmation(context, ref, account);
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: '账户名称',
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: balanceController,
-                      decoration: const InputDecoration(
-                        labelText: '余额',
-                        prefixText: '¥ ',
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      '账户类型',
-                      style: Theme.of(context).textTheme.titleSmall,
                     ),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        _buildTypeChip('现金', 'cash', Icons.payments, selectedType, (v) {
-                          setModalState(() => selectedType = v);
-                        }),
-                        _buildTypeChip('银行卡', 'bank', Icons.account_balance, selectedType, (v) {
-                          setModalState(() => selectedType = v);
-                        }),
-                        _buildTypeChip('支付宝', 'alipay', Icons.account_balance_wallet, selectedType, (v) {
-                          setModalState(() => selectedType = v);
-                        }),
-                        _buildTypeChip('微信', 'wechat', Icons.chat, selectedType, (v) {
-                          setModalState(() => selectedType = v);
-                        }),
-                        _buildTypeChip('信用卡', 'credit', Icons.credit_card, selectedType, (v) {
-                          setModalState(() => selectedType = v);
-                        }),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('编辑账户', style: Theme.of(context).textTheme.titleLarge),
+                          GestureDetector(
+                            onTap: () => _showDeleteConfirmation(context, ref, account),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.error.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildRoundedInput(label: '账户名称', hint: '请输入账户名称', controller: nameController),
+                            const SizedBox(height: 14),
+                            _buildRoundedInput(label: '余额', hint: '0.00', controller: balanceController, prefix: '¥ ', keyboardType: TextInputType.number),
+                            const SizedBox(height: 16),
+                            Text('账户类型', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightOnSurfaceVariant, letterSpacing: 0.5)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8, runSpacing: 8,
+                              children: [
+                                _buildTypeChip('现金', 'cash', Icons.payments, selectedType, (v) { setModalState(() => selectedType = v); }),
+                                _buildTypeChip('银行卡', 'bank', Icons.account_balance, selectedType, (v) { setModalState(() => selectedType = v); }),
+                                _buildTypeChip('支付宝', 'alipay', Icons.account_balance_wallet, selectedType, (v) { setModalState(() => selectedType = v); }),
+                                _buildTypeChip('微信', 'wechat', Icons.chat, selectedType, (v) { setModalState(() => selectedType = v); }),
+                                _buildTypeChip('信用卡', 'credit', Icons.credit_card, selectedType, (v) { setModalState(() => selectedType = v); }),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface : Colors.white,
+                        border: Border(top: BorderSide(color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5), width: 0.5)),
+                      ),
                       child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final name = nameController.text.trim();
-                            if (name.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请输入账户名称')),
-                              );
-                              return;
-                            }
-                            final balance = double.tryParse(balanceController.text) ?? 0.0;
-                            final db = AppDatabase();
-                            await db.updateAccount(account['id'] as int, {
-                              'name': name,
-                              'type': selectedType,
-                              'balance': balance,
-                            });
-                            Navigator.pop(context);
-                            _refreshData(ref);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('账户更新成功')),
-                            );
-                          },
-                          child: const Text('保存'),
+                        width: double.infinity, height: 48,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            gradient: const LinearGradient(colors: [AppColors.warmYellow, AppColors.warmYellowDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final name = nameController.text.trim();
+                              if (name.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入账户名称'))); return; }
+                              final balance = double.tryParse(balanceController.text) ?? 0.0;
+                              final db = AppDatabase();
+                              await db.updateAccount(account['id'] as int, {'name': name, 'type': selectedType, 'balance': balance});
+                              Navigator.pop(context);
+                              _refreshData(ref);
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('账户更新成功')));
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            child: const Text('保存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.warmYellowText)),
+                          ),
                         ),
                       ),
                     ),
@@ -586,17 +547,66 @@ class AccountListScreen extends ConsumerWidget {
     ValueChanged<String> onSelected,
   ) {
     final isSelected = selected == value;
-    return FilterChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16),
-          const SizedBox(width: 4),
-          Text(label),
-        ],
+    final color = _getTypeColor(value);
+    return GestureDetector(
+      onTap: () => onSelected(value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: isSelected ? color : AppColors.lightOnSurfaceVariant)),
+          ],
+        ),
       ),
-      selected: isSelected,
-      onSelected: (_) => onSelected(value),
+    );
+  }
+
+  Color _getTypeColor(String type) {
+    switch (type) {
+      case 'cash': return const Color(0xFFF59E0B);
+      case 'bank': return const Color(0xFF3B82F6);
+      case 'alipay': return const Color(0xFF06B6D4);
+      case 'wechat': return const Color(0xFF10B981);
+      case 'credit': return const Color(0xFFEF4444);
+      default: return AppColors.lightPrimary;
+    }
+  }
+
+  Widget _buildRoundedInput({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    String prefix = '',
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightOnSurfaceVariant, letterSpacing: 0.5)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          style: const TextStyle(fontSize: 15),
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixText: prefix,
+            filled: true,
+            fillColor: const Color(0xFFF3F4F6),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
+          ),
+        ),
+      ],
     );
   }
 }

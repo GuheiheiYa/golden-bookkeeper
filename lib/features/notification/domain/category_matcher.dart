@@ -21,6 +21,9 @@ const Map<String, List<String>> categoryKeywordMap = {
     '超市', '便利店', '水果', '生鲜', '食堂',
     '餐厅', '饭店', '面馆', '饺子', '包子',
     '蛋糕', '烘焙', '外卖',
+    'cotti', 'coffee', 'luckin', 'starbucks', 'kfc',
+    'mcdonald', 'pizzahut', 'heytea', 'mixue',
+    'tea', 'bubble', 'latte', 'mocha',
   ],
   '交通': [
     '滴滴', '打车', '地铁', '公交', '出租', '加油', '停车',

@@ -253,20 +253,13 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.primaryOf(brightness).withOpacity(0.1)
-                              : Theme.of(context).colorScheme.surfaceVariant,
+                          color: isSelected ? AppColors.primaryOf(brightness).withValues(alpha: 0.12) : Colors.transparent,
                           borderRadius: BorderRadius.circular(10),
-                          border: isSelected
-                              ? Border.all(color: AppColors.primaryOf(brightness), width: 2)
-                              : null,
                         ),
                         child: Icon(
                           info.icon,
                           size: 22,
-                          color: isSelected
-                              ? AppColors.primaryOf(brightness)
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: AppColors.primaryOf(brightness),
                         ),
                       ),
                     ),
@@ -349,117 +342,106 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.72),
               child: Container(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.75,
+                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                      child: Text(
-                        '添加${isExpense ? "支出" : "收入"}分类',
-                        style: Theme.of(context).textTheme.titleLarge,
+                      padding: const EdgeInsets.only(top: 14, bottom: 4),
+                      child: Container(
+                        width: 40, height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.lightOutline,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text('添加${isExpense ? "支出" : "收入"}分类', style: Theme.of(context).textTheme.titleLarge),
+                    ),
+                    const SizedBox(height: 12),
                     Flexible(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Text('分类名称', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightOnSurfaceVariant, letterSpacing: 0.5)),
+                            const SizedBox(height: 8),
                             TextField(
                               controller: nameController,
-                              decoration: const InputDecoration(
-                                labelText: '分类名称',
+                              style: const TextStyle(fontSize: 15),
+                              decoration: InputDecoration(
                                 hintText: '请输入分类名称',
+                                filled: true,
+                                fillColor: const Color(0xFFF3F4F6),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
                               ),
                             ),
                             const SizedBox(height: 16),
-                            _buildIconPicker(
-                              selectedIcon: selectedIcon,
-                              onIconSelected: (name) {
-                                setModalState(() => selectedIcon = name);
-                              },
-                            ),
+                            _buildIconPicker(selectedIcon: selectedIcon, onIconSelected: (name) { setModalState(() => selectedIcon = name); }),
                             const SizedBox(height: 16),
-                            _buildColorPicker(
-                              selectedColor: selectedColor,
-                              onColorSelected: (value) {
-                                setModalState(() => selectedColor = value);
-                              },
-                            ),
+                            _buildColorPicker(selectedColor: selectedColor, onColorSelected: (value) { setModalState(() => selectedColor = value); }),
                             if (isExpense) ...[
                               const SizedBox(height: 16),
-                              _buildLoanPicker(
-                                selectedLoanId: selectedLoanId,
-                                onLoanSelected: (id) {
-                                  setModalState(() => selectedLoanId = id);
-                                },
-                              ),
+                              _buildLoanPicker(selectedLoanId: selectedLoanId, onLoanSelected: (id) { setModalState(() => selectedLoanId = id); }),
                             ],
+                            const SizedBox(height: 12),
                           ],
                         ),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? AppColors.primaryDark.withOpacity(0.15)
-                                : Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, -2),
-                          ),
-                        ],
+                        color: isDark ? AppColors.darkSurface : Colors.white,
+                        border: Border(top: BorderSide(color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5), width: 0.5)),
                       ),
                       child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final name = nameController.text.trim();
-                            if (name.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请输入分类名称')),
-                              );
-                              return;
-                            }
-                            final db = AppDatabase();
-                            final categoryData = <String, dynamic>{
-                              'name': name,
-                              'is_expense': isExpense ? 1 : 0,
-                              'icon': selectedIcon,
-                              'color': selectedColor,
-                              'sort_order': 999,
-                              'is_system': 0,
-                            };
-                            if (selectedLoanId != null) {
-                              categoryData['loan_id'] = selectedLoanId;
-                            }
-                            final messenger = ScaffoldMessenger.of(context);
-                            await db.insertCategory(categoryData);
-                            Navigator.pop(context);
-                            _refreshData();
-                            messenger.showSnackBar(
-                              const SnackBar(content: Text('分类添加成功')),
-                            );
-                          },
-                          child: const Text('保存'),
+                        width: double.infinity, height: 48,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            gradient: const LinearGradient(colors: [AppColors.warmYellow, AppColors.warmYellowDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final name = nameController.text.trim();
+                              if (name.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入分类名称'))); return; }
+                              final db = AppDatabase();
+                              final categoryData = <String, dynamic>{'name': name, 'is_expense': isExpense ? 1 : 0, 'icon': selectedIcon, 'color': selectedColor, 'sort_order': 999, 'is_system': 0};
+                              if (selectedLoanId != null) { categoryData['loan_id'] = selectedLoanId; }
+                              final messenger = ScaffoldMessenger.of(context);
+                              await db.insertCategory(categoryData);
+                              Navigator.pop(context);
+                              _refreshData();
+                              messenger.showSnackBar(const SnackBar(content: Text('分类添加成功')));
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            child: const Text('保存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.warmYellowText)),
+                          ),
                         ),
                       ),
                     ),
@@ -492,126 +474,122 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.72),
               child: Container(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.75,
+                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                      padding: const EdgeInsets.only(top: 14, bottom: 4),
+                      child: Container(
+                        width: 40, height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.lightOutline,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '编辑分类',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.red),
-                            onPressed: () {
-                              _showDeleteConfirmation(context, category);
-                            },
+                          Text('编辑分类', style: Theme.of(context).textTheme.titleLarge),
+                          GestureDetector(
+                            onTap: () => _showDeleteConfirmation(context, category),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.error.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                            ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: 12),
                     Flexible(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Text('分类名称', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightOnSurfaceVariant, letterSpacing: 0.5)),
+                            const SizedBox(height: 8),
                             TextField(
                               controller: nameController,
-                              decoration: const InputDecoration(
-                                labelText: '分类名称',
+                              style: const TextStyle(fontSize: 15),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: const Color(0xFFF3F4F6),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
                               ),
                             ),
                             const SizedBox(height: 16),
-                            _buildIconPicker(
-                              selectedIcon: selectedIcon,
-                              onIconSelected: (name) {
-                                setModalState(() => selectedIcon = name);
-                              },
-                            ),
+                            _buildIconPicker(selectedIcon: selectedIcon, onIconSelected: (name) { setModalState(() => selectedIcon = name); }),
                             const SizedBox(height: 16),
-                            _buildColorPicker(
-                              selectedColor: selectedColor,
-                              onColorSelected: (value) {
-                                setModalState(() => selectedColor = value);
-                              },
-                            ),
+                            _buildColorPicker(selectedColor: selectedColor, onColorSelected: (value) { setModalState(() => selectedColor = value); }),
                             const SizedBox(height: 16),
-                            _buildLoanPicker(
-                              selectedLoanId: selectedLoanId,
-                              onLoanSelected: (id) {
-                                setModalState(() => selectedLoanId = id);
-                              },
-                            ),
+                            _buildLoanPicker(selectedLoanId: selectedLoanId, onLoanSelected: (id) { setModalState(() => selectedLoanId = id); }),
+                            const SizedBox(height: 12),
                           ],
                         ),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? AppColors.primaryDark.withOpacity(0.15)
-                                : Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, -2),
-                          ),
-                        ],
+                        color: isDark ? AppColors.darkSurface : Colors.white,
+                        border: Border(top: BorderSide(color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5), width: 0.5)),
                       ),
                       child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final name = nameController.text.trim();
-                            if (name.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请输入分类名称')),
-                              );
-                              return;
-                            }
-                            final db = AppDatabase();
-                            final updateData = <String, dynamic>{
-                              'name': name,
-                              'icon': selectedIcon,
-                              'color': selectedColor,
-                              'loan_id': selectedLoanId,
-                            };
-                            final messenger = ScaffoldMessenger.of(context);
-                            try {
-                              await db.updateCategory(category['id'] as int, updateData);
-                              Navigator.pop(context);
-                              _refreshData();
-                              messenger.showSnackBar(
-                                const SnackBar(content: Text('分类更新成功')),
-                              );
-                            } catch (e) {
-                              messenger.showSnackBar(
-                                SnackBar(content: Text('保存失败: $e')),
-                              );
-                            }
-                          },
-                          child: const Text('保存'),
+                        width: double.infinity, height: 48,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            gradient: const LinearGradient(colors: [AppColors.warmYellow, AppColors.warmYellowDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final name = nameController.text.trim();
+                              if (name.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入分类名称'))); return; }
+                              final db = AppDatabase();
+                              final updateData = <String, dynamic>{'name': name, 'icon': selectedIcon, 'color': selectedColor, 'loan_id': selectedLoanId};
+                              final messenger = ScaffoldMessenger.of(context);
+                              try {
+                                await db.updateCategory(category['id'] as int, updateData);
+                                Navigator.pop(context);
+                                _refreshData();
+                                messenger.showSnackBar(const SnackBar(content: Text('分类更新成功')));
+                              } catch (e) {
+                                messenger.showSnackBar(SnackBar(content: Text('保存失败: $e')));
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            child: const Text('保存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.warmYellowText)),
+                          ),
                         ),
                       ),
                     ),
@@ -652,49 +630,26 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen>
                 GestureDetector(
                   onTap: () => onLoanSelected(null),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: selectedLoanId == null
-                          ? AppColors.primaryOf(Theme.of(context).brightness).withOpacity(0.15)
-                          : Theme.of(context).colorScheme.surfaceVariant,
+                      color: selectedLoanId == null ? AppColors.primaryOf(Theme.of(context).brightness).withValues(alpha: 0.12) : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
-                      border: selectedLoanId == null
-                          ? Border.all(color: AppColors.primaryOf(Theme.of(context).brightness))
-                          : null,
                     ),
-                    child: Text(
-                      '不关联',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: selectedLoanId == null
-                            ? AppColors.primaryOf(Theme.of(context).brightness)
-                            : null,
-                      ),
-                    ),
+                    child: Text('不关联', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: selectedLoanId == null ? AppColors.primaryOf(Theme.of(context).brightness) : AppColors.lightOnSurfaceVariant)),
                   ),
                 ),
                 ...loans.map((loan) {
                   final isSelected = selectedLoanId == loan['id'];
+                  const loanColor = Color(0xFFEF4444);
                   return GestureDetector(
                     onTap: () => onLoanSelected(loan['id'] as int),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFFEF4444).withOpacity(0.1)
-                            : Theme.of(context).colorScheme.surfaceVariant,
+                        color: isSelected ? loanColor.withValues(alpha: 0.12) : Colors.transparent,
                         borderRadius: BorderRadius.circular(20),
-                        border: isSelected
-                            ? Border.all(color: const Color(0xFFEF4444))
-                            : null,
                       ),
-                      child: Text(
-                        loan['name'] as String,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isSelected ? const Color(0xFFEF4444) : null,
-                        ),
-                      ),
+                      child: Text(loan['name'] as String, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: isSelected ? loanColor : AppColors.lightOnSurfaceVariant)),
                     ),
                   );
                 }),

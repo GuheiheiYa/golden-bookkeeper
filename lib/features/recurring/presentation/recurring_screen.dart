@@ -301,52 +301,84 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
             final brightness = Theme.of(context).brightness;
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.72),
               child: Container(
-                padding: const EdgeInsets.all(20),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '添加周期记账',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
+                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14, bottom: 4),
+                      child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text('添加周期记账', style: Theme.of(context).textTheme.titleLarge),
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                       const SizedBox(height: 20),
                       // 名称
                       TextField(
                         controller: titleController,
-                        decoration: const InputDecoration(
-                          labelText: '名称',
+                        style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground),
+                        decoration: InputDecoration(
                           hintText: '例如：房租、工资',
+                          hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary, fontSize: 15),
+                          filled: true,
+                          fillColor: isDark ? AppColors.darkSurfaceVariant : const Color(0xFFF3F4F6),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       // 金额和类型
                       Row(
                         children: [
                           Expanded(
                             child: TextField(
                               controller: amountController,
-                              decoration: const InputDecoration(
-                                labelText: '金额',
+                              style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground),
+                              decoration: InputDecoration(
+                                hintText: '金额',
+                                hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary, fontSize: 15),
                                 prefixText: '¥ ',
+                                prefixStyle: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground),
+                                filled: true,
+                                fillColor: isDark ? AppColors.darkSurfaceVariant : const Color(0xFFF3F4F6),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
                               ),
                               keyboardType: TextInputType.number,
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 12),
                           SegmentedButton<bool>(
                             segments: const [
                               ButtonSegment(value: true, label: Text('支出')),
@@ -359,12 +391,13 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       // 选择分类
                       ListTile(
-                        leading: Icon(Icons.category, color: AppColors.primaryOf(brightness)),
-                        title: Text(selectedCategoryName ?? '选择分类'),
-                        trailing: const Icon(Icons.chevron_right),
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.category, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
+                        title: Text(selectedCategoryName ?? '选择分类', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
+                        trailing: Icon(Icons.chevron_right, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
                         onTap: () async {
                           final result = await _showCategoryPicker(context, isExpense);
                           if (result != null) {
@@ -377,10 +410,10 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       ),
                       // 选择账户
                       ListTile(
-                        leading: Icon(Icons.account_balance_wallet,
-                            color: AppColors.primaryOf(brightness)),
-                        title: Text(selectedAccountName ?? '选择账户'),
-                        trailing: const Icon(Icons.chevron_right),
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.account_balance_wallet, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
+                        title: Text(selectedAccountName ?? '选择账户', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
+                        trailing: Icon(Icons.chevron_right, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
                         onTap: () async {
                           final result = await _showAccountPicker(context);
                           if (result != null) {
@@ -393,9 +426,16 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       ),
                       // 频率
                       ListTile(
-                        leading: Icon(Icons.repeat, color: AppColors.primaryOf(brightness)),
-                        title: const Text('频率'),
-                        trailing: Text(_getFrequencyText(selectedFrequency)),
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.repeat, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
+                        title: Text('频率', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_getFrequencyText(selectedFrequency), style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant)),
+                            Icon(Icons.chevron_right, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
+                          ],
+                        ),
                         onTap: () {
                           _showFrequencyPicker(context, selectedFrequency, (value) {
                             setModalState(() => selectedFrequency = value);
@@ -405,10 +445,16 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       // 每月几号（仅月频率时显示）
                       if (selectedFrequency == 'monthly')
                         ListTile(
-                          leading: Icon(Icons.calendar_today,
-                              color: AppColors.primaryOf(brightness)),
-                          title: const Text('每月几号'),
-                          trailing: Text('${selectedDayOfMonth ?? 1}日'),
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(Icons.calendar_today, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
+                          title: Text('每月几号', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('${selectedDayOfMonth ?? 1}日', style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant)),
+                              Icon(Icons.chevron_right, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
+                            ],
+                          ),
                           onTap: () {
                             _showDayPicker(context, selectedDayOfMonth ?? 1,
                                 (day) {
@@ -418,10 +464,15 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                         ),
                       // 开始日期
                       ListTile(
-                        leading: Icon(Icons.event, color: AppColors.primaryOf(brightness)),
-                        title: const Text('开始日期'),
-                        trailing: Text(
-                          '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}',
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.event, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
+                        title: Text('开始日期', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}', style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant)),
+                            Icon(Icons.chevron_right, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
+                          ],
                         ),
                         onTap: () async {
                           final picked = await showDatePicker(
@@ -435,74 +486,55 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                           }
                         },
                       ),
-                      const SizedBox(height: 24),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 20),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              // 验证输入
-                              final title = titleController.text.trim();
-                              if (title.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('请输入名称')),
-                                );
-                                return;
-                              }
-                              final amount = double.tryParse(amountController.text);
-                              if (amount == null || amount <= 0) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('请输入有效金额')),
-                                );
-                                return;
-                              }
-                              if (selectedCategoryId == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('请选择分类')),
-                                );
-                                return;
-                              }
-                              if (selectedAccountId == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('请选择账户')),
-                                );
-                                return;
-                              }
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  border: Border(top: BorderSide(color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5), width: 0.5)),
+                ),
+                child: SizedBox(
+                  width: double.infinity, height: 48,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      gradient: const LinearGradient(colors: [AppColors.warmYellow, AppColors.warmYellowDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final title = titleController.text.trim();
+                        if (title.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入名称'))); return; }
+                        final amount = double.tryParse(amountController.text);
+                        if (amount == null || amount <= 0) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入有效金额'))); return; }
+                        if (selectedCategoryId == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请选择分类'))); return; }
+                        if (selectedAccountId == null) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请选择账户'))); return; }
 
-                              final db = AppDatabase();
-                              final ruleId = await db.insertRecurringRule({
-                                'title': title,
-                                'amount': amount,
-                                'is_expense': isExpense ? 1 : 0,
-                                'category_id': selectedCategoryId,
-                                'account_id': selectedAccountId,
+                        final db = AppDatabase();
+                        final ruleId = await db.insertRecurringRule({
+                                'title': title, 'amount': amount, 'is_expense': isExpense ? 1 : 0,
+                                'category_id': selectedCategoryId, 'account_id': selectedAccountId,
                                 'frequency': selectedFrequency,
-                                'day_of_month': selectedFrequency == 'monthly'
-                                    ? selectedDayOfMonth
-                                    : null,
-                                'start_date': startDate.toIso8601String(),
-                                'is_active': 1,
+                                'day_of_month': selectedFrequency == 'monthly' ? selectedDayOfMonth : null,
+                                'start_date': startDate.toIso8601String(), 'is_active': 1,
                               });
-
-                              // 对于高频规则（每分钟、每小时），立即执行一次
-                              if (selectedFrequency == 'minutely' ||
-                                  selectedFrequency == 'hourly') {
+                              if (selectedFrequency == 'minutely' || selectedFrequency == 'hourly') {
                                 await db.executeDueRecurringRules();
                               }
-
                               Navigator.pop(context);
                               _refreshData();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('周期记账规则添加成功')),
-                              );
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('周期记账规则添加成功')));
                             },
-                            child: const Text('保存'),
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            child: const Text('保存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.warmYellowText)),
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -531,62 +563,97 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
             final brightness = Theme.of(context).brightness;
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.72),
               child: Container(
-                padding: const EdgeInsets.all(20),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14, bottom: 4),
+                      child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '编辑周期记账',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.red),
-                            onPressed: () {
-                              _showDeleteConfirmation(context, rule);
-                            },
+                          Text('编辑周期记账', style: Theme.of(context).textTheme.titleLarge),
+                          GestureDetector(
+                            onTap: () => _showDeleteConfirmation(context, rule),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                              child: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                      const SizedBox(height: 8),
                       // 名称
                       TextField(
                         controller: titleController,
-                        decoration: const InputDecoration(
-                          labelText: '名称',
+                        style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground),
+                        decoration: InputDecoration(
+                          hintText: '名称',
+                          hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary, fontSize: 15),
+                          filled: true,
+                          fillColor: isDark ? AppColors.darkSurfaceVariant : const Color(0xFFF3F4F6),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       // 金额和类型
                       Row(
                         children: [
                           Expanded(
                             child: TextField(
                               controller: amountController,
-                              decoration: const InputDecoration(
-                                labelText: '金额',
+                              style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground),
+                              decoration: InputDecoration(
+                                hintText: '金额',
+                                hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary, fontSize: 15),
                                 prefixText: '¥ ',
+                                prefixStyle: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground),
+                                filled: true,
+                                fillColor: isDark ? AppColors.darkSurfaceVariant : const Color(0xFFF3F4F6),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
                               ),
                               keyboardType: TextInputType.number,
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 12),
                           SegmentedButton<bool>(
                             segments: const [
                               ButtonSegment(value: true, label: Text('支出')),
@@ -599,12 +666,13 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       // 选择分类
                       ListTile(
-                        leading: Icon(Icons.category, color: AppColors.primaryOf(brightness)),
-                        title: Text(selectedCategoryName ?? '选择分类'),
-                        trailing: const Icon(Icons.chevron_right),
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.category, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
+                        title: Text(selectedCategoryName ?? '选择分类', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
+                        trailing: Icon(Icons.chevron_right, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
                         onTap: () async {
                           final result = await _showCategoryPicker(context, isExpense);
                           if (result != null) {
@@ -617,10 +685,10 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       ),
                       // 选择账户
                       ListTile(
-                        leading: Icon(Icons.account_balance_wallet,
-                            color: AppColors.primaryOf(brightness)),
-                        title: Text(selectedAccountName ?? '选择账户'),
-                        trailing: const Icon(Icons.chevron_right),
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.account_balance_wallet, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
+                        title: Text(selectedAccountName ?? '选择账户', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
+                        trailing: Icon(Icons.chevron_right, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
                         onTap: () async {
                           final result = await _showAccountPicker(context);
                           if (result != null) {
@@ -633,9 +701,16 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       ),
                       // 频率
                       ListTile(
-                        leading: Icon(Icons.repeat, color: AppColors.primaryOf(brightness)),
-                        title: const Text('频率'),
-                        trailing: Text(_getFrequencyText(selectedFrequency)),
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.repeat, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
+                        title: Text('频率', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_getFrequencyText(selectedFrequency), style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant)),
+                            Icon(Icons.chevron_right, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
+                          ],
+                        ),
                         onTap: () {
                           _showFrequencyPicker(context, selectedFrequency, (value) {
                             setModalState(() => selectedFrequency = value);
@@ -645,10 +720,16 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                       // 每月几号
                       if (selectedFrequency == 'monthly')
                         ListTile(
-                          leading: Icon(Icons.calendar_today,
-                              color: AppColors.primaryOf(brightness)),
-                          title: const Text('每月几号'),
-                          trailing: Text('${selectedDayOfMonth ?? 1}日'),
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(Icons.calendar_today, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant),
+                          title: Text('每月几号', style: TextStyle(fontSize: 15, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground)),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('${selectedDayOfMonth ?? 1}日', style: TextStyle(fontSize: 14, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant)),
+                              Icon(Icons.chevron_right, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
+                            ],
+                          ),
                           onTap: () {
                             _showDayPicker(context, selectedDayOfMonth ?? 1,
                                 (day) {
@@ -704,21 +785,23 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                               });
                               Navigator.pop(context);
                               _refreshData();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('规则更新成功')),
-                              );
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('规则更新成功')));
                             },
-                            child: const Text('保存'),
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            child: const Text('保存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.warmYellowText)),
                           ),
                         ),
                       ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         );
+      },
+    );
       },
     );
   }
@@ -736,60 +819,60 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
     return showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return DraggableScrollableSheet(
           initialChildSize: 0.6,
           maxChildSize: 0.9,
           minChildSize: 0.3,
           expand: false,
           builder: (context, scrollController) {
-            return ListView.builder(
-              controller: scrollController,
-              padding: const EdgeInsets.all(20),
-              itemCount: categories.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      '选择分类',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  );
-                }
-                final cat = categories[index - 1];
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 14, bottom: 4),
+                    child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                      itemCount: categories.length,
+                      itemBuilder: (context, index) {
+                final cat = categories[index];
                 final iconName = cat['icon'] as String? ?? 'category';
                 final colorValue = cat['color'] as int? ?? AppColors.primary.value;
                 return ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Color(colorValue).withOpacity(0.1),
+                      color: Color(colorValue).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      IconUtils.fromName(iconName),
-                      color: Color(colorValue),
-                      size: 20,
-                    ),
+                    child: Icon(IconUtils.fromName(iconName), color: Color(colorValue), size: 20),
                   ),
                   title: Text(cat['name'] as String),
                   onTap: () {
-                    Navigator.pop(context, {
-                      'id': cat['id'] as int,
-                      'name': cat['name'] as String,
-                    });
+                    Navigator.pop(context, {'id': cat['id'] as int, 'name': cat['name'] as String});
                   },
                 );
               },
-            );
-          },
-        );
-      },
-    );
+            ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+  },
+);
   }
 
   // ========== 账户选择器 ==========
@@ -805,81 +888,86 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
     return showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return DraggableScrollableSheet(
           initialChildSize: 0.5,
           maxChildSize: 0.9,
           minChildSize: 0.3,
           expand: false,
           builder: (context, scrollController) {
-            return ListView.builder(
-              controller: scrollController,
-              padding: const EdgeInsets.all(20),
-              itemCount: accounts.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      '选择账户',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  );
-                }
-                final acc = accounts[index - 1];
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 14, bottom: 4),
+                    child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                      itemCount: accounts.length,
+                      itemBuilder: (context, index) {
+                final acc = accounts[index];
                 final iconName = acc['icon'] as String? ?? 'payments';
                 final colorValue = acc['color'] as int? ?? AppColors.primary.value;
                 return ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Color(colorValue).withOpacity(0.1),
+                      color: Color(colorValue).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      IconUtils.fromName(iconName),
-                      color: Color(colorValue),
-                      size: 20,
-                    ),
+                    child: Icon(IconUtils.fromName(iconName), color: Color(colorValue), size: 20),
                   ),
                   title: Text(acc['name'] as String),
                   onTap: () {
-                    Navigator.pop(context, {
-                      'id': acc['id'] as int,
-                      'name': acc['name'] as String,
-                    });
+                    Navigator.pop(context, {'id': acc['id'] as int, 'name': acc['name'] as String});
                   },
                 );
               },
-            );
-          },
-        );
-      },
-    );
+            ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+  },
+);
   }
 
   // ========== 频率选择器 ==========
 
   void _showFrequencyPicker(
       BuildContext context, String current, ValueChanged<String> onSelected) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                '选择频率',
-                style: Theme.of(context).textTheme.titleLarge,
+              Center(
+                child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
               ),
+              const SizedBox(height: 16),
+              Text('选择频率', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
               _buildFrequencyOption(context, '每分钟', 'minutely', current, onSelected),
               _buildFrequencyOption(context, '每小时', 'hourly', current, onSelected),
@@ -912,23 +1000,28 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
   // ========== 日期选择器 ==========
 
   void _showDayPicker(BuildContext context, int current, ValueChanged<int> onSelected) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
         final brightness = Theme.of(context).brightness;
         return Container(
           padding: const EdgeInsets.all(20),
           height: 400,
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '选择每月几号',
-                style: Theme.of(context).textTheme.titleLarge,
+              Center(
+                child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
               ),
+              const SizedBox(height: 16),
+              Text('选择每月几号', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
               Expanded(
                 child: GridView.builder(

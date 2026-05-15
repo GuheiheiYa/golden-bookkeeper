@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/database/app_database.dart';
 import '../../core/services/payment_notification_service.dart';
+import '../../shared/utils/icon_utils.dart';
 
 // 数据库 Provider
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
@@ -256,26 +257,5 @@ final pendingNotificationCountProvider = FutureProvider<int>((ref) async {
 
 /// 将数据库中存储的图标名称映射为 IconData
 IconData mapIconName(String? iconName) {
-  const iconMap = <String, IconData>{
-    'restaurant': Icons.restaurant,
-    'directions_car': Icons.directions_car,
-    'shopping_bag': Icons.shopping_bag,
-    'sports_esports': Icons.sports_esports,
-    'home': Icons.home,
-    'local_hospital': Icons.local_hospital,
-    'school': Icons.school,
-    'more_horiz': Icons.more_horiz,
-    'work': Icons.work,
-    'emoji_events': Icons.emoji_events,
-    'trending_up': Icons.trending_up,
-    'payments': Icons.payments,
-    'account_balance': Icons.account_balance,
-    'account_balance_wallet': Icons.account_balance_wallet,
-    'chat': Icons.chat,
-    'local_taxi': Icons.local_taxi,
-    'movie': Icons.movie,
-    'coffee': Icons.coffee,
-    'receipt_long': Icons.receipt_long,
-  };
-  return iconMap[iconName] ?? Icons.category;
+  return IconUtils.fromName(iconName);
 }

@@ -343,32 +343,19 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? Color(catColor).withOpacity(0.1)
-                            : Theme.of(context).colorScheme.surfaceVariant,
+                        color: isSelected ? Color(catColor).withValues(alpha: 0.12) : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
-                        border: isSelected
-                            ? Border.all(color: Color(catColor), width: 2)
-                            : null,
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            mapIconName(catIcon),
-                            color: isSelected
-                                ? Color(catColor)
-                                : Theme.of(context).colorScheme.onSurfaceVariant,
-                            size: 28,
-                          ),
+                          Icon(mapIconName(catIcon), color: Color(catColor), size: 28),
                           const SizedBox(height: 4),
                           Text(
                             catName,
                             style: TextStyle(
                               fontSize: 12,
-                              color: isSelected
-                                  ? Color(catColor)
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: isSelected ? Color(catColor) : Theme.of(context).colorScheme.onSurfaceVariant,
                               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                             ),
                           ),
@@ -390,99 +377,75 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return DraggableScrollableSheet(
           initialChildSize: 0.6,
           maxChildSize: 0.9,
           minChildSize: 0.3,
           expand: false,
           builder: (context, scrollController) {
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '全部分类',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 14, bottom: 4),
+                    child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
                   ),
-                ),
-                Expanded(
-                  child: GridView.builder(
-                    controller: scrollController,
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      childAspectRatio: 1,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('全部分类', style: Theme.of(context).textTheme.titleLarge),
+                        IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                      ],
                     ),
-                    itemCount: categories.length,
-                    itemBuilder: (context, index) {
-                      final category = categories[index];
-                      final catId = category['id'] as int;
-                      final catName = category['name'] as String;
-                      final catIcon = category['icon'] as String?;
-                      final catColor = category['color'] as int? ?? 0xFF6B7280;
-                      final isSelected = _selectedCategoryId == catId;
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedCategoryId = catId;
-                          });
-                          Navigator.pop(context);
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? Color(catColor).withOpacity(0.1)
-                                : Theme.of(context).colorScheme.surfaceVariant,
-                            borderRadius: BorderRadius.circular(12),
-                            border: isSelected
-                                ? Border.all(color: Color(catColor), width: 2)
-                                : null,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                mapIconName(catIcon),
-                                color: isSelected
-                                    ? Color(catColor)
-                                    : Theme.of(context).colorScheme.onSurfaceVariant,
-                                size: 28,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                catName,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isSelected
-                                      ? Color(catColor)
-                                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: GridView.builder(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 4, childAspectRatio: 1, crossAxisSpacing: 12, mainAxisSpacing: 12,
+                      ),
+                      itemCount: categories.length,
+                      itemBuilder: (context, index) {
+                        final category = categories[index];
+                        final catId = category['id'] as int;
+                        final catName = category['name'] as String;
+                        final catIcon = category['icon'] as String?;
+                        final catColor = category['color'] as int? ?? 0xFF6B7280;
+                        final isSelected = _selectedCategoryId == catId;
+                        return GestureDetector(
+                          onTap: () { setState(() { _selectedCategoryId = catId; }); Navigator.pop(context); },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            decoration: BoxDecoration(
+                              color: isSelected ? Color(catColor).withValues(alpha: 0.12) : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(mapIconName(catIcon), color: Color(catColor), size: 28),
+                                const SizedBox(height: 4),
+                                Text(catName, style: TextStyle(fontSize: 12, color: isSelected ? Color(catColor) : Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal)),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         );
@@ -606,50 +569,24 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? Color(tagColor).withOpacity(0.15)
-                            : Theme.of(context).colorScheme.surfaceVariant,
+                        color: isSelected ? Color(tagColor).withValues(alpha: 0.12) : Colors.transparent,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isSelected
-                              ? Color(tagColor)
-                              : Colors.transparent,
-                          width: 1.5,
-                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (isSelected)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 4),
-                              child: Icon(
-                                Icons.check,
-                                size: 16,
-                                color: Color(tagColor),
-                              ),
-                            ),
                           Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: Color(tagColor),
-                              shape: BoxShape.circle,
-                            ),
+                            width: 8, height: 8,
+                            decoration: BoxDecoration(color: Color(tagColor), shape: BoxShape.circle),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             tagName,
                             style: TextStyle(
                               fontSize: 13,
-                              color: isSelected
-                                  ? Color(tagColor)
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: isSelected ? Color(tagColor) : Theme.of(context).colorScheme.onSurfaceVariant,
                               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                             ),
                           ),
@@ -865,20 +802,25 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       final accounts = allAccounts.where((a) => !(a['type'] as String? ?? '').startsWith('loan')).toList();
       showModalBottomSheet(
         context: context,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
+        useRootNavigator: true,
+        backgroundColor: Colors.transparent,
         builder: (context) {
           final brightness = Theme.of(context).brightness;
+          final isDark = Theme.of(context).brightness == Brightness.dark;
           return Container(
             padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  '选择账户',
-                  style: Theme.of(context).textTheme.titleLarge,
+                Center(
+                  child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
                 ),
+                const SizedBox(height: 16),
+                Text('选择账户', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 ...accounts.map((account) {
                   final accId = account['id'] as int;
@@ -887,22 +829,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                   final accColor = account['color'] as int? ?? 0xFF6B7280;
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Color(accColor).withOpacity(0.1),
-                      child: Icon(
-                        mapIconName(accIcon),
-                        color: Color(accColor),
-                      ),
+                      backgroundColor: Color(accColor).withValues(alpha: 0.12),
+                      child: Icon(mapIconName(accIcon), color: Color(accColor)),
                     ),
                     title: Text(accName),
                     trailing: _selectedAccountId == accId
                         ? Icon(Icons.check_circle, color: AppColors.primaryOf(brightness))
                         : null,
-                    onTap: () {
-                      setState(() {
-                        _selectedAccountId = accId;
-                      });
-                      Navigator.pop(context);
-                    },
+                    onTap: () { setState(() { _selectedAccountId = accId; }); Navigator.pop(context); },
                   );
                 }),
               ],
@@ -917,22 +851,24 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   void _showCurrencyPicker() {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
         final brightness = Theme.of(context).brightness;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Container(
           padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(2),
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2)),
                 ),
               ),
               const SizedBox(height: 16),
@@ -974,12 +910,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                       duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.primaryOf(brightness).withOpacity(0.1)
-                            : Theme.of(context).colorScheme.surfaceVariant,
+                            ? AppColors.primaryOf(brightness).withValues(alpha: 0.12)
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
-                        border: isSelected
-                            ? Border.all(color: AppColors.primaryOf(brightness), width: 2)
-                            : null,
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -989,9 +922,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? AppColors.primaryOf(brightness)
-                                  : Theme.of(context).colorScheme.onSurface,
+                              color: AppColors.primaryOf(brightness),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -1000,9 +931,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? AppColors.primaryOf(brightness)
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: AppColors.primaryOf(brightness),
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -1010,9 +939,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                             currency.name,
                             style: TextStyle(
                               fontSize: 10,
-                              color: isSelected
-                                  ? AppColors.primaryOf(brightness).withOpacity(0.7)
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: AppColors.primaryOf(brightness).withValues(alpha: 0.7),
                             ),
                           ),
                         ],
@@ -1056,70 +983,57 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 20,
-            right: 20,
-            top: 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(2),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
+                ),
+                const SizedBox(height: 16),
+                Text('商品名称', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  style: const TextStyle(fontSize: 15),
+                  decoration: InputDecoration(
+                    hintText: '输入商品名称',
+                    filled: true,
+                    fillColor: const Color(0xFFF3F4F6),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                '商品名称',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () { setState(() { _goods = controller.text; }); Navigator.pop(context); },
+                      child: const Text('确定'),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                decoration: const InputDecoration(
-                  hintText: '输入商品名称',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                autofocus: true,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('取消'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _goods = controller.text;
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: const Text('确定'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         );
       },
@@ -1128,74 +1042,127 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   void _showNoteDialog() {
     final controller = TextEditingController(text: _note);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
         return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 20,
-            right: 20,
-            top: 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(2),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.lightOutline,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                '添加备注',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                decoration: const InputDecoration(
-                  hintText: '输入备注信息',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                maxLines: 3,
-                autofocus: true,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('取消'),
+                const SizedBox(height: 20),
+                Text(
+                  '添加备注',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _note = controller.text;
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: const Text('确定'),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    hintText: '输入备注信息',
+                    hintStyle: TextStyle(
+                      color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                      fontSize: 15,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF3F4F6),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+                  ),
+                  maxLines: 3,
+                  autofocus: true,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        '取消',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _note = controller.text;
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        height: 40,
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppColors.warmYellow, AppColors.warmYellowDark],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            '确定',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.warmYellowText,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         );
       },

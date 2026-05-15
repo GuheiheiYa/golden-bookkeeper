@@ -108,14 +108,14 @@ lib/
 ### 浅色模式
 - **背景**: 紫粉渐变 `#1E1B4B` → `#F5D5C8` → `#F0E6F6`（三色 bgGradient）
 - **卡片**: 暖米白 `#E8FBF5EF`（91%透明），毛玻璃效果，0.5px 淡紫描边
-- **强调色**: 暖黄 `#FFD93D`（FAB、按钮）
+- **强调色**: 暖琥珀金 `#D4A574`（FAB、按钮）
 - **文字**: `#2D2D3F` / `#6B6B80` / `#9B9BB0`
 - **导航**: 浮动胶囊底部栏，圆角 24px
 
 ### 深色模式
 - **背景**: 深紫渐变 `#1C1618` → `#201A1C` → `#251E20`
 - **卡片**: 半透明深色，毛玻璃描边
-- **强调色**: 暖黄 `#FFD93D`
+- **强调色**: 暖琥珀金 `#D4A574`
 - **文字**: `#F5EDE8` / `#BEB0A8` / `#8A7E78`
 
 ### 主题感知
@@ -161,9 +161,9 @@ lib/
 
 | 用途 | 常量名 | 色值 |
 |------|--------|------|
-| 主按钮黄 | `AppColors.warmYellow` | `#FFD93D` |
-| 主按钮黄深 | `AppColors.warmYellowDark` | `#F0C87A` |
-| 主按钮黄字 | `AppColors.warmYellowText` | `#5A4E2A` |
+| 主按钮琥珀 | `AppColors.warmYellow` | `#D4A574` |
+| 主按钮琥珀深 | `AppColors.warmYellowDark` | `#C4956A` |
+| 主按钮字色 | `AppColors.warmYellowText` | `#4A3528` |
 
 #### 1.4 浅色模式表面色
 
@@ -417,7 +417,7 @@ AppCard(
 
 **强制要求：** 新页面中的卡片必须使用 `AppCard` 组件，禁止自行创建 Container 卡片（特殊情况如 Hero 卡片、毛玻璃卡片除外）。
 
-#### 6.2 主要按钮（黄色胶囊）
+#### 6.2 主要按钮（梦幻紫胶囊）
 
 ```dart
 Container(
@@ -443,7 +443,7 @@ Container(
       style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        color: AppColors.warmYellowText,  // #5A4E2A
+        color: AppColors.warmYellowText,  // #FFFFFF 白色
       ),
     ),
   ),
@@ -454,8 +454,8 @@ Container(
 |------|-----|
 | 高度 | 56px |
 | 圆角 | 28px（完全胶囊） |
-| 背景 | `AppColors.warmYellow` → `AppColors.warmYellowDark` 渐变 |
-| 文字色 | `AppColors.warmYellowText` (#5A4E2A) |
+| 背景 | `AppColors.warmYellow` (`#B8A9E8`) → `AppColors.warmYellowDark` (`#9B8AC4`) 梦幻紫渐变 |
+| 文字色 | `AppColors.warmYellowText` (`#FFFFFF`) |
 | 文字字号 | 16px, w600 |
 | 阴影 | `warmYellow` 30% / blur 12 / offset(0,4) |
 
@@ -540,36 +540,35 @@ FilledButton(
 
 #### 6.7 输入框
 
+> **统一标准**（适用于所有弹窗、设置页、子页面中的输入框）
+
 ```dart
 TextField(
+  style: TextStyle(fontSize: 15, height: 1.5, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground),
   decoration: InputDecoration(
+    hintText: '提示文字',
+    hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary, fontSize: 15),
     filled: true,
-    fillColor: AppColors.lightInputFill,  // #F5F0FA
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide.none,
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide.none,
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide(color: AppColors.lightPrimary, width: 2),
-    ),
-    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    fillColor: isDark ? AppColors.darkSurfaceVariant : const Color(0xFFF3F4F6),  // 中性浅灰，非紫色
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
   ),
 )
 ```
 
 | 属性 | 浅色模式 | 深色模式 |
 |------|---------|---------|
-| 高度 | 52px | 52px |
-| 圆角 | 16px | 16px |
-| 填充色 | `AppColors.lightInputFill` | `AppColors.darkSurfaceVariant` |
-| 聚焦边框 | `AppColors.lightPrimary` 2px | `AppColors.primary` 2px |
+| 字号 | 15px | 15px |
+| 圆角 | 12px | 12px |
+| 填充色 | `Color(0xFFF3F4F6)` 中性灰 | `AppColors.darkSurfaceVariant` |
+| 聚焦边框 | `AppColors.lightPrimary` 1.5px | `AppColors.lightPrimary` 1.5px |
 | 文字色 | `AppColors.lightOnBackground` | `AppColors.darkOnBackground` |
 | 占位符色 | `AppColors.lightTextTertiary` | `AppColors.darkTextTertiary` |
+| 内边距 | `horizontal: 12, vertical: 10` | `horizontal: 12, vertical: 10` |
+
+**关键：填充色必须是 `Color(0xFFF3F4F6)` 中性灰，不能用 `AppColors.lightInputFill`（淡紫色），避免弹窗内一片紫色造成视觉疲劳。**
 
 #### 6.8 AppBar（顶部导航栏）
 
@@ -604,29 +603,75 @@ AppBar(
 
 **强制要求：** 所有 push 进入的页面（非 Tab 页面），AppBar 背景必须为透明，让页面渐变背景透出。
 
-#### 6.9 底部导航栏（浮动胶囊）
+#### 6.9 底部导航栏（浮动胶囊 + 中间凸起按钮）
 
 ```dart
 Padding(
   padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
-  child: Container(
+  child: SizedBox(
     height: 68,
-    decoration: BoxDecoration(
-      color: isDark ? AppColors.darkSurface : Colors.white,
-      borderRadius: BorderRadius.circular(24),
-      boxShadow: [
-        BoxShadow(
-          color: isDark
-              ? Colors.black.withValues(alpha: 0.3)
-              : AppColors.lightPrimary.withValues(alpha: 0.1),
-          blurRadius: 20,
-          offset: Offset(0, 4),
+    child: Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // 导航栏背景
+        Container(
+          height: 68,
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.3)
+                    : AppColors.lightPrimary.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildNavItem(...),  // 首页
+              _buildNavItem(...),  // 明细
+              const SizedBox(width: 56),  // 中间占位
+              _buildNavItem(...),  // 统计
+              _buildNavItem(...),  // 我的
+            ],
+          ),
+        ),
+        // 中间凸起记账按钮
+        Positioned(
+          top: -18,  // 浮起18px
+          left: 0,
+          right: 0,
+          child: Center(
+            child: GestureDetector(
+              onTap: () => context.push('/add-transaction'),
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.warmYellow, AppColors.warmYellowDark],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.warmYellow.withValues(alpha: 0.45),
+                      blurRadius: 18,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.add_rounded, color: AppColors.warmYellowText, size: 30),
+              ),
+            ),
+          ),
         ),
       ],
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [/* 导航项 + 中间 FAB */],
     ),
   ),
 )
@@ -639,8 +684,11 @@ Padding(
 | 外边距 | `fromLTRB(20, 0, 20, 16)` |
 | 背景（浅色） | `Colors.white` |
 | 背景（深色） | `AppColors.darkSurface` |
-| 中间 FAB 尺寸 | 52×52 圆形 |
+| 中间 FAB 尺寸 | 56×56 圆形 |
+| 中间 FAB 浮起 | -18px（约 1/4 露出） |
 | FAB 渐变 | `AppColors.warmYellow` → `AppColors.warmYellowDark` |
+| FAB 阴影 | `warmYellow` 45% / blur 18 / offset(0,6) |
+| FAB 图标 | `Icons.add_rounded`, 30px, `warmYellowText` 白色 |
 | 导航项图标大小 | 24px |
 | 导航项文字大小 | 11px |
 | 选中色 | `AppColors.lightPrimary` |
@@ -892,7 +940,7 @@ ConstrainedBox(
 | 输入框字体 | 15px, height 1.5, padding `horizontal: 12, vertical: 10` |
 | 输入框圆角 | 12px, 聚焦边框 `AppColors.lightPrimary` 1.5px |
 | 忽略按钮 | OutlinedButton, 48px 高, 24px 圆角, `AppColors.lightOutline` 描边 |
-| 确认按钮 | 黄色渐变胶囊, 48px 高, 24px 圆角, 文字 `AppColors.warmYellowText` |
+| 确认按钮 | 琥珀渐变胶囊, 48px 高, 24px 圆角, 文字 `AppColors.warmYellowText` |
 | 分类网格 | 4 列, LayoutBuilder 动态计算宽度, 间距 8px |
 | 分类未选中 | 透明背景, 图标保留颜色, 12px 文字 |
 | 分类选中 | 分类色 12% 背景, 12px 圆角, 无边框 |
@@ -1079,7 +1127,7 @@ item.animate().fadeIn(
 
 ---
 
-### 十一、代码编写强制规则（11 条）
+### 十一、代码编写强制规则（13 条）
 
 1. **颜色引用**：所有颜色必须通过 `AppColors.xxx` 引用，禁止硬编码 `Color(0xFF...)`
 2. **透明度方法**：禁止使用 `withOpacity()`，统一使用 `withValues(alpha: ...)`
@@ -1092,6 +1140,8 @@ item.animate().fadeIn(
 9. **间距**：区块间距统一 `24px`，卡片间距 `6-8px`，遵循间距系统
 10. **圆角**：遵循圆角系统，不得随意设置非标准圆角值
 11. **文件路径**：安装/导出/生成文件优先使用 D 盘（`D:/` 或 `D:/project/`），禁止默认输出到 C 盘
+12. **弹窗输入框**：填充色必须用 `Color(0xFFF3F4F6)` 中性灰，禁止用 `AppColors.lightInputFill`（淡紫），避免弹窗内大面积紫色
+13. **弹窗列表图标**：ListTile 的 leading icon 颜色使用 `AppColors.lightOnSurfaceVariant`（灰色），禁止使用 `AppColors.primaryOf(brightness)`（紫色），避免紫色疲劳
 
 ---
 

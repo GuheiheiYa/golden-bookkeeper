@@ -56,7 +56,7 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
                   Icon(
                     Icons.label_outline,
                     size: 80,
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                   ),
                   const SizedBox(height: 24),
                   Text(
@@ -84,7 +84,7 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
                 Text(
                   '标签可以帮助你更好地分类和筛选交易记录',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                       ),
                 ),
                 const SizedBox(height: 24),
@@ -114,11 +114,8 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: Color(colorValue).withOpacity(0.1),
+                          color: Color(colorValue).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Color(colorValue).withOpacity(0.3),
-                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -168,107 +165,123 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.72),
               child: Container(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '添加标签',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: '标签名称',
-                        hintText: '请输入标签名称',
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14, bottom: 4),
+                      child: Container(
+                        width: 40, height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.lightOutline,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      '选择颜色',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: AppColors.categoryColors.map((color) {
-                        final isSelected = selectedColor == color.value;
-                        return GestureDetector(
-                          onTap: () {
-                            setModalState(() => selectedColor = color.value);
-                          },
-                          child: Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: isSelected
-                                  ? Border.all(color: Colors.white, width: 3)
-                                  : null,
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: color.withOpacity(0.5),
-                                        blurRadius: 8,
-                                        spreadRadius: 2,
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: isSelected
-                                ? const Icon(Icons.check, color: Colors.white, size: 16)
-                                : null,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 24),
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text('添加标签', style: Theme.of(context).textTheme.titleLarge),
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('标签名称', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightOnSurfaceVariant, letterSpacing: 0.5)),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: nameController,
+                              style: const TextStyle(fontSize: 15),
+                              decoration: InputDecoration(
+                                hintText: '请输入标签名称',
+                                filled: true,
+                                fillColor: const Color(0xFFF3F4F6),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text('选择颜色', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightOnSurfaceVariant, letterSpacing: 0.5)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 12, runSpacing: 12,
+                              children: AppColors.categoryColors.map((color) {
+                                final isSelected = selectedColor == color.value;
+                                return GestureDetector(
+                                  onTap: () => setModalState(() => selectedColor = color.value),
+                                  child: Container(
+                                    width: 36, height: 36,
+                                    decoration: BoxDecoration(
+                                      color: color, shape: BoxShape.circle,
+                                      border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
+                                      boxShadow: isSelected ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 8, spreadRadius: 2)] : null,
+                                    ),
+                                    child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface : Colors.white,
+                        border: Border(top: BorderSide(color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5), width: 0.5)),
+                      ),
                       child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final name = nameController.text.trim();
-                            if (name.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请输入标签名称')),
-                              );
-                              return;
-                            }
-                            final db = AppDatabase();
-                            try {
-                              await db.insertTag({
-                                'name': name,
-                                'color': selectedColor,
-                              });
-                              Navigator.pop(context);
-                              _refreshData();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('标签添加成功')),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('标签名称已存在')),
-                              );
-                            }
-                          },
-                          child: const Text('保存'),
+                        width: double.infinity, height: 48,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            gradient: const LinearGradient(colors: [AppColors.warmYellow, AppColors.warmYellowDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final name = nameController.text.trim();
+                              if (name.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入标签名称')));
+                                return;
+                              }
+                              final db = AppDatabase();
+                              try {
+                                await db.insertTag({'name': name, 'color': selectedColor});
+                                Navigator.pop(context);
+                                _refreshData();
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('标签添加成功')));
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('标签名称已存在')));
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            child: const Text('保存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.warmYellowText)),
+                          ),
                         ),
                       ),
                     ),
@@ -291,118 +304,141 @@ class _TagListScreenState extends ConsumerState<TagListScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.72),
               child: Container(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '编辑标签',
-                          style: Theme.of(context).textTheme.titleLarge,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14, bottom: 4),
+                      child: Container(
+                        width: 40, height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.lightOutline,
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.red),
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _showDeleteConfirmation(context, tag);
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: '标签名称',
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      '选择颜色',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: AppColors.categoryColors.map((color) {
-                        final isSelected = selectedColor == color.value;
-                        return GestureDetector(
-                          onTap: () {
-                            setModalState(() => selectedColor = color.value);
-                          },
-                          child: Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: isSelected
-                                  ? Border.all(color: Colors.white, width: 3)
-                                  : null,
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: color.withOpacity(0.5),
-                                        blurRadius: 8,
-                                        spreadRadius: 2,
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: isSelected
-                                ? const Icon(Icons.check, color: Colors.white, size: 16)
-                                : null,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 24),
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final name = nameController.text.trim();
-                            if (name.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请输入标签名称')),
-                              );
-                              return;
-                            }
-                            final db = AppDatabase();
-                            try {
-                              await db.updateTag(tag['id'] as int, {
-                                'name': name,
-                                'color': selectedColor,
-                              });
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('编辑标签', style: Theme.of(context).textTheme.titleLarge),
+                          GestureDetector(
+                            onTap: () {
                               Navigator.pop(context);
-                              _refreshData();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('标签更新成功')),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('标签名称已存在')),
-                              );
-                            }
-                          },
-                          child: const Text('保存'),
+                              _showDeleteConfirmation(context, tag);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.error.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('标签名称', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightOnSurfaceVariant, letterSpacing: 0.5)),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: nameController,
+                              style: const TextStyle(fontSize: 15),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: const Color(0xFFF3F4F6),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text('选择颜色', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightOnSurfaceVariant, letterSpacing: 0.5)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 12, runSpacing: 12,
+                              children: AppColors.categoryColors.map((color) {
+                                final isSelected = selectedColor == color.value;
+                                return GestureDetector(
+                                  onTap: () => setModalState(() => selectedColor = color.value),
+                                  child: Container(
+                                    width: 36, height: 36,
+                                    decoration: BoxDecoration(
+                                      color: color, shape: BoxShape.circle,
+                                      border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
+                                      boxShadow: isSelected ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 8, spreadRadius: 2)] : null,
+                                    ),
+                                    child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface : Colors.white,
+                        border: Border(top: BorderSide(color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5), width: 0.5)),
+                      ),
+                      child: SizedBox(
+                        width: double.infinity, height: 48,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            gradient: const LinearGradient(colors: [AppColors.warmYellow, AppColors.warmYellowDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final name = nameController.text.trim();
+                              if (name.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入标签名称')));
+                                return;
+                              }
+                              final db = AppDatabase();
+                              try {
+                                await db.updateTag(tag['id'] as int, {'name': name, 'color': selectedColor});
+                                Navigator.pop(context);
+                                _refreshData();
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('标签更新成功')));
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('标签名称已存在')));
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            child: const Text('保存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.warmYellowText)),
+                          ),
                         ),
                       ),
                     ),

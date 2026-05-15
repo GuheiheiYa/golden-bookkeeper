@@ -463,94 +463,105 @@ class BudgetScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.72),
               child: Container(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '添加预算',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 20),
-                    // 选择分类
-                    ListTile(
-                      leading: Icon(Icons.category, color: AppColors.primaryOf(brightness)),
-                      title: Text(selectedCategoryName ?? '总预算（全部分类）'),
-                      subtitle: const Text('点击选择分类'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        _showCategoryPicker(context, (catId, catName) {
-                          setModalState(() {
-                            selectedCategoryId = catId;
-                            selectedCategoryName = catName;
-                          });
-                        });
-                      },
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14, bottom: 4),
+                      child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
                     ),
                     const SizedBox(height: 8),
-                    // 预算金额
-                    TextField(
-                      controller: amountController,
-                      decoration: const InputDecoration(
-                        labelText: '预算金额',
-                        hintText: '请输入预算金额',
-                        prefixText: '¥ ',
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 16),
-                    // 预算周期
-                    ListTile(
-                      leading: Icon(Icons.calendar_today, color: AppColors.primaryOf(brightness)),
-                      title: const Text('预算周期'),
-                      trailing: Text(_getPeriodText(selectedPeriod)),
-                      onTap: () {
-                        _showPeriodPicker(context, selectedPeriod, (value) {
-                          setModalState(() => selectedPeriod = value);
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 24),
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text('添加预算', style: Theme.of(context).textTheme.titleLarge),
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.category, color: AppColors.primaryOf(brightness)),
+                              title: Text(selectedCategoryName ?? '总预算（全部分类）', style: const TextStyle(fontSize: 15)),
+                              subtitle: const Text('点击选择分类', style: TextStyle(fontSize: 13)),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () { _showCategoryPicker(context, (catId, catName) { setModalState(() { selectedCategoryId = catId; selectedCategoryName = catName; }); }); },
+                            ),
+                            const SizedBox(height: 8),
+                            Text('预算金额', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightOnSurfaceVariant, letterSpacing: 0.5)),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: amountController,
+                              keyboardType: TextInputType.number,
+                              style: const TextStyle(fontSize: 15),
+                              decoration: InputDecoration(
+                                hintText: '请输入预算金额',
+                                prefixText: '¥ ',
+                                filled: true,
+                                fillColor: const Color(0xFFF3F4F6),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.calendar_today, color: AppColors.primaryOf(brightness)),
+                              title: const Text('预算周期', style: TextStyle(fontSize: 15)),
+                              trailing: Text(_getPeriodText(selectedPeriod)),
+                              onTap: () { _showPeriodPicker(context, selectedPeriod, (value) { setModalState(() => selectedPeriod = value); }); },
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface : Colors.white,
+                        border: Border(top: BorderSide(color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5), width: 0.5)),
+                      ),
                       child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final amount = double.tryParse(amountController.text);
-                            if (amount == null || amount <= 0) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('请输入有效的预算金额')),
-                              );
-                              return;
-                            }
-                            final db = AppDatabase();
-                            await db.insertBudget({
-                              'category_id': selectedCategoryId,
-                              'amount': amount,
-                              'period_type': selectedPeriod,
-                              'year': year,
-                              'month': selectedPeriod == 'monthly' ? month : null,
-                            });
-                            Navigator.pop(context);
-                            _refreshData(ref);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('预算添加成功')),
-                            );
-                          },
-                          child: const Text('保存'),
+                        width: double.infinity, height: 48,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), gradient: const LinearGradient(colors: [AppColors.warmYellow, AppColors.warmYellowDark], begin: Alignment.topLeft, end: Alignment.bottomRight)),
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final amount = double.tryParse(amountController.text);
+                              if (amount == null || amount <= 0) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入有效的预算金额'))); return; }
+                              final db = AppDatabase();
+                              await db.insertBudget({'category_id': selectedCategoryId, 'amount': amount, 'period_type': selectedPeriod, 'year': year, 'month': selectedPeriod == 'monthly' ? month : null});
+                              Navigator.pop(context);
+                              _refreshData(ref);
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('预算添加成功')));
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            child: const Text('保存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.warmYellowText)),
+                          ),
                         ),
                       ),
                     ),
@@ -575,93 +586,124 @@ class BudgetScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.72),
+              child: Container(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      '编辑预算',
-                      style: Theme.of(context).textTheme.titleLarge,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14, bottom: 4),
+                      child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      onPressed: () {
-                        _showDeleteConfirmation(context, ref, budget);
-                      },
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('编辑预算', style: Theme.of(context).textTheme.titleLarge),
+                          GestureDetector(
+                            onTap: () => _showDeleteConfirmation(context, ref, budget),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                              child: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Color(budget['category_color'] as int? ?? AppColors.primary.value).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  budget['category_icon'] != null ? IconUtils.fromName(budget['category_icon'] as String) : Icons.savings,
+                                  color: Color(budget['category_color'] as int? ?? AppColors.primary.value),
+                                ),
+                              ),
+                              title: Text(budget['category_name'] as String, style: const TextStyle(fontSize: 15)),
+                            ),
+                            const SizedBox(height: 12),
+                            Text('预算金额', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightOnSurfaceVariant, letterSpacing: 0.5)),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: amountController,
+                              keyboardType: TextInputType.number,
+                              style: const TextStyle(fontSize: 15),
+                              decoration: InputDecoration(
+                                prefixText: '¥ ',
+                                filled: true,
+                                fillColor: const Color(0xFFF3F4F6),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.lightPrimary, width: 1.5)),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface : Colors.white,
+                        border: Border(top: BorderSide(color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5), width: 0.5)),
+                      ),
+                      child: SizedBox(
+                        width: double.infinity, height: 48,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), gradient: const LinearGradient(colors: [AppColors.warmYellow, AppColors.warmYellowDark], begin: Alignment.topLeft, end: Alignment.bottomRight)),
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final amount = double.tryParse(amountController.text);
+                              if (amount == null || amount <= 0) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入有效的预算金额'))); return; }
+                              final db = AppDatabase();
+                              await db.updateBudget(budget['id'] as int, {'amount': amount});
+                              Navigator.pop(context);
+                              _refreshData(ref);
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('预算更新成功')));
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
+                            child: const Text('保存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.warmYellowText)),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Color(budget['category_color'] as int? ?? AppColors.primary.value)
-                          .withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      budget['category_icon'] != null
-                          ? IconUtils.fromName(budget['category_icon'] as String)
-                          : Icons.savings,
-                      color: Color(budget['category_color'] as int? ?? AppColors.primary.value),
-                    ),
-                  ),
-                  title: Text(budget['category_name'] as String),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: amountController,
-                  decoration: const InputDecoration(
-                    labelText: '预算金额',
-                    prefixText: '¥ ',
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 24),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        final amount = double.tryParse(amountController.text);
-                        if (amount == null || amount <= 0) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('请输入有效的预算金额')),
-                          );
-                          return;
-                        }
-                        final db = AppDatabase();
-                        await db.updateBudget(budget['id'] as int, {
-                          'amount': amount,
-                        });
-                        Navigator.pop(context);
-                        _refreshData(ref);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('预算更新成功')),
-                        );
-                      },
-                      child: const Text('保存'),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -680,68 +722,65 @@ class BudgetScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return DraggableScrollableSheet(
           initialChildSize: 0.6,
           maxChildSize: 0.9,
           minChildSize: 0.3,
           expand: false,
           builder: (context, scrollController) {
-            return ListView.builder(
-              controller: scrollController,
-              padding: const EdgeInsets.all(20),
-              itemCount: categories.length + 2,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      '选择分类',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  );
-                }
-                if (index == 1) {
-                  return Column(
-                    children: [
-                      ListTile(
-                        leading: Icon(Icons.savings, color: AppColors.primaryOf(brightness)),
-                        title: const Text('总预算（全部分类）'),
-                        onTap: () {
-                          onSelected(null, null);
-                          Navigator.pop(context);
-                        },
-                      ),
-                      const Divider(),
-                    ],
-                  );
-                }
-                final cat = categories[index - 2];
-                final iconName = cat['icon'] as String? ?? 'category';
-                final colorValue = cat['color'] as int? ?? AppColors.primary.value;
-                return ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Color(colorValue).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      IconUtils.fromName(iconName),
-                      color: Color(colorValue),
-                      size: 20,
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 14, bottom: 4),
+                    child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                      itemCount: categories.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == 0) {
+                          return Column(
+                            children: [
+                              ListTile(
+                                leading: Icon(Icons.savings, color: AppColors.primaryOf(brightness)),
+                                title: const Text('总预算（全部分类）'),
+                                onTap: () { onSelected(null, null); Navigator.pop(context); },
+                              ),
+                              const Divider(),
+                            ],
+                          );
+                        }
+                        final cat = categories[index - 1];
+                        final iconName = cat['icon'] as String? ?? 'category';
+                        final colorValue = cat['color'] as int? ?? AppColors.primary.value;
+                        return ListTile(
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Color(colorValue).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(IconUtils.fromName(iconName), color: Color(colorValue), size: 20),
+                          ),
+                          title: Text(cat['name'] as String),
+                          onTap: () { onSelected(cat['id'] as int, cat['name'] as String); Navigator.pop(context); },
+                        );
+                      },
                     ),
                   ),
-                  title: Text(cat['name'] as String),
-                  onTap: () {
-                    onSelected(cat['id'] as int, cat['name'] as String);
-                    Navigator.pop(context);
-                  },
-                );
-              },
+                ],
+              ),
             );
           },
         );
@@ -753,21 +792,26 @@ class BudgetScreen extends ConsumerWidget {
 
   void _showPeriodPicker(
       BuildContext context, String current, ValueChanged<String> onSelected) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                '选择周期',
-                style: Theme.of(context).textTheme.titleLarge,
+              Center(
+                child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.lightOutline, borderRadius: BorderRadius.circular(2))),
               ),
+              const SizedBox(height: 16),
+              Text('选择周期', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
               _buildPeriodOption(context, '每月', 'monthly', current, onSelected),
               _buildPeriodOption(context, '每年', 'yearly', current, onSelected),

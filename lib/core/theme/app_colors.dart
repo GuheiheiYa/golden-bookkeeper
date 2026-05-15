@@ -45,11 +45,11 @@ class AppColors {
   static const Color expense = Color(0xFFE88B8B);
 
   // ═══════════════════════════════════════════════
-  // 按钮色
+  // 按钮色（梦幻紫）
   // ═══════════════════════════════════════════════
-  static const Color warmYellow = Color(0xFFFFD93D);
-  static const Color warmYellowDark = Color(0xFFF0C87A);
-  static const Color warmYellowText = Color(0xFF5A4E2A);
+  static const Color warmYellow = Color(0xFFB8A9E8);
+  static const Color warmYellowDark = Color(0xFF9B8AC4);
+  static const Color warmYellowText = Color(0xFFFFFFFF);
 
   // ═══════════════════════════════════════════════
   // 浅色模式表面与文字
