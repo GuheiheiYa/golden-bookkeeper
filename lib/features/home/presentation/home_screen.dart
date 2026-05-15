@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ import '../../../app/di/providers.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../budget/presentation/budget_screen.dart';
 import '../../notification/presentation/pending_notifications_screen.dart';
+import '../../profile/presentation/profile_provider.dart';
 import '../../recurring/presentation/recurring_screen.dart';
 import '../../statistics/presentation/statistics_screen.dart';
 
@@ -89,6 +91,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
+    final profile = ref.watch(userProfileProvider);
+
     // 问候语
     final hour = DateTime.now().hour;
     String greeting;
@@ -110,7 +114,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
             // 固定顶部栏（不随滚动）
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: _buildTopBar(context, isDark),
+              child: _buildTopBar(context, isDark, profile),
             ),
             // 可滚动内容
             Expanded(
@@ -148,7 +152,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   }
 
   /// 顶部栏
-  Widget _buildTopBar(BuildContext context, bool isDark) {
+  Widget _buildTopBar(BuildContext context, bool isDark, dynamic profile) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -164,18 +168,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
               boxShadow: [
                 BoxShadow(
                   color: isDark
-                      ? Colors.black.withOpacity(0.2)
-                      : AppColors.lightPrimary.withOpacity(0.1),
+                      ? Colors.black.withValues(alpha: 0.2)
+                      : AppColors.lightPrimary.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: Icon(
-              Icons.person_rounded,
-              color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightTextTertiary,
-              size: 22,
-            ),
+            child: profile.avatarPath != null
+                ? ClipOval(
+                    child: Image.file(
+                      File(profile.avatarPath!),
+                      width: 44,
+                      height: 44,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Icon(
+                    Icons.person_rounded,
+                    color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightTextTertiary,
+                    size: 22,
+                  ),
           ),
         ),
         // 右侧：通知
@@ -905,74 +918,110 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
-        return Container(
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 顶部拖拽条
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkOutline : AppColors.lightOutline,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                isExpense ? '支出' : '收入',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightTextTertiary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: isExpense ? AppColors.expense : AppColors.income,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildDetailRow(context, '分类', categoryName),
-                      _buildDetailRow(context, '账户', accountName),
-                      _buildDetailRow(
-                        context,
-                        '日期',
-                        '${txDate.year}-${txDate.month.toString().padLeft(2, '0')}-${txDate.day.toString().padLeft(2, '0')} ${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}',
-                      ),
-                      if (goods.isNotEmpty) _buildDetailRow(context, '商品', goods),
-                      _buildDetailRow(context, '备注', note.isNotEmpty ? note : '无'),
-                    ],
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
+        return ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: screenHeight * 0.6),
+          child: Container(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 拖拽手柄
+                Padding(
+                  padding: const EdgeInsets.only(top: 14, bottom: 4),
+                  child: Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.lightOutline,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('确定', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 12),
+                Text(
+                  isExpense ? '支出' : '收入',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightTextTertiary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-            ],
+                const SizedBox(height: 8),
+                Text(
+                  '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: isExpense ? AppColors.expense : AppColors.income,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildDetailRow(context, '分类', categoryName),
+                        _buildDetailRow(context, '账户', accountName),
+                        _buildDetailRow(
+                          context, '日期',
+                          '${txDate.year}-${txDate.month.toString().padLeft(2, '0')}-${txDate.day.toString().padLeft(2, '0')} ${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}',
+                        ),
+                        if (goods.isNotEmpty) _buildDetailRow(context, '商品', goods),
+                        _buildDetailRow(context, '备注', note.isNotEmpty ? note : '无'),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : Colors.white,
+                    border: Border(
+                      top: BorderSide(
+                        color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5),
+                        width: 0.5,
+                      ),
+                    ),
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(
+                          colors: [AppColors.warmYellow, AppColors.warmYellowDark],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        ),
+                        child: const Text('确定', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.warmYellowText)),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -1015,136 +1064,140 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Container(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.75,
-              ),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 顶部拖拽条
-                  Container(
-                    margin: const EdgeInsets.only(top: 12),
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkOutline : AppColors.lightOutline,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '消息通知',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
-                          ),
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.72),
+              child: Container(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 拖拽手柄
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14, bottom: 4),
+                      child: Container(
+                        width: 40, height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.lightOutline,
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                        if (_notificationService.notifications.isNotEmpty)
-                          GestureDetector(
-                            onTap: () {
-                              _notificationService.clearAll();
-                              setModalState(() {});
-                            },
-                            child: Text(
-                              '清空',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppColors.lightPrimary,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '消息通知',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+                            ),
+                          ),
+                          if (_notificationService.notifications.isNotEmpty)
+                            GestureDetector(
+                              onTap: () {
+                                _notificationService.clearAll();
+                                setModalState(() {});
+                              },
+                              child: Text(
+                                '清空',
+                                style: TextStyle(fontSize: 14, color: AppColors.lightPrimary),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Flexible(
-                    child: _notificationService.notifications.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.notifications_off_outlined,
-                                  size: 56,
-                                  color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  '暂无消息',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: _notificationService.notifications.length,
-                            itemBuilder: (context, index) {
-                              final notification = _notificationService.notifications[index];
-                              return ListTile(
-                                leading: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: notification.color.withOpacity(0.12),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(notification.icon, color: notification.color, size: 20),
-                                ),
-                                title: Text(
-                                  notification.title,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  notification.message,
-                                  style: TextStyle(
-                                    fontSize: 12,
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: _notificationService.notifications.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.notifications_off_outlined,
+                                    size: 56,
                                     color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
                                   ),
-                                ),
-                                trailing: IconButton(
-                                  icon: Icon(
-                                    Icons.close_rounded,
-                                    size: 16,
-                                    color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    '暂无消息',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+                                    ),
                                   ),
-                                  onPressed: () {
-                                    _notificationService.removeNotification(notification.id);
-                                    setModalState(() {});
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              itemCount: _notificationService.notifications.length,
+                              itemBuilder: (context, index) {
+                                final notification = _notificationService.notifications[index];
+                                return ListTile(
+                                  leading: Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: notification.color.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(notification.icon, color: notification.color, size: 20),
+                                  ),
+                                  title: Text(
+                                    notification.title,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    notification.message,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                                    ),
+                                  ),
+                                  trailing: IconButton(
+                                    icon: Icon(
+                                      Icons.close_rounded,
+                                      size: 16,
+                                      color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+                                    ),
+                                    onPressed: () {
+                                      _notificationService.removeNotification(notification.id);
+                                      setModalState(() {});
+                                    },
+                                  ),
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    notification.onTap?.call();
                                   },
-                                ),
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  notification.onTap?.call();
-                                },
-                              );
-                            },
-                          ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                                );
+                              },
+                            ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
               ),
             );
           },

@@ -59,6 +59,20 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         private const val KEY_WATCHED_PACKAGES = "watched_packages"
 
         /**
+         * 有专用解析器的包名集合
+         *
+         * 这些包不会被降级到 DefaultPaymentParser，因为专用解析器
+         * 已做完整过滤（含非交易通知排除逻辑），降级反而会误捕获。
+         */
+        private val DEDICATED_PARSER_PACKAGES = setOf(
+            "com.tencent.mm",                  // WechatPaymentParser
+            "com.eg.android.AlipayGphone",     // AlipayPaymentParser
+            "cmb.pb",                          // CmbPaymentParser
+            "com.ecitic.bank.mobile",          // CiticPaymentParser
+            "com.citiccard.mobilebank",        // CiticPaymentParser
+        )
+
+        /**
          * 默认监听的 APP 包名白名单
          *
          * 用户可在 Flutter 设置页修改此列表（通过 SharedPreferences 持久化）。
@@ -161,8 +175,9 @@ class PaymentNotificationListenerService : NotificationListenerService() {
         // ── 步骤 3：解析支付信息（策略模式） ──
         val parser = PaymentParserFactory.getParser(packageName)
         var parsed = parser.parse(fullText, packageName, sbn.id)
-        // 如果专用解析器无法处理，降级到默认解析器
-        if (parsed == null && parser !is DefaultPaymentParser) {
+        // 专用解析器返回 null 说明判定为非交易通知，不再降级到默认解析器
+        // （默认解析器无排除过滤逻辑，降级反而会误捕获营销/卡券等通知）
+        if (parsed == null && packageName !in DEDICATED_PARSER_PACKAGES && parser !is DefaultPaymentParser) {
             writeToFile("【降级默认解析器】$packageName 专用解析器返回 null，使用默认")
             parsed = DefaultPaymentParser.parse(fullText, packageName, sbn.id)
         }

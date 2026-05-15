@@ -1040,76 +1040,138 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
+        final screenHeight = MediaQuery.of(context).size.height;
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
+        return ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: screenHeight * 0.72),
+          child: Container(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 14, bottom: 4),
+                  child: Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.lightOutline,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: Color(categoryColor).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(mapIconName(categoryIcon), color: Color(categoryColor), size: 28),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          isExpense ? '支出' : '收入',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -1,
+                            color: isExpense ? AppColors.expense : AppColors.emerald600,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildDetailRow('分类', categoryName),
+                        _buildDetailRow('账户', accountName),
+                        _buildDetailRow('日期', '${txDate.year}-${txDate.month.toString().padLeft(2, '0')}-${txDate.day.toString().padLeft(2, '0')} ${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}'),
+                        if (goods.isNotEmpty) _buildDetailRow('商品', goods),
+                        _buildDetailRow('备注', note.isNotEmpty ? note : '无'),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
+                ),
                 Container(
-                  width: 64,
-                  height: 64,
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
                   decoration: BoxDecoration(
-                    color: Color(categoryColor).withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(mapIconName(categoryIcon), color: Color(categoryColor), size: 32),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  isExpense ? '支出' : '收入',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -1,
-                    color: isExpense ? AppColors.expense : AppColors.emerald600,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                _buildDetailRow('分类', categoryName),
-                _buildDetailRow('账户', accountName),
-                _buildDetailRow('日期', '${txDate.year}-${txDate.month.toString().padLeft(2, '0')}-${txDate.day.toString().padLeft(2, '0')} ${txDate.hour.toString().padLeft(2, '0')}:${txDate.minute.toString().padLeft(2, '0')}'),
-                if (goods.isNotEmpty) _buildDetailRow('商品', goods),
-                _buildDetailRow('备注', note.isNotEmpty ? note : '无'),
-                const SizedBox(height: 28),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          context.push('/transaction/edit/$txId');
-                        },
-                        icon: const Icon(Icons.edit),
-                        label: const Text('编辑'),
+                    color: isDark ? AppColors.darkSurface : Colors.white,
+                    border: Border(
+                      top: BorderSide(
+                        color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5),
+                        width: 0.5,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          await _showDeleteConfirmation(txId, displayName);
-                        },
-                        icon: const Icon(Icons.delete),
-                        label: const Text('删除'),
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              context.push('/transaction/edit/$txId');
+                            },
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                              side: BorderSide(color: AppColors.lightOutline),
+                            ),
+                            child: const Text('编辑'),
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+                              gradient: LinearGradient(
+                                colors: [AppColors.expense, AppColors.expense.withValues(alpha: 0.8)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                Navigator.pop(context);
+                                await _showDeleteConfirmation(txId, displayName);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                              ),
+                              child: const Text('删除', style: TextStyle(color: Colors.white)),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -1154,99 +1216,104 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 20, top: 12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
+        return Container(
+          padding: EdgeInsets.only(bottom: bottomPadding + 8),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 14, bottom: 4),
+                child: Container(
+                  width: 40, height: 4,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: AppColors.lightOutline,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: (isExpense ? AppColors.expense : AppColors.income).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          isExpense ? '支出' : '收入',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isExpense ? AppColors.expense : AppColors.income,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: (isExpense ? AppColors.expense : AppColors.income).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(displayName, style: Theme.of(context).textTheme.bodyMedium, overflow: TextOverflow.ellipsis),
-                      ),
-                      Text(
-                        '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
+                      child: Text(
+                        isExpense ? '支出' : '收入',
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: isExpense ? AppColors.expense : AppColors.emerald600,
+                          fontSize: 12,
+                          color: isExpense ? AppColors.expense : AppColors.income,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Divider(height: 1),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryOf(brightness).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.edit, color: AppColors.primaryOf(brightness), size: 20),
-                  ),
-                  title: const Text('编辑'),
-                  subtitle: const Text('修改交易信息'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/transaction/edit/$txId');
-                  },
-                ),
-                const Divider(height: 1, indent: 56),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(displayName, style: Theme.of(context).textTheme.bodyMedium, overflow: TextOverflow.ellipsis),
                     ),
-                    child: Icon(Icons.delete, color: AppColors.error, size: 20),
-                  ),
-                  title: Text('删除', style: TextStyle(color: AppColors.error)),
-                  subtitle: const Text('删除此交易记录'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await _showDeleteConfirmation(txId, displayName);
-                  },
+                    Text(
+                      '${isExpense ? '-' : '+'}${CurrencyFormatter.format(amount)}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: isExpense ? AppColors.expense : AppColors.emerald600,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryOf(brightness).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.edit, color: AppColors.primaryOf(brightness), size: 20),
+                ),
+                title: const Text('编辑'),
+                subtitle: const Text('修改交易信息'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/transaction/edit/$txId');
+                },
+              ),
+              const Divider(height: 1, indent: 56),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.delete, color: AppColors.error, size: 20),
+                ),
+                title: Text('删除', style: TextStyle(color: AppColors.error)),
+                subtitle: const Text('删除此交易记录'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _showDeleteConfirmation(txId, displayName);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
           ),
         );
       },
@@ -1269,16 +1336,22 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+            final bottomPadding = MediaQuery.of(context).padding.bottom;
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.72),
               child: Container(
-                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
+                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomInset + bottomPadding),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
