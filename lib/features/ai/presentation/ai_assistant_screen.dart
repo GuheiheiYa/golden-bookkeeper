@@ -96,7 +96,14 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
       body: Column(
         children: [
           Expanded(
-            child: _messages.isEmpty ? _buildWelcome() : _buildChatList(isDark),
+            child: Container(
+              margin: const EdgeInsets.only(top: 12),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: _messages.isEmpty ? _buildWelcome() : _buildChatList(isDark),
+            ),
           ),
           _buildInputBar(isDark),
         ],
@@ -105,6 +112,9 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
   }
 
   Widget _buildWelcome() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground;
+    final subColor = isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -121,9 +131,9 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
               child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 40),
             ),
             const SizedBox(height: 20),
-            const Text('智能理财助手', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
+            Text('智能理财助手', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: textColor)),
             const SizedBox(height: 8),
-            const Text('我已加载你本月的账单数据\n可以问我任何理财建议', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Color(0xCCFFFFFF), height: 1.5)),
+            Text('我已加载你本月的账单数据\n可以问我任何理财建议', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: subColor, height: 1.5)),
             const SizedBox(height: 24),
             _buildQuickQuestion('分析本月支出，哪些地方可以优化？'),
             _buildQuickQuestion('根据我的消费习惯，给3条省钱建议'),
@@ -135,6 +145,9 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
   }
 
   Widget _buildQuickQuestion(String text) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground;
+    final bgColor = isDark ? AppColors.darkSurfaceVariant : const Color(0xFFF3F4F6);
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: GestureDetector(
@@ -143,11 +156,10 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.12),
+            color: bgColor,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
-          child: Text(text, style: const TextStyle(fontSize: 14, color: Colors.white)),
+          child: Text(text, style: TextStyle(fontSize: 14, color: textColor)),
         ),
       ),
     );

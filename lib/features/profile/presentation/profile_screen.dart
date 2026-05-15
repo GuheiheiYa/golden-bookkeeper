@@ -115,12 +115,12 @@ class ProfileScreen extends ConsumerWidget {
           _buildNavCard(
             context, icon: Icons.auto_awesome_rounded, iconColor: 0xFFF59E0B,
             title: '智能助手', subtitle: 'AI 分析账单给出理财建议',
-            onTap: () => _navigateTo(context, const AiAssistantScreen()),
+            onTap: () => _navigateTo(context, const AiAssistantScreen(), rootNavigator: true),
           ).animate().fadeIn(delay: 420.ms, duration: 300.ms),
           _buildNavCard(
             context, icon: Icons.tune_rounded, iconColor: 0xFF10B981,
             title: 'AI 配置', subtitle: '设置 API Key 和模型参数',
-            onTap: () => _navigateTo(context, const AiConfigScreen()),
+            onTap: () => _navigateTo(context, const AiConfigScreen(), rootNavigator: true),
           ).animate().fadeIn(delay: 440.ms, duration: 300.ms),
           const SizedBox(height: 16),
 
@@ -781,8 +781,8 @@ class ProfileScreen extends ConsumerWidget {
     }
   }
 
-  void _navigateTo(BuildContext context, Widget screen) {
-    Navigator.of(context).push(PageRouteBuilder(
+  void _navigateTo(BuildContext context, Widget screen, {bool rootNavigator = false}) {
+    Navigator.of(context, rootNavigator: rootNavigator).push(PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

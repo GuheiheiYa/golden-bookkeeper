@@ -48,59 +48,73 @@ class _AiConfigScreenState extends State<AiConfigScreen> {
         title: const Text('AI 配置', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSection('API 密钥', '使用 OpenAI 兼容接口的 API Key'),
-            const SizedBox(height: 8),
-            _buildApiKeyField(isDark),
-            const SizedBox(height: 20),
-            _buildSection('接口地址', '默认使用 OpenAI 官方接口'),
-            const SizedBox(height: 8),
-            _buildInput(
-              controller: _endpointController,
-              hint: 'https://api.openai.com/v1/chat/completions',
-              isDark: isDark,
-            ),
-            const SizedBox(height: 20),
-            _buildSection('模型名称', '如 gpt-4o-mini、gpt-3.5-turbo、deepseek-chat 等'),
-            const SizedBox(height: 8),
-            _buildInput(
-              controller: _modelController,
-              hint: 'gpt-4o-mini',
-              isDark: isDark,
-            ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildOutlinedButton('测试连接', _loading ? null : _testConnection),
+      body: Column(
+        children: [
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSection('API 密钥', '使用 OpenAI 兼容接口的 API Key'),
+                    const SizedBox(height: 8),
+                    _buildApiKeyField(isDark),
+                    const SizedBox(height: 20),
+                    _buildSection('接口地址', '默认使用 OpenAI 官方接口'),
+                    const SizedBox(height: 8),
+                    _buildInput(
+                      controller: _endpointController,
+                      hint: 'https://api.openai.com/v1/chat/completions',
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildSection('模型名称', '如 gpt-4o-mini、gpt-3.5-turbo、deepseek-chat 等'),
+                    const SizedBox(height: 8),
+                    _buildInput(
+                      controller: _modelController,
+                      hint: 'gpt-4o-mini',
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildOutlinedButton('测试连接', _loading ? null : _testConnection),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          flex: 2,
+                          child: _buildGradientButton('保存配置', _saveConfig),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  flex: 2,
-                  child: _buildGradientButton('保存配置', _saveConfig),
-                ),
-              ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildSection(String title, String desc) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFFB8A9E8), letterSpacing: 0.5),
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant, letterSpacing: 0.5),
         ),
         const SizedBox(height: 2),
-        Text(desc, style: const TextStyle(fontSize: 12, color: Color(0x88FFFFFF))),
+        Text(desc, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary)),
       ],
     );
   }

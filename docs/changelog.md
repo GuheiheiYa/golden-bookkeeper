@@ -64,6 +64,26 @@
 
 ## [未发布] - 开发中
 
+### AI 智能助手 + 设置页 UI 优化
+
+#### 新增功能
+- **AI 智能助手**：加载当月账单数据（收支、分类 TOP5、预算、最近交易）作为上下文，支持 AI 对话理财建议
+- **AI 配置**：支持配置 OpenAI 兼容 API（Key/Endpoint/Model），含测试连接功能
+- 首页底部导航栏隐藏：AI 相关页面打开时隐藏底部导航栏
+
+#### UI 优化
+- **AI 页面视觉清晰度**：助手和配置页改为白色/暗色表面卡片（28px 顶部圆角），文字适配主题色
+- **设置/我的页面卡片瘦身**：导航卡片从 AppCard（20px padding）改为 28px 圆角胶囊行（12px v-padding）
+- **关于卡片拆分**：版本/用户协议/隐私政策从合并卡片拆为独立胶囊行
+- 所有 `withOpacity()` 替换为 `withValues(alpha: ...)`
+
+#### 新增文件
+- `lib/features/ai/domain/ai_service.dart` — AI API 服务
+- `lib/features/ai/presentation/ai_assistant_screen.dart` — AI 助手聊天页
+- `lib/features/ai/presentation/ai_config_screen.dart` — AI 配置页
+- `lib/shared/widgets/theme_mode_toggle.dart` — 主题模式切换组件
+- `lib/shared/widgets/expense_type_toggle.dart` — 收支类型切换组件
+
 ### 通知监听优化 + 应用图标
 
 #### 新增功能
