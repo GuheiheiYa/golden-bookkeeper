@@ -20,6 +20,8 @@ import '../../loan/presentation/loan_list_screen.dart';
 import '../../settings/presentation/settings_screen.dart' show ExportDialogContent;
 import '../../notification/presentation/pending_notifications_screen.dart';
 import '../../notification/presentation/notification_settings_screen.dart';
+import '../../ai/presentation/ai_assistant_screen.dart';
+import '../../ai/presentation/ai_config_screen.dart';
 import 'profile_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -29,7 +31,6 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(userProfileProvider);
     final themeMode = ref.watch(themeModeProvider);
-    final brightness = Theme.of(context).brightness;
     final assetAsync = ref.watch(assetSummaryProvider);
 
     return Scaffold(
@@ -61,193 +62,97 @@ class ProfileScreen extends ConsumerWidget {
           // 外观设置
           _buildSectionHeader(context, '外观'),
           AppCard(
-            margin: const EdgeInsets.symmetric(vertical: 8),
+            margin: const EdgeInsets.symmetric(vertical: 6),
             child: _buildThemeTile(context, ref, themeMode),
           ).animate().fadeIn(duration: 300.ms),
           const SizedBox(height: 16),
 
           // 数据管理
           _buildSectionHeader(context, '数据管理'),
-          AppCard(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                _buildNavigationTile(
-                  context,
-                  icon: Icons.account_balance_wallet,
-                  iconColor: 0xFFF59E0B,
-                  title: '账户管理',
-                  subtitle: '管理你的支付账户',
-                  onTap: () => _navigateTo(context, const AccountListScreen()),
-                ),
-                const Divider(height: 1, indent: 56),
-                _buildNavigationTile(
-                  context,
-                  icon: Icons.category,
-                  iconColor: 0xFF3B82F6,
-                  title: '分类管理',
-                  subtitle: '自定义收支分类',
-                  onTap: () => _navigateTo(context, const CategoryListScreen()),
-                ),
-                const Divider(height: 1, indent: 56),
-                _buildNavigationTile(
-                  context,
-                  icon: Icons.label,
-                  iconColor: 0xFF5EB8FF,
-                  title: '标签管理',
-                  subtitle: '管理交易标签',
-                  onTap: () => _navigateTo(context, const TagListScreen()),
-                ),
-                const Divider(height: 1, indent: 56),
-                _buildNavigationTile(
-                  context,
-                  icon: Icons.account_balance,
-                  iconColor: 0xFFEF4444,
-                  title: '贷款管理',
-                  subtitle: '管理贷款和负债',
-                  onTap: () => _navigateTo(context, const LoanListScreen()),
-                ),
-              ],
-            ),
+          _buildNavCard(
+            context, icon: Icons.account_balance_wallet_rounded, iconColor: 0xFFF59E0B,
+            title: '账户管理', subtitle: '管理你的支付账户',
+            onTap: () => _navigateTo(context, const AccountListScreen()),
           ).animate().fadeIn(delay: 100.ms, duration: 300.ms),
+          _buildNavCard(
+            context, icon: Icons.category_rounded, iconColor: 0xFF3B82F6,
+            title: '分类管理', subtitle: '自定义收支分类',
+            onTap: () => _navigateTo(context, const CategoryListScreen()),
+          ).animate().fadeIn(delay: 150.ms, duration: 300.ms),
+          _buildNavCard(
+            context, icon: Icons.label_rounded, iconColor: 0xFF8BB8E8,
+            title: '标签管理', subtitle: '管理交易标签',
+            onTap: () => _navigateTo(context, const TagListScreen()),
+          ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
+          _buildNavCard(
+            context, icon: Icons.real_estate_agent_rounded, iconColor: 0xFFEF4444,
+            title: '贷款管理', subtitle: '管理贷款和负债',
+            onTap: () => _navigateTo(context, const LoanListScreen()),
+          ).animate().fadeIn(delay: 250.ms, duration: 300.ms),
           const SizedBox(height: 16),
 
           // 导入导出
           _buildSectionHeader(context, '导入导出'),
-          AppCard(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                _buildNavigationTile(
-                  context,
-                  icon: Icons.file_download,
-                  iconColor: 0xFF10B981,
-                  title: '账单导入',
-                  subtitle: '从微信/支付宝导入账单',
-                  onTap: () => _navigateTo(context, const ImportScreen()),
-                ),
-                const Divider(height: 1, indent: 56),
-                _buildNavigationTile(
-                  context,
-                  icon: Icons.file_upload,
-                  iconColor: 0xFF06B6D4,
-                  title: '数据导出',
-                  subtitle: '导出为 CSV 或 Excel',
-                  onTap: () => _showExportDialog(context, ref),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
+          _buildNavCard(
+            context, icon: Icons.file_download_rounded, iconColor: 0xFF10B981,
+            title: '账单导入', subtitle: '从微信/支付宝导入账单',
+            onTap: () => _navigateTo(context, const ImportScreen()),
+          ).animate().fadeIn(delay: 300.ms, duration: 300.ms),
+          _buildNavCard(
+            context, icon: Icons.file_upload_rounded, iconColor: 0xFF06B6D4,
+            title: '数据导出', subtitle: '导出为 CSV 或 Excel',
+            onTap: () => _showExportDialog(context, ref),
+          ).animate().fadeIn(delay: 350.ms, duration: 300.ms),
           const SizedBox(height: 16),
 
           // 智能记账
           _buildSectionHeader(context, '智能记账'),
-          AppCard(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                _buildNavigationTile(
-                  context,
-                  icon: Icons.notifications_active,
-                  iconColor: 0xFF10B981,
-                  title: '支付通知监听',
-                  subtitle: '自动识别微信/支付宝支付通知',
-                  onTap: () => _navigateTo(context, const NotificationSettingsScreen()),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(delay: 250.ms, duration: 300.ms),
+          _buildNavCard(
+            context, icon: Icons.notifications_active_rounded, iconColor: 0xFF8B5CF6,
+            title: '支付通知监听', subtitle: '自动识别微信/支付宝支付通知',
+            onTap: () => _navigateTo(context, const NotificationSettingsScreen()),
+          ).animate().fadeIn(delay: 400.ms, duration: 300.ms),
+          _buildNavCard(
+            context, icon: Icons.auto_awesome_rounded, iconColor: 0xFFF59E0B,
+            title: '智能助手', subtitle: 'AI 分析账单给出理财建议',
+            onTap: () => _navigateTo(context, const AiAssistantScreen()),
+          ).animate().fadeIn(delay: 420.ms, duration: 300.ms),
+          _buildNavCard(
+            context, icon: Icons.tune_rounded, iconColor: 0xFF10B981,
+            title: 'AI 配置', subtitle: '设置 API Key 和模型参数',
+            onTap: () => _navigateTo(context, const AiConfigScreen()),
+          ).animate().fadeIn(delay: 440.ms, duration: 300.ms),
           const SizedBox(height: 16),
 
           // 高级功能
           _buildSectionHeader(context, '高级功能'),
-          AppCard(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                _buildNavigationTile(
-                  context,
-                  icon: Icons.account_balance,
-                  iconColor: 0xFFEC4899,
-                  title: '预算管理',
-                  subtitle: '设置和跟踪预算',
-                  onTap: () => _navigateTo(context, const BudgetScreen()),
-                ),
-                const Divider(height: 1, indent: 56),
-                _buildNavigationTile(
-                  context,
-                  icon: Icons.repeat,
-                  iconColor: 0xFFF97316,
-                  title: '周期记账',
-                  subtitle: '自动记录固定收支',
-                  onTap: () => _navigateTo(context, const RecurringScreen()),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(delay: 300.ms, duration: 300.ms),
+          _buildNavCard(
+            context, icon: Icons.pie_chart_rounded, iconColor: 0xFFEC4899,
+            title: '预算管理', subtitle: '设置和跟踪预算',
+            onTap: () => _navigateTo(context, const BudgetScreen()),
+          ).animate().fadeIn(delay: 500.ms, duration: 300.ms),
+          _buildNavCard(
+            context, icon: Icons.repeat_rounded, iconColor: 0xFFF97316,
+            title: '周期记账', subtitle: '自动记录固定收支',
+            onTap: () => _navigateTo(context, const RecurringScreen()),
+          ).animate().fadeIn(delay: 550.ms, duration: 300.ms),
           const SizedBox(height: 16),
 
           // 关于
           _buildSectionHeader(context, '关于'),
           AppCard(
-            margin: const EdgeInsets.symmetric(vertical: 8),
+            margin: const EdgeInsets.symmetric(vertical: 6),
             padding: EdgeInsets.zero,
             child: Column(
               children: [
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryOf(brightness).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.info_outline,
-                      color: AppColors.primaryOf(brightness),
-                    ),
-                  ),
-                  title: const Text('版本'),
-                  trailing: const Text('1.0.0'),
-                ),
+                _buildInfoTile(context, icon: Icons.info_outline_rounded, iconColor: AppColors.lightPrimary, title: '版本', trailing: const Text('1.10.0', style: TextStyle(fontSize: 14))),
                 const Divider(height: 1, indent: 56),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondaryOf(brightness).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.description,
-                      color: AppColors.secondaryOf(brightness),
-                    ),
-                  ),
-                  title: const Text('用户协议'),
-                  trailing: const Icon(Icons.chevron_right),
-                ),
+                _buildInfoTile(context, icon: Icons.description_rounded, iconColor: AppColors.secondary, title: '用户协议'),
                 const Divider(height: 1, indent: 56),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.info.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.privacy_tip,
-                      color: AppColors.info,
-                    ),
-                  ),
-                  title: const Text('隐私政策'),
-                  trailing: const Icon(Icons.chevron_right),
-                ),
+                _buildInfoTile(context, icon: Icons.privacy_tip_rounded, iconColor: AppColors.info, title: '隐私政策'),
               ],
             ),
-          ).animate().fadeIn(delay: 400.ms, duration: 300.ms),
+          ).animate().fadeIn(delay: 600.ms, duration: 300.ms),
         ],
       ),
     );
@@ -271,7 +176,7 @@ class ProfileScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withOpacity(0.85),
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.85),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Row(
@@ -318,7 +223,7 @@ class ProfileScreen extends ConsumerWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 20),
@@ -347,7 +252,7 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 child: CircleAvatar(
                   radius: 37,
-                  backgroundColor: AppColors.lightPrimary.withOpacity(0.15),
+                  backgroundColor: AppColors.lightPrimary.withValues(alpha: 0.15),
                   backgroundImage: profile.avatarPath != null
                       ? FileImage(File(profile.avatarPath!))
                       : null,
@@ -371,7 +276,7 @@ class ProfileScreen extends ConsumerWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
+                        color: Colors.black.withValues(alpha: 0.15),
                         blurRadius: 4,
                       ),
                     ],
@@ -393,7 +298,7 @@ class ProfileScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF22C55E).withOpacity(0.3),
+                        color: const Color(0xFF22C55E).withValues(alpha: 0.3),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -430,7 +335,7 @@ class ProfileScreen extends ConsumerWidget {
               Icon(
                 Icons.edit_rounded,
                 size: 16,
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
               ),
             ],
           ),
@@ -439,7 +344,7 @@ class ProfileScreen extends ConsumerWidget {
         Text(
           profile.subtitle,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: 0.6),
             fontSize: 13,
           ),
         ),
@@ -486,7 +391,7 @@ class ProfileScreen extends ConsumerWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: Colors.grey.withOpacity(0.15),
+              backgroundColor: Colors.grey.withValues(alpha: 0.15),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 Color(0xFF22C55E),
               ),
@@ -646,13 +551,13 @@ class ProfileScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: isUnlocked
-            ? achievement.color.withOpacity(0.08)
-            : Theme.of(context).colorScheme.surface.withOpacity(0.6),
+            ? achievement.color.withValues(alpha: 0.08)
+            : Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isUnlocked
-              ? achievement.color.withOpacity(0.3)
-              : Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              ? achievement.color.withValues(alpha: 0.3)
+              : Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -664,14 +569,14 @@ class ProfileScreen extends ConsumerWidget {
             height: 44,
             decoration: BoxDecoration(
               color: isUnlocked
-                  ? achievement.color.withOpacity(0.15)
-                  : Colors.grey.withOpacity(0.1),
+                  ? achievement.color.withValues(alpha: 0.15)
+                  : Colors.grey.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               achievement.icon,
               size: 24,
-              color: isUnlocked ? achievement.color : Colors.grey.withOpacity(0.4),
+              color: isUnlocked ? achievement.color : Colors.grey.withValues(alpha: 0.4),
             ),
           ),
           const SizedBox(height: 10),
@@ -680,7 +585,7 @@ class ProfileScreen extends ConsumerWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: isUnlocked ? null : Colors.grey.withOpacity(0.6),
+              color: isUnlocked ? null : Colors.grey.withValues(alpha: 0.6),
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -700,19 +605,65 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  // ========== 设置区块方法（复用自 settings_screen） ==========
+  // ========== 设置区块方法 ==========
 
   Widget _buildSectionHeader(BuildContext context, String title) {
-    final brightness = Theme.of(context).brightness;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Text(
         title,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: AppColors.primaryOf(brightness),
-              fontWeight: FontWeight.w600,
-            ),
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant,
+          letterSpacing: 0.5,
+        ),
       ),
+    );
+  }
+
+  Widget _buildNavCard(
+    BuildContext context, {
+    required IconData icon,
+    required int iconColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return AppCard(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: _buildNavigationTile(
+        context,
+        icon: icon,
+        iconColor: iconColor,
+        title: title,
+        subtitle: subtitle,
+        onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _buildInfoTile(
+    BuildContext context, {
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    Widget? trailing,
+  }) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: iconColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: iconColor, size: 21),
+      ),
+      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+      trailing: trailing ?? Icon(Icons.chevron_right_rounded, size: 20, color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
     );
   }
 
@@ -723,25 +674,27 @@ class ProfileScreen extends ConsumerWidget {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              width: 38,
+              height: 38,
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.warning.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                themeMode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
+                themeMode == ThemeMode.dark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
                 color: AppColors.warning,
+                size: 21,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('主题模式'),
+                  const Text('主题模式', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
                   Text(
                     _getThemeModeText(themeMode),
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
                   ),
                 ],
               ),
@@ -777,17 +730,19 @@ class ProfileScreen extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     return ListTile(
+      contentPadding: EdgeInsets.zero,
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        width: 38,
+        height: 38,
         decoration: BoxDecoration(
-          color: Color(iconColor).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
+          color: Color(iconColor).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: Color(iconColor)),
+        child: Icon(icon, color: Color(iconColor), size: 21),
       ),
-      title: Text(title),
-      subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_right),
+      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+      subtitle: subtitle.isNotEmpty ? Text(subtitle, style: TextStyle(fontSize: 12, color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary)) : null,
+      trailing: Icon(Icons.chevron_right_rounded, size: 20, color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
       onTap: onTap,
     );
   }
