@@ -120,6 +120,13 @@ class PaymentNotificationService {
     } catch (_) {}
   }
 
+  /// 删除指定记录（从表中移除）
+  Future<void> deletePayment(int id) async {
+    try {
+      await _channel.invokeMethod('deletePayment', id);
+    } catch (_) {}
+  }
+
   /// 清空所有待处理记录（不可恢复）
   Future<void> clearPendingPayments() async {
     try {

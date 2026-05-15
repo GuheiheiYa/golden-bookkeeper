@@ -26,6 +26,7 @@ dependencies:
   # UI / 样式
   google_fonts: ^6.0.0
   flutter_animate: ^4.5.0
+  font_awesome_flutter: ^10.7.0
 
   # 图表
   fl_chart: ^0.68.0

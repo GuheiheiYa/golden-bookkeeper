@@ -410,6 +410,16 @@ class PendingPaymentDbHelper(context: Context) : SQLiteOpenHelper(context, DB_NA
     }
 
     /**
+     * 删除指定记录（从表中永久移除）
+     */
+    fun deletePayment(id: Long) {
+        writableDatabase.execSQL(
+            "DELETE FROM pending_payments WHERE id = ?",
+            arrayOf(id.toString())
+        )
+    }
+
+    /**
      * 清空所有待处理记录（DELETE，不可恢复）
      */
     fun clearAll() {

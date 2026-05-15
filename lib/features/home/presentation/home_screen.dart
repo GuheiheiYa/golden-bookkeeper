@@ -462,7 +462,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     void navigateTo(Widget screen) {
       Navigator.of(context).push(
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => screen,
+          pageBuilder: (_, __, ___) => Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppColors.bgGradientTop,
+                  AppColors.bgGradientMid,
+                  AppColors.bgGradientBottom,
+                ],
+              ),
+            ),
+            child: screen,
+          ),
           transitionsBuilder: (_, animation, __, child) {
             return FadeTransition(opacity: animation, child: child);
           },

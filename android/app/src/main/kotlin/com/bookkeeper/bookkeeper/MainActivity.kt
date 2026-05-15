@@ -111,6 +111,17 @@ class MainActivity : FlutterActivity() {
                     result.success(true)
                 }
 
+                // ── 删除单条记录 ──
+                "deletePayment" -> {
+                    val id = (call.arguments as? Number)?.toLong()
+                    if (id != null) {
+                        val helper = PendingPaymentDbHelper(this)
+                        helper.deletePayment(id)
+                        helper.close()
+                    }
+                    result.success(true)
+                }
+
                 // ── 清空所有待处理记录 ──
                 "clearPendingPayments" -> {
                     val helper = PendingPaymentDbHelper(this)

@@ -798,31 +798,72 @@ ScaffoldMessenger.of(context).showSnackBar(
 
 #### 6.17 底部弹窗（Bottom Sheet）
 
+> **此规范为强制标准，所有新增底部弹窗必须遵守。** 参考实现：`lib/features/notification/presentation/pending_confirm_sheet.dart`
+
+**调用方式：**
+
 ```dart
 showModalBottomSheet(
   context: context,
   isScrollControlled: true,
+  useRootNavigator: true,  // 覆盖底部导航栏
   backgroundColor: Colors.transparent,
-  builder: (_) => Container(
+  builder: (_) => const SomeSheet(),
+);
+```
+
+**弹窗主体结构：**
+
+```dart
+ConstrainedBox(
+  constraints: BoxConstraints(maxHeight: screenHeight * 0.72),  // 最大高度
+  child: Container(
     decoration: BoxDecoration(
-      color: isDark ? AppColors.darkSurface : Colors.white,
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      color: isDark ? AppColors.darkSurface : Colors.white,  // 浅色纯白
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
     ),
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 拖拽手柄
-        Container(
-          width: 40, height: 4,
-          margin: EdgeInsets.only(top: 12),
-          decoration: BoxDecoration(
-            color: AppColors.lightOutline,
-            borderRadius: BorderRadius.circular(2),
+        // 1. 拖拽手柄
+        Padding(
+          padding: const EdgeInsets.only(top: 14, bottom: 4),
+          child: Container(
+            width: 40, height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.lightOutline,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
         ),
-        Padding(
-          padding: EdgeInsets.all(24),
-          child: ...
+        // 2. 可滚动内容区
+        Flexible(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 弹窗内容...
+                const SizedBox(height: 12),  // 底部留白
+              ],
+            ),
+          ),
+        ),
+        // 3. 固定底部按钮栏（不随滚动）
+        Container(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : Colors.white,
+            border: Border(
+              top: BorderSide(
+                color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5),
+                width: 0.5,
+              ),
+            ),
+          ),
+          child: Row(children: [
+            // 次要按钮 + 主要按钮
+          ]),
         ),
       ],
     ),
@@ -830,13 +871,32 @@ showModalBottomSheet(
 )
 ```
 
-| 属性 | 值 |
-|------|-----|
-| 顶部圆角 | 24px |
-| 背景色 | 浅色: 白色 / 深色: `AppColors.darkSurface` |
-| 拖拽手柄 | 40×4, borderRadius 2, `AppColors.lightOutline` |
-| 内边距 | 24px all |
-| `backgroundColor` | 必须为 `Colors.transparent`（由内部 Container 设置背景） |
+| 属性 | 值 | 说明 |
+|------|-----|------|
+| 最大高度 | `screenHeight * 0.72` | 留出顶部内容可见 |
+| 顶部圆角 | 28px | |
+| 背景色（浅色） | `Colors.white` 纯白 | 禁用非白色，除非特殊场景 |
+| 背景色（深色） | `AppColors.darkSurface` | |
+| 拖拽手柄 | 40×4, borderRadius 2, `AppColors.lightOutline` | 距顶部 14px |
+| 可滚动区域 padding | `fromLTRB(20, 12, 20, 0)` | |
+| 固定按钮栏 | 分隔线 0.5px + padding `fromLTRB(20, 12, 20, 8)` | |
+| `useRootNavigator` | 必须为 `true` | 覆盖底部导航栏 |
+| `backgroundColor` | 必须为 `Colors.transparent` | |
+
+**弹窗内组件规范：**
+
+| 组件 | 规范 |
+|------|------|
+| 区块标签 | 13px w600, `AppColors.lightOnSurfaceVariant`, letterSpacing 0.5, 与内容间距 8px |
+| 输入框填充色 | 浅色 `Color(0xFFF3F4F6)`（中性浅灰），深色 `AppColors.darkSurfaceVariant` |
+| 输入框字体 | 15px, height 1.5, padding `horizontal: 12, vertical: 10` |
+| 输入框圆角 | 12px, 聚焦边框 `AppColors.lightPrimary` 1.5px |
+| 忽略按钮 | OutlinedButton, 48px 高, 24px 圆角, `AppColors.lightOutline` 描边 |
+| 确认按钮 | 黄色渐变胶囊, 48px 高, 24px 圆角, 文字 `AppColors.warmYellowText` |
+| 分类网格 | 4 列, LayoutBuilder 动态计算宽度, 间距 8px |
+| 分类未选中 | 透明背景, 图标保留颜色, 12px 文字 |
+| 分类选中 | 分类色 12% 背景, 12px 圆角, 无边框 |
+| 账户标签 | 圆角 14px, 选中: 账户色 20% 背景, 未选中: 账户色 8% 背景 |
 
 ---
 

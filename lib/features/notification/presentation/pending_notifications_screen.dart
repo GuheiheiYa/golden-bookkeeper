@@ -156,6 +156,7 @@ class _PendingNotificationsScreenState
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         title: const Text('待确认记账', style: TextStyle(color: Colors.white)),
         actions: [
@@ -366,6 +367,7 @@ class _PendingNotificationsScreenState
     final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (_) => PendingConfirmSheet(data: notification),
     );
@@ -376,7 +378,7 @@ class _PendingNotificationsScreenState
 
   Future<void> _ignore(int id) async {
     final service = PaymentNotificationService();
-    await service.markPaymentProcessed(id);
+    await service.deletePayment(id);
     _loadNotifications();
   }
 
