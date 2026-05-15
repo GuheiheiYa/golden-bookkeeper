@@ -109,19 +109,9 @@ class SettingsScreen extends ConsumerWidget {
 
           // 关于
           _buildSectionHeader(context, '关于'),
-          AppCard(
-            margin: const EdgeInsets.symmetric(vertical: 6),
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                _buildInfoTile(context, icon: Icons.info_outline_rounded, iconColor: AppColors.lightPrimary, title: '版本', trailing: const Text('1.10.0', style: TextStyle(fontSize: 14))),
-                const Divider(height: 1, indent: 56),
-                _buildInfoTile(context, icon: Icons.description_rounded, iconColor: AppColors.secondary, title: '用户协议'),
-                const Divider(height: 1, indent: 56),
-                _buildInfoTile(context, icon: Icons.privacy_tip_rounded, iconColor: AppColors.info, title: '隐私政策'),
-              ],
-            ),
-          ).animate().fadeIn(delay: 500.ms, duration: 300.ms),
+          _buildInfoCard(context, icon: Icons.info_outline_rounded, iconColor: AppColors.lightPrimary, title: '版本', trailing: const Text('1.10.0', style: TextStyle(fontSize: 14))).animate().fadeIn(delay: 500.ms, duration: 300.ms),
+          _buildInfoCard(context, icon: Icons.description_rounded, iconColor: AppColors.secondary, title: '用户协议', onTap: () {}).animate().fadeIn(delay: 520.ms, duration: 300.ms),
+          _buildInfoCard(context, icon: Icons.privacy_tip_rounded, iconColor: AppColors.info, title: '隐私政策', onTap: () {}).animate().fadeIn(delay: 540.ms, duration: 300.ms),
           const SizedBox(height: 32),
         ],
       ),
@@ -152,39 +142,109 @@ class SettingsScreen extends ConsumerWidget {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return AppCard(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      child: _buildNavigationTile(
-        context,
-        icon: icon,
-        iconColor: iconColor,
-        title: title,
-        subtitle: subtitle,
-        onTap: onTap,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(28),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : AppColors.lightCard,
+              borderRadius: BorderRadius.circular(28),
+              border: isDark ? null : Border.all(color: AppColors.lightOutline, width: 0.5),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark ? Colors.black.withValues(alpha: 0.15) : AppColors.lightPrimary.withValues(alpha: 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Color(iconColor).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: Color(iconColor), size: 20),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 2),
+                      Text(subtitle, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, size: 20, color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildInfoTile(
+  Widget _buildInfoCard(
     BuildContext context, {
     required IconData icon,
     required Color iconColor,
     required String title,
     Widget? trailing,
+    VoidCallback? onTap,
   }) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: iconColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(28),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : AppColors.lightCard,
+              borderRadius: BorderRadius.circular(28),
+              border: isDark ? null : Border.all(color: AppColors.lightOutline, width: 0.5),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark ? Colors.black.withValues(alpha: 0.15) : AppColors.lightPrimary.withValues(alpha: 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 20),
+                ),
+                const SizedBox(width: 14),
+                Expanded(child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+                if (trailing != null) trailing,
+              ],
+            ),
+          ),
         ),
-        child: Icon(icon, color: iconColor, size: 21),
       ),
-      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-      trailing: trailing ?? Icon(Icons.chevron_right_rounded, size: 20, color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
     );
   }
 
@@ -243,32 +303,6 @@ class SettingsScreen extends ConsumerWidget {
       case ThemeMode.dark:
         return '深色模式';
     }
-  }
-
-  Widget _buildNavigationTile(
-    BuildContext context, {
-    required IconData icon,
-    required int iconColor,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: Color(iconColor).withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: Color(iconColor), size: 21),
-      ),
-      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-      subtitle: subtitle.isNotEmpty ? Text(subtitle, style: TextStyle(fontSize: 12, color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary)) : null,
-      trailing: Icon(Icons.chevron_right_rounded, size: 20, color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary),
-      onTap: onTap,
-    );
   }
 
   void _navigateTo(BuildContext context, Widget screen) {
