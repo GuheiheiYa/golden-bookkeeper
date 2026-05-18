@@ -8,8 +8,8 @@ class AiService {
   static const _keyApiKey = 'ai_api_key';
   static const _keyModel = 'ai_model';
 
-  static const defaultEndpoint = 'https://api.openai.com/v1/chat/completions';
-  static const defaultModel = 'gpt-4o-mini';
+  static const defaultEndpoint = 'https://api.deepseek.com/chat/completions';
+  static const defaultModel = 'deepseek-v4-flash';
 
   // ═══════════════════════════════════════════
   // 配置读写
@@ -54,17 +54,29 @@ class AiService {
   // API 调用
   // ═══════════════════════════════════════════
 
-  /// 测试 API 连接
+  /// 测试 API 连接（使用已保存的配置）
   Future<String> testConnection() async {
     final endpoint = await getEndpoint();
     final apiKey = await getApiKey();
     final model = await getModel();
+    return testConnectionWith(endpoint: endpoint, apiKey: apiKey, model: model);
+  }
 
+  /// 测试 API 连接（直接传入参数，不从 SharedPreferences 读取）
+  Future<String> testConnectionWith({
+    required String endpoint,
+    required String apiKey,
+    required String model,
+  }) async {
     if (apiKey.isEmpty) return '请先配置 API Key';
+    if (endpoint.isEmpty) return '请先配置接口地址';
 
     try {
+      final uri = Uri.tryParse(endpoint);
+      if (uri == null || !uri.hasScheme) return '连接失败: 无效的接口地址';
+
       final response = await http.post(
-        Uri.parse(endpoint),
+        uri,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $apiKey',

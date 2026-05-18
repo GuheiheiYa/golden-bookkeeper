@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/database/app_database.dart';
@@ -20,6 +21,11 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
   final List<Map<String, dynamic>> _messages = [];
   bool _loading = false;
   String? _contextData;
+
+  // 聊天气泡颜色
+  static const _userBubbleColor = Color(0xFF337CFF);
+  static const _aiBubbleColorLight = Color(0xFFEAF1FE);
+  static const _aiBubbleColorDark = Color(0xFF1E2A3A);
 
   @override
   void initState() {
@@ -88,9 +94,10 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: Colors.transparent,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('智能助手', style: TextStyle(color: Colors.white)),
+        title: const Text('智能助手', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
@@ -102,7 +109,7 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
                 color: isDark ? AppColors.darkSurface : Colors.white,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
               ),
-              child: _messages.isEmpty ? _buildWelcome() : _buildChatList(isDark),
+              child: _messages.isEmpty ? _buildWelcome(isDark) : _buildChatList(isDark),
             ),
           ),
           _buildInputBar(isDark),
@@ -111,41 +118,37 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
     );
   }
 
-  Widget _buildWelcome() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildWelcome(bool isDark) {
     final textColor = isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground;
     final subColor = isDark ? AppColors.darkOnSurfaceVariant : AppColors.lightOnSurfaceVariant;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [AppColors.warmYellow, AppColors.warmYellowDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 40),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [AppColors.warmYellow, AppColors.warmYellowDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
+              borderRadius: BorderRadius.circular(24),
             ),
-            const SizedBox(height: 20),
-            Text('智能理财助手', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: textColor)),
-            const SizedBox(height: 8),
-            Text('我已加载你本月的账单数据\n可以问我任何理财建议', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: subColor, height: 1.5)),
-            const SizedBox(height: 24),
-            _buildQuickQuestion('分析本月支出，哪些地方可以优化？'),
-            _buildQuickQuestion('根据我的消费习惯，给3条省钱建议'),
-            _buildQuickQuestion('下个月预算怎么分配更合理？'),
-          ],
-        ),
+            child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 40),
+          ),
+          const SizedBox(height: 20),
+          Text('智能理财助手', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: textColor)),
+          const SizedBox(height: 8),
+          Text('我已加载你本月的账单数据\n可以问我任何理财建议', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: subColor, height: 1.5)),
+          const SizedBox(height: 24),
+          _buildQuickQuestion('分析本月支出，哪些地方可以优化？', isDark),
+          _buildQuickQuestion('根据我的消费习惯，给3条省钱建议', isDark),
+          _buildQuickQuestion('下个月预算怎么分配更合理？', isDark),
+        ],
       ),
     );
   }
 
-  Widget _buildQuickQuestion(String text) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildQuickQuestion(String text, bool isDark) {
     final textColor = isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground;
     final bgColor = isDark ? AppColors.darkSurfaceVariant : const Color(0xFFF3F4F6);
     return Padding(
@@ -166,6 +169,7 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
   }
 
   Widget _buildChatList(bool isDark) {
+    final aiTextColor = isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground;
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -173,16 +177,15 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
       itemBuilder: (ctx, i) {
         final msg = _messages[i];
         final isUser = msg['role'] == 'user';
+        final content = msg['content'] as String;
         return Align(
           alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
           child: Container(
             margin: const EdgeInsets.only(bottom: 12),
-            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.85),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isUser
-                  ? AppColors.lightPrimary.withValues(alpha: 0.2)
-                  : (isDark ? AppColors.darkSurfaceVariant : const Color(0xFFF3F4F6)),
+              color: isUser ? _userBubbleColor : (isDark ? _aiBubbleColorDark : _aiBubbleColorLight),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(18),
                 topRight: const Radius.circular(18),
@@ -190,9 +193,32 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
                 bottomRight: isUser ? const Radius.circular(6) : const Radius.circular(18),
               ),
             ),
-            child: Text(
-              msg['content'] as String,
-              style: TextStyle(fontSize: 15, height: 1.5, color: isDark ? AppColors.darkOnBackground : AppColors.lightOnBackground),
+            child: isUser
+                ? Text(content, style: const TextStyle(fontSize: 15, height: 1.5, color: Colors.white))
+                : MarkdownBody(
+              data: content,
+              selectable: true,
+              styleSheet: MarkdownStyleSheet(
+                p: TextStyle(fontSize: 15, height: 1.6, color: aiTextColor),
+                h1: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: aiTextColor),
+                h2: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: aiTextColor),
+                h3: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: aiTextColor),
+                h4: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: aiTextColor),
+                strong: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: aiTextColor),
+                em: TextStyle(fontSize: 15, fontStyle: FontStyle.italic, color: aiTextColor),
+                code: TextStyle(fontSize: 13, color: aiTextColor, backgroundColor: isDark ? const Color(0xFF2A3040) : const Color(0xFFF0EBF5)),
+                codeblockDecoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF2A3040) : const Color(0xFFF5F0FA),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                blockquoteDecoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF2A2225) : const Color(0xFFF8F6FA),
+                  border: const Border(left: BorderSide(color: AppColors.lightPrimary, width: 3)),
+                ),
+                listBullet: TextStyle(fontSize: 15, color: aiTextColor),
+                tableBody: TextStyle(fontSize: 14, color: aiTextColor),
+                tableHead: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: aiTextColor),
+              ),
             ),
           ),
         );
@@ -201,8 +227,9 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
   }
 
   Widget _buildInputBar(bool isDark) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+      padding: EdgeInsets.fromLTRB(12, 8, 12, bottomInset > 0 ? 12 : 24),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : Colors.white,
         border: Border(top: BorderSide(color: isDark ? AppColors.darkOutline : const Color(0xFFF0EBF5), width: 0.5)),
@@ -233,8 +260,8 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                gradient: _loading ? null : const LinearGradient(colors: [AppColors.warmYellow, AppColors.warmYellowDark], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                color: _loading ? AppColors.lightOutline : null,
+                gradient: _loading ? null : const LinearGradient(colors: [_userBubbleColor, Color(0xFF2460CC)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                color: _loading ? const Color(0xFF2460CC) : null,
                 shape: BoxShape.circle,
               ),
               child: _loading
